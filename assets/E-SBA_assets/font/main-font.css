@@ -1,0 +1,8 @@
+@font-face {
+    font-family : 'Poppins';
+    font-weight: 300;
+    src: url('Poppins-Regular.ttf') format('woff2'), url('Poppins-Regular.ttf') format('ttf');
+     /* Gantikan 'nama-file-font' dengan nama file font yang Anda download 
+     Jika Anda memiliki dua file font dengan format .woff2 dan .woff, gunakan keduanya seperti contoh di atas  */
+  }
+  
