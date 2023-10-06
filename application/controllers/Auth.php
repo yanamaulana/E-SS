@@ -3,17 +3,20 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class Auth extends CI_Controller
 {
+    private $HR;
+    private $Tmst_Bod               = 'Tmst_Bod';
     private $ERPQview_User_Employee = 'ERPQview_User_Employee';
     private $HRQview_Employee_Detail = 'HRQview_Employee_Detail';
     public function __construct()
     {
         parent::__construct();
         $this->load->model('m_helper', 'help');
+        $this->HR = $this->load->database('HR', TRUE);
     }
 
     public function index()
     {
-        if ($this->session->userdata("sys_username")) {
+        if ($this->session->userdata("sys_sba_username")) {
             return redirect("Dashboard");
         }
         $this->data['page_title'] = "Login";
@@ -58,19 +61,37 @@ class Auth extends CI_Controller
                 ];
                 return $this->help->Fn_resulting_response($response);
             }
-            $HR = $this->load->database('HR', TRUE);
-            $employee = $HR->get_where($this->HRQview_Employee_Detail, [
+
+            $sqlemployee = $this->HR->get_where($this->HRQview_Employee_Detail, [
                 'Emp_No' => $login->username,
-            ])->row_array();
+            ]);
+            $SqlIsBod = $this->db->get_where($this->Tmst_Bod, [
+                'UserID' => $user['User_ID'],
+            ]);
+            if ($sqlemployee->num_rows() > 0) {
+                $employee = $sqlemployee->row_array();
+                $is_dir = 0;
+            } elseif ($SqlIsBod->num_rows() > 0) {
+                $employee = $SqlIsBod->row_array();
+                $is_dir = 1;
+            } else {
+                $response = [
+                    "code" => 404,
+                    "msg" => "Your job position data was not found in the HR system. !"
+                ];
+                return $this->help->Fn_resulting_response($response);
+            }
+
 
             $this->delete_cache();
 
             $session_data = array(
-                'sys_nama'                 => $user['First_Name'],
-                'sys_NIK'                  => $user['User_Name'],
-                'sys_username'             => $user['User_Name'],
-                'sys_jabatan'              => $employee['Pos_Name'],
-                'sys_email'                => $user['Email_Address']
+                'sys_sba_nama'                 => $user['First_Name'],
+                'sys_sba_NIK'                  => $user['User_Name'],
+                'sys_sba_username'             => $user['User_Name'],
+                'sys_sba_jabatan'              => $employee['Pos_Name'],
+                'sys_sba_email'                => $user['Email_Address'],
+                'sys_sba_isDir'                => $is_dir
             );
             $this->session->set_userdata($session_data);
             $response = [
@@ -85,26 +106,25 @@ class Auth extends CI_Controller
             if ($users->num_rows() == 0) {
                 $response = [
                     "code" => 404,
-                    "msg" => "User tidak ditemukan !"
+                    "msg" => "User not found !"
                 ];
                 return $this->help->Fn_resulting_response($response);
             }
             if ($users->num_rows() > 0) {
                 $response = [
                     "code" => 505,
-                    "msg" => "Password tidak sesuai !"
+                    "msg" => "Password not match !"
                 ];
                 return $this->help->Fn_resulting_response($response);
             } else {
                 $response = [
                     "code" => 505,
-                    "msg" => "Username & Password tidak terdaftar !"
+                    "msg" => "Username & Password not registered!"
                 ];
                 return $this->help->Fn_resulting_response($response);
             }
         }
     }
-
 
     private function delete_cache()
     {
@@ -116,10 +136,16 @@ class Auth extends CI_Controller
     public function logout()
     {
         $this->output->delete_cache();
-        $array_items = array('impsys_name', 'impsys_nik', 'impsys_initial', 'impsys_jabatan', 'impsys_telp', 'impsys_type_pembayaran');
+        $array_items = array(
+            'sys_sba_nama',
+            'sys_sba_NIK',
+            'sys_sba_username',
+            'sys_sba_jabatan',
+            'sys_sba_email'
+        );
         $this->session->unset_userdata($array_items);
         session_destroy();
-        $this->session->set_flashdata('success', "Silahkan login kembali untuk mengakses" . $this->config->item('app_name'));
+        $this->session->set_flashdata('success', "Please log in again to access " . $this->config->item('app_name'));
         return redirect('Auth');
     }
 }
