@@ -1,9 +1,32 @@
-   
-div.dataTables_wrapper div.dataTables_filter label {
-    display: block;
-}
+   div.dataTables_wrapper div.dataTables_filter label {
+       display: block;
+   }
 
-div.dataTables_wrapper div.dataTables_filter input {
-    width: 40%;
-    margin: 0;
-}
+   div.dataTables_wrapper div.dataTables_filter input {
+       width: 40%;
+       margin: 0;
+   }
+
+   table.dataTable th {
+       font-size: 9pt !important;
+       color: white;
+   }
+
+   table.dataTable td {
+       font-size: 8pt !important;
+       color: black;
+   }
+
+   table.dataTable tbody tr:hover {
+       background-color: #ECECEC;
+   }
+
+   td.details-control {
+       background: url('../../../../global-assets/DataTables/img/details_open.png') no-repeat left center;
+       cursor: pointer;
+       padding-left: 21px;
+   }
+
+   tr.shown td.details-control {
+       background: url('../../../../global-assets/DataTables/img/details_close.png') no-repeat left center;
+   }

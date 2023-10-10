@@ -86,6 +86,7 @@ class Auth extends CI_Controller
             $this->delete_cache();
 
             $session_data = array(
+                'sys_sba_userid'               => $user['User_ID'],
                 'sys_sba_nama'                 => $user['First_Name'],
                 'sys_sba_NIK'                  => $user['User_Name'],
                 'sys_sba_username'             => $user['User_Name'],

@@ -24,7 +24,7 @@
     <script src="<?= base_url() ?>assets/global-assets/jquery/jquery.min.js"></script>
 </head>
 
-<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled aside-fixed">
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled aside-fixed" data-kt-aside-minimize="on">
     <!-- data-kt-aside-minimize="on" -->
     <div class="d-flex flex-column flex-root">
         <div class="page d-flex flex-row flex-column-fluid">
@@ -75,7 +75,7 @@
                                     <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">Cash Book Requisition</span>
                                 </div>
                             </div>
-                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'CbrApp_Manager' || $Menu == 'SubmissionAttFull') ? 'hover show' : null; ?>">
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'MyCbr' || $Menu == 'SubmissionAttFull') ? 'hover show' : null; ?>">
                                 <span class="menu-link" data-bs-toggle="tooltip" title="Cash Book Requisition Entry Approval">
                                     <span class="menu-icon">
                                         <!--begin::Svg Icon | path: assets/media/icons/duotune/general/gen055.svg-->
@@ -89,9 +89,9 @@
                                     <span class="menu-title">&nbsp;CBR Approval</span>
                                     <span class="menu-arrow"></span>
                                 </span>
-                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'CbrApp_Manager' || $Menu == 'SubmissionAttFull') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
-                                    <div class="menu-item" data-bs-toggle="tooltip" title="Pengajuan absensi perjadwal mengajar">
-                                        <a class="menu-link <?= ($Menu == 'CbrApp_Manager') ? 'active' : null ?>" href="<?= base_url('CbrApp_Manager') ?>">
+                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'MyCbr' || $Menu == 'SubmissionAttFull') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
+                                    <div class="menu-item" data-bs-toggle="tooltip" title="Approval Manager/Sr.Manager ">
+                                        <a class="menu-link <?= ($Menu == 'MyCbr') ? 'active' : null ?>" href="<?= base_url('MyCbr') ?>">
                                             <span class="menu-icon">
                                                 <!--begin::Svg Icon | path: assets/media/icons/duotune/coding/cod007.svg-->
                                                 <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -100,7 +100,7 @@
                                                     </svg></span>
                                                 <!--end::Svg Icon-->
                                             </span>
-                                            <span class="menu-title ml-2">Manager Approval</span>
+                                            <span class="menu-title ml-2"> &nbsp;My Cbr</span>
                                         </a>
                                     </div>
 
