@@ -6,7 +6,6 @@ class MyCbr extends CI_Controller
     private $Date;
     private $DateTime;
     private $layout = 'layout';
-    private $TaccCashBookReq_Approval_Manager = 'TaccCashBookReq_Approval_Manager';
 
     public function __construct()
     {
@@ -170,42 +169,75 @@ class MyCbr extends CI_Controller
         if (empty($Ref_no)) {
             $code_having_vin = 404;
         } else {
-            $vins = $this->db->query("SELECT Taccount.Account_ID, TAccount.AccountTitle_COde, TAccount.Account_Name, TACCVI_Header.Account_ID, TACCVI_Header.Invoice_Number, TACCVI_Header.VenInvoice_Number, TACCVI_Header.Invoice_Date, TACCVI_Header.Due_Date, TACCVI_Header.Invoice_Status, TACCVI_Header.PO_NUMBER,
-            TACCVI_Header.Paid_invoiceAmount, TACCVI_Header.isDirect, TACCVI_Header.Paid_FreightAmount, isNull(TAccVI_Header.isVoid,0) as isVoid, TaccVI_header.List_TaxCode, TaccVI_Header.LstCBDoc, TACCVI_Header.is_document_received, TACCVI_Header.document_received_date
-            FROM TACCVI_Header
-            INNER JOIN TAccount	ON TACCVI_Header.Account_ID = TAccount.Account_ID
-            INNER JOIN TUserGroupL ON TAccVI_Header.Created_by = TUserGroupL.User_ID
-            WHERE invoice_number = '$Ref_no'
-            ORDER BY TACCVI_Header.Invoice_Date DESC");
-            if ($vins->num_rows() > 0) {
-                foreach ($vins->result_array() as $li) {
-                    $nestedData = array();
+            if (substr($Ref_no, 0, 3) === 'PWU') {
+                $QPo = $this->db->query("SELECT TAccPO_Header.PO_Number, TAccPO_Header.PO_Date, TAccPO_Header.ETD, TAccPO_Header.SO_NumCustomer, TAccPO_Header.Invoice_Status, TAccPO_Header.isNotActive, TAccPO_Header.isSisterCompany, TAccPO_Header.PO_Status, TAccPO_header.Doc_Status, TAccPO_Header.Approval_Status, Taccount.Account_Name, Taccount.AccountTitle_Code
+                FROM TAccPO_header 
+                    LEFT JOIN TAccount 	ON TAccount.Account_ID = TAccPO_header.Account_ID 
+                    where PO_Number = '$Ref_no'
+                ORDER BY TAccPO_header.PO_Number DESC;
+                ");
+                if ($QPo->num_rows() > 0) {
+                    foreach ($QPo->result_array() as $li) {
+                        $nestedData = array();
 
-                    $nestedData['iteration'] = $i;
-                    $nestedData['Account_ID'] = $li['Account_ID'];
-                    $nestedData['AccountTitle_COde'] = $li['AccountTitle_COde'];
-                    $nestedData['Account_Name'] = $li['Account_Name'];
-                    $nestedData['Account_ID'] = $li['Account_ID'];
-                    $nestedData['Invoice_Number'] = $li['Invoice_Number'];
-                    $nestedData['VenInvoice_Number'] = $li['VenInvoice_Number'];
-                    $nestedData['Invoice_Date'] = $li['Invoice_Date'];
-                    $nestedData['Due_Date'] = $li['Due_Date'];
-                    $nestedData['Invoice_Status'] = $li['Invoice_Status'];
-                    $nestedData['PO_NUMBER'] = $li['PO_NUMBER'];
-                    $nestedData['Paid_invoiceAmount'] = $li['Paid_invoiceAmount'];
-                    $nestedData['isDirect'] = $li['isDirect'];
-                    $nestedData['Paid_FreightAmount'] = $li['Paid_FreightAmount'];
-                    $nestedData['isVoid'] = $li['isVoid'];
-                    $nestedData['List_TaxCode'] = $li['List_TaxCode'];
-                    $nestedData['LstCBDoc'] = $li['LstCBDoc'];
-                    $nestedData['is_document_received'] = $li['is_document_received'];
-                    $nestedData['document_received_date'] = $li['document_received_date'];
+                        $nestedData['iteration'] = $i;
+                        $nestedData['PO_Number'] = $li['PO_Number'];
+                        $nestedData['PO_Date'] = date("d-M-Y", strtotime($li['PO_Date']));
+                        $nestedData['ETD'] = date("d-M-Y", strtotime($li['ETD']));
+                        $nestedData['SO_NumCustomer'] = ($li['SO_NumCustomer'] == NULL) ? 'N/A' : $li['SO_NumCustomer'];
+                        $nestedData['Invoice_Status'] = ($li['Invoice_Status'] == 'NI') ? 'No' : 'Yes';
+                        $nestedData['isNotActive'] = ($li['isNotActive'] == '1') ? '<i class="fas fa-times text-danger"></i>' : '<i class="fas fa-check text-success"></i>';
+                        $nestedData['isSisterCompany'] = $li['isSisterCompany'];
+                        $nestedData['PO_Status'] = ($li['PO_Status'] == '1') ? 'New' : (($li['PO_Status'] == '2') ? 'Open' : (($li['PO_Status'] == '3') ? 'Close' : 'Undefined'));
+                        $nestedData['Doc_Status'] = ($li['Doc_Status'] == 1) ? 'Open' : (($li['Doc_Status'] == 2) ? 'Confirm' : (($li['Doc_Status'] == 3) ? 'Delivered' : (($li['Doc_Status'] == 4) ? 'Invoiced' : 'Closed')));
+                        $nestedData['Approval_Status'] = ($li['Approval_Status'] == 0) ? 'New' : (($li['Approval_Status'] == 2) ? 'Awaiting' : (($li['Approval_Status'] == 3) ? 'Approved' : (($li['Approval_Status'] == 4) ? 'Rejected' : (($li['Approval_Status'] == 5) ? 'Revising' : ''))));
+                        $nestedData['Account_Name'] = $li['Account_Name'];
+                        $nestedData['AccountTitle_Code'] = $li['AccountTitle_Code'];
 
-                    $dataVins[] = $nestedData;
-                    $i++;
+                        $dataVins[] = $nestedData;
+                        $i++;
+                    }
+                } else {
+                    $code_having_vin = 404;
                 }
             } else {
-                $code_having_vin = 404;
+                $vins = $this->db->query("SELECT Taccount.Account_ID, TAccount.AccountTitle_COde, TAccount.Account_Name, TACCVI_Header.Account_ID, TACCVI_Header.Invoice_Number, TACCVI_Header.VenInvoice_Number, TACCVI_Header.Invoice_Date, TACCVI_Header.Due_Date, TACCVI_Header.Invoice_Status, TACCVI_Header.PO_NUMBER,
+                TACCVI_Header.Paid_invoiceAmount, TACCVI_Header.isDirect, TACCVI_Header.Paid_FreightAmount, isNull(TAccVI_Header.isVoid,0) as isVoid, TaccVI_header.List_TaxCode, TaccVI_Header.LstCBDoc, TACCVI_Header.is_document_received, TACCVI_Header.document_received_date
+                FROM TACCVI_Header
+                INNER JOIN TAccount	ON TACCVI_Header.Account_ID = TAccount.Account_ID
+                INNER JOIN TUserGroupL ON TAccVI_Header.Created_by = TUserGroupL.User_ID
+                WHERE invoice_number = '$Ref_no'
+                ORDER BY TACCVI_Header.Invoice_Date DESC");
+                if ($vins->num_rows() > 0) {
+                    foreach ($vins->result_array() as $li) {
+                        $nestedData = array();
+
+                        $nestedData['iteration'] = $i;
+                        $nestedData['Account_ID'] = $li['Account_ID'];
+                        $nestedData['AccountTitle_COde'] = $li['AccountTitle_COde'];
+                        $nestedData['Account_Name'] = $li['Account_Name'];
+                        $nestedData['Account_ID'] = $li['Account_ID'];
+                        $nestedData['Invoice_Number'] = $li['Invoice_Number'];
+                        $nestedData['VenInvoice_Number'] = $li['VenInvoice_Number'];
+                        $nestedData['Invoice_Date'] = date("d-M-Y", strtotime($li['Invoice_Date']));
+                        $nestedData['Due_Date'] = date("d-M-Y", strtotime($li['Due_Date']));
+                        $nestedData['Invoice_Status'] = ($li['Invoice_Status'] != 'FP') ? '<span class="badge bg-danger">not paid</span>' : '<span class="badge bg-success">full paid</span>';
+                        $nestedData['PO_NUMBER'] = $li['PO_NUMBER'];
+                        $nestedData['Paid_invoiceAmount'] = $li['Paid_invoiceAmount'];
+                        $nestedData['isDirect'] = $li['isDirect'];
+                        $nestedData['Paid_FreightAmount'] = $li['Paid_FreightAmount'];
+                        $nestedData['isVoid'] = ($li['isVoid'] == '0') ? '<i class="fas fa-times text-success"></i>' : '<i class="fas fa-check text-danger"></i>';
+                        $nestedData['List_TaxCode'] = $li['List_TaxCode'];
+                        $nestedData['LstCBDoc'] = $li['LstCBDoc'];
+                        $nestedData['is_document_received'] = ($li['is_document_received'] == '0') ? '<span class="text-danger">Not Yet Received</span>' : '<span class="text-success">Received</span>';
+                        $nestedData['document_received_date'] = (empty($li['document_received_date'])) ? '' : date("d-M-Y", strtotime($li['document_received_date']));
+
+                        $dataVins[] = $nestedData;
+                        $i++;
+                    }
+                } else {
+                    $code_having_vin = 404;
+                }
             }
         }
 
