@@ -266,9 +266,9 @@ $(document).ready(function () {
         ],
     }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
 
-    $('#TableData tbody').on('click', 'td.details-control', function () {
-        var tr = $(this).parents('tr');
-        var row = $("#TableData").DataTable().row(tr);
+    $(document).on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr'); // Menggunakan closest() untuk mendapatkan elemen tr terdekat
+        var row = tr.closest('table').DataTable().row(tr); // Mendapatkan instance DataTable dari tabel terdekat
 
         if (row.child.isShown()) {
             // This row is already open - close it
@@ -499,7 +499,7 @@ $(document).ready(function () {
 
 
     function Fn_Approve_Submission() {
-        if ($('input[name="SysId[]"]:checked').length == 0) {
+        if ($('input[name="CBReq_No[]"]:checked').length == 0) {
             return Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -511,7 +511,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="base_url"]').attr('content') + "ApprovalAttendance/Approve_Submission",
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/approve_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({
@@ -529,7 +529,8 @@ $(document).ready(function () {
                         icon: 'success',
                         title: response.msg
                     });
-                    $("#TableData").DataTable().ajax.reload(null, false);
+                    $('#CheckAll').removeAttr('checked');
+                    TableData.ajax.reload(null, false);
                     $("#TableDataHistory").DataTable().ajax.reload(null, false);
                 } else {
                     Toast.fire({
@@ -577,6 +578,7 @@ $(document).ready(function () {
             success: function (response) {
                 Swal.close()
                 if (response.code == 200) {
+                    $('#CheckAll').removeAttr('checked');
                     Toast.fire({
                         icon: 'success',
                         title: response.msg
@@ -602,146 +604,190 @@ $(document).ready(function () {
         });
     }
 
-    // var TableDataHistory = $("#TableDataHistory").DataTable({
-    //     destroy: true,
-    //     processing: true,
-    //     serverSide: true,
-    //     paging: true,
-    //     dom: 'lBfrtip',
-    //     orderCellsTop: true,
-    //     select: true,
-    //     fixedHeader: {
-    //         header: true,
-    //         headerOffset: 48
-    //     },
-    //     "lengthMenu": [
-    //         [15, 30, 90, 1000],
-    //         [15, 30, 90, 1000]
-    //     ],
-    //     ajax: {
-    //         url: $('meta[name="base_url"]').attr('content') + "ApprovalAttendance/DT_List_History_Submission",
-    //         dataType: "json",
-    //         type: "POST",
-    //     },
-    //     columns: [{
-    //         data: "SysId",
-    //         name: "SysId",
-    //         render: function (data, type, row, meta) {
-    //             return meta.row + meta.settings._iDisplayStart + 1;
-    //         }
-    //     },
-    //     {
-    //         data: "Name",
-    //         name: "Name",
-    //     },
-    //     {
-    //         data: "Access_ID",
-    //         name: "Access_ID",
-    //     },
-    //     {
-    //         data: "Card",
-    //         name: "Card",
-    //     },
-    //     {
-    //         data: "Date_Att",
-    //         name: "Date_Att",
-    //     },
-    //     {
-    //         data: "Time_Att",
-    //         name: "Time_Att",
-    //     },
-    //     {
-    //         data: "Schedule_Number",
-    //         name: "Schedule_Number",
-    //     },
-    //     {
-    //         data: "Day",
-    //         name: "Day",
-    //     },
-    //     {
-    //         data: "Kelas",
-    //         name: "Kelas",
-    //     },
-    //     {
-    //         data: "Mata_Pelajaran",
-    //         name: "Mata_Pelajaran",
-    //     },
-    //     {
-    //         data: "Time_Start",
-    //         name: "Time_Start",
-    //     },
-    //     {
-    //         data: "Time_Over",
-    //         name: "Time_Over",
-    //     },
-    //     {
-    //         data: "Stand_Hour",
-    //         name: "Stand_Hour",
-    //     },
-    //     {
-    //         data: "Status",
-    //         name: "Status",
-    //         render: function (data, type, row, meta) {
-    //             if (data == '1') {
-    //                 return `<button type="button" class="btn btn-sm btn-primary" title="Approved" data-toggle="tooltip"><i class="fas fa-check fs-3"></i> Approved</button>`
-    //             } else {
-    //                 return `<button type="button" class="btn btn-sm btn-danger" title="Reject" data-toggle="tooltip"><i class="fas fa-times fs-3"></i> Rejected</button>`
-    //             }
-    //         }
-    //     },
-    //     ],
-    //     order: [
-    //         [2, "ASC"]
-    //     ],
-    //     columnDefs: [{
-    //         className: "align-middle text-center",
-    //         targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-    //     }],
-    //     autoWidth: false,
-    //     responsive: true,
-    //     "rowCallback": function (row, data) {
-    //         // if (data.is_active == "0") {
-    //         // 	$('td', row).css('background-color', 'pink');
-    //         // }
-    //     },
-    //     preDrawCallback: function () {
-    //         $("TableDataHistory tbody td").addClass("blurry");
-    //     },
-    //     language: {
-    //         processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" style="text-align:center" class="loading-text"></span> ',
-    //         searchPlaceholder: "Search..."
-    //     },
-    //     drawCallback: function () {
-    //         $("TableDataHistory tbody td").addClass("blurry");
-    //         setTimeout(function () {
-    //             $("TableDataHistory tbody td").removeClass("blurry");
-    //         });
-    //         $('[data-bs-toggle="tooltip"]').tooltip();
-    //     },
-    //     "buttons": [{
-    //         text: `Export to :`,
-    //         className: "btn disabled text-dark bg-white",
-    //     }, {
-    //         text: `<i class="far fa-copy fs-2"></i>`,
-    //         extend: 'copy',
-    //         className: "btn btn-light-warning",
-    //     }, {
-    //         text: `<i class="far fa-file-excel fs-2"></i>`,
-    //         extend: 'excelHtml5',
-    //         title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
-    //         className: "btn btn-light-success",
-    //     }, {
-    //         text: `<i class="far fa-file-pdf fs-2"></i>`,
-    //         extend: 'pdfHtml5',
-    //         title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
-    //         className: "btn btn-light-danger",
-    //         orientation: "landscape"
-    //     }, {
-    //         text: `<i class="fas fa-print fs-2"></i>`,
-    //         extend: 'print',
-    //         className: "btn btn-light-dark",
-    //     }],
-    // }).buttons().container().appendTo('TableDataHistory_wrapper .col-md-6:eq(0)');
+    var TableDataHistory = $("#TableDataHistory").DataTable({
+        destroy: true,
+        processing: true,
+        serverSide: true,
+        paging: true,
+        dom: 'lBfrtip',
+        orderCellsTop: true,
+        select: true,
+        fixedHeader: {
+            header: true,
+            headerOffset: 48
+        },
+        "lengthMenu": [
+            [15, 30, 90, 1000],
+            [15, 30, 90, 1000]
+        ],
+        ajax: {
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/DT_List_History_Submission",
+            dataType: "json",
+            type: "POST",
+        },
+        columns: [
+            {
+                data: "CBReq_No",
+                name: "CBReq_No",
+            },
+            {
+                data: "Type",
+                name: "Type",
+                visible: false
+            },
+            {
+                data: "Document_Date",
+                name: "Document_Date",
+                render: function (data) {
+                    return '<pre>' + data.substring(0, data.indexOf(' ')) + '</pre>';
+                }
+            },
+            {
+                data: "Currency_Id",
+                name: "Currency_Id",
+            },
+            {
+                data: "Amount",
+                name: "Amount",
+                render: function (data) {
+                    return parseFloat(data).toLocaleString('en-US', {
+                        minimumFractionDigits: 4,
+                        maximumFractionDigits: 4
+                    });
+                }
+            },
+            {
+                data: "Document_Number",
+                name: "Document_Number",
+            },
+            {
+                data: "Descript",
+                name: "Descript",
+            },
+            {
+                data: "baseamount",
+                name: "baseamount",
+                visible: false
+            },
+            {
+                data: "curr_rate",
+                name: "curr_rate",
+                visible: false
+            },
+            {
+                data: "Approval_Status",
+                name: "Approval_Status",
+                visible: false
+            },
+            {
+                data: "CBReq_Status",
+                name: "CBReq_Status",
+                render: function (data) {
+                    if (data == 3) {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Close" class="badge badge-success btn-icon"><i class="text-white fas fa-file-archive"></i></a>`
+                    } else if (data == 2) {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-info btn-icon"><i class="text-white fas fa-folder-open"></i></a></button>`
+                    } else {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-warning btn-icon"><i class="text-white fas fa-file"></i></a></button>`
+                    }
+                }
+            },
+            {
+                data: "Paid_Status",
+                name: "Paid_Status",
+                render: function (data) {
+                    if (data == 'NP') {
+                        return `<span class="text-dark badge badge-warning">Not Paid</span>`
+                    } else {
+                        return `<span class="text-dark badge badge-success">Full Paid</span>`
+                    }
+                }
+            },
+            {
+                data: "Creation_DateTime",
+                name: "Creation_DateTime",
+                visible: false
+            },
+            {
+                data: "Created_By",
+                name: "Created_By",
+                visible: false
+            },
+            {
+                data: "First_Name",
+                name: "First_Name",
+            },
+            {
+                data: "Last_Update",
+                name: "Last_Update",
+                visible: false
+            },
+            {
+                data: "Acc_ID",
+                name: "Acc_ID",
+                visible: false
+            },
+            {
+                data: "Approve_Date",
+                name: "Approve_Date",
+                visible: false
+            }
+        ],
+        order: [
+            [3, "DESC"]
+        ],
+        columnDefs: [{
+            className: "text-center",
+            targets: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+        }, {
+            className: "details-control pr-4 dt-nowrap",
+            targets: [0]
+        }],
+        autoWidth: true,
+        responsive: false,
+        "rowCallback": function (row, data) {
+            // if (data.is_active == "0") {
+            // 	$('td', row).css('background-color', 'pink');
+            // }
+        },
+        preDrawCallback: function () {
+            $("TableDataHistory tbody td").addClass("blurry");
+        },
+        language: {
+            processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" style="text-align:center" class="loading-text"></span> ',
+            searchPlaceholder: "Search..."
+        },
+        drawCallback: function () {
+            $("TableDataHistory tbody td").addClass("blurry");
+            setTimeout(function () {
+                $("TableDataHistory tbody td").removeClass("blurry");
+            });
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        },
+        "buttons": [{
+            text: `Export to :`,
+            className: "btn disabled text-dark bg-white",
+        }, {
+            text: `<i class="far fa-copy fs-2"></i>`,
+            extend: 'copy',
+            className: "btn btn-light-warning",
+        }, {
+            text: `<i class="far fa-file-excel fs-2"></i>`,
+            extend: 'excelHtml5',
+            title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
+            className: "btn btn-light-success",
+        }, {
+            text: `<i class="far fa-file-pdf fs-2"></i>`,
+            extend: 'pdfHtml5',
+            title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
+            className: "btn btn-light-danger",
+            orientation: "landscape"
+        }, {
+            text: `<i class="fas fa-print fs-2"></i>`,
+            extend: 'print',
+            className: "btn btn-light-dark",
+        }],
+    }).buttons().container().appendTo('TableDataHistory_wrapper .col-md-6:eq(0)');
 })
 
 function check_uncheck_checkbox(isChecked) {

@@ -6,7 +6,7 @@ class Auth extends CI_Controller
     private $HR;
     private $Tmst_Bod               = 'Tmst_Bod';
     private $ERPQview_User_Employee = 'ERPQview_User_Employee';
-    private $HRQview_Employee_Detail = 'HRQview_Employee_Detail';
+    private $HRQview_Employee_Detail = 'HRQviewEmployeeDetail';
     public function __construct()
     {
         parent::__construct();
@@ -82,7 +82,6 @@ class Auth extends CI_Controller
                 return $this->help->Fn_resulting_response($response);
             }
 
-
             $this->delete_cache();
 
             $session_data = array(
@@ -91,6 +90,7 @@ class Auth extends CI_Controller
                 'sys_sba_NIK'                  => $user['User_Name'],
                 'sys_sba_username'             => $user['User_Name'],
                 'sys_sba_jabatan'              => $employee['Pos_Name'],
+                'sys_sba_department'           => $employee['Division_Name'],
                 'sys_sba_email'                => $user['Email_Address'],
                 'sys_sba_isDir'                => $is_dir
             );
@@ -142,6 +142,7 @@ class Auth extends CI_Controller
             'sys_sba_NIK',
             'sys_sba_username',
             'sys_sba_jabatan',
+            'sys_sba_department',
             'sys_sba_email'
         );
         $this->session->unset_userdata($array_items);
