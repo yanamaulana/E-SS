@@ -44,7 +44,7 @@ class MyCbr extends CI_Controller
         $RulesApproval = $RulesApprovals->row();
 
         foreach ($Cbrs as $CBReq_No) {
-            $this->db->insert('Ttrx_Cbr_Approval', [
+            $this->db->insert($this->Ttrx_Cbr_Approval, [
                 "CBReq_No" => $CBReq_No,
                 "IsAppvStaff" => $RulesApproval->Staff,
                 "Status_AppvStaff" => NULL,
@@ -74,7 +74,7 @@ class MyCbr extends CI_Controller
                 "Status_AppvDirector" => NULL,
                 "AppvDirector_By" => NULL,
                 "AppvDirector_At" => NULL,
-                "IsAppvPresidentDirector" => $RulesApproval->Director,
+                "IsAppvPresidentDirector" => $RulesApproval->PresidentDirector,
                 "Status_AppvPresidentDirector" => NULL,
                 "AppvPresidentDirector_By" => NULL,
                 "AppvPresidentDirector_At" => NULL,
@@ -219,7 +219,7 @@ class MyCbr extends CI_Controller
     {
         $requestData = $_REQUEST;
         $columns = array(
-            // 0 => 'TAccCashBookReq_Header.CBReq_No',
+            0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
             3 => 'Document_Date',
@@ -253,8 +253,8 @@ class MyCbr extends CI_Controller
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
         LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
         WHERE TAccCashBookReq_Header.Type='D'
-        And TAccCashBookReq_Header.Document_Date >= {d '2023-10-01'}
-        And TAccCashBookReq_Header.Document_Date <= {d '2023-10-31'}
+        And TAccCashBookReq_Header.Document_Date >= {d '$from'}
+        And TAccCashBookReq_Header.Document_Date <= {d '$until'}
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
@@ -300,6 +300,53 @@ class MyCbr extends CI_Controller
             $nestedData['Update_By'] = $row['Update_By'];
             $nestedData['Currency_Id'] = $row['Currency_Id'];
             $nestedData['Approve_Date'] = $row['Approve_Date'];
+            $nestedData['IsAppvStaff'] = $row['IsAppvStaff'];
+            $nestedData['Status_AppvStaff'] = $row['Status_AppvStaff'];
+            $nestedData['AppvStaff_By'] = $row['AppvStaff_By'];
+            $nestedData['AppvStaff_At'] = $row['AppvStaff_At'];
+            $nestedData['IsAppvChief'] = $row['IsAppvChief'];
+            $nestedData['Status_AppvChief'] = $row['Status_AppvChief'];
+            $nestedData['AppvChief_By'] = $row['AppvChief_By'];
+            $nestedData['AppvChief_At'] = $row['AppvChief_At'];
+            $nestedData['IsAppvAsstManager'] = $row['IsAppvAsstManager'];
+            $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
+            $nestedData['AppvAsstManager_By'] = $row['AppvAsstManager_By'];
+            $nestedData['AppvAsstManager_At'] = $row['AppvAsstManager_At'];
+            $nestedData['IsAppvManager'] = $row['IsAppvManager'];
+            $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
+            $nestedData['AppvManager_By'] = $row['AppvManager_By'];
+            $nestedData['AppvManager_At'] = $row['AppvManager_At'];
+            $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
+            $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
+            $nestedData['AppvSeniorManager_By'] = $row['AppvSeniorManager_By'];
+            $nestedData['AppvSeniorManager_At'] = $row['AppvSeniorManager_At'];
+            $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
+            $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
+            $nestedData['AppvGeneralManager_By'] = $row['AppvGeneralManager_By'];
+            $nestedData['AppvGeneralManager_At'] = $row['AppvGeneralManager_At'];
+            $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
+            $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
+            $nestedData['AppvDirector_By'] = $row['AppvDirector_By'];
+            $nestedData['AppvDirector_At'] = $row['AppvDirector_At'];
+            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'];
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
+            $nestedData['AppvPresidentDirector_By'] = $row['AppvPresidentDirector_By'];
+            $nestedData['AppvPresidentDirector_At'] = $row['AppvPresidentDirector_At'];
+            $nestedData['IsAppvFinanceStaff'] = $row['IsAppvFinanceStaff'];
+            $nestedData['Status_AppvFinanceStaff'] = $row['Status_AppvFinanceStaff'];
+            $nestedData['AppvFinanceStaff_By'] = $row['AppvFinanceStaff_By'];
+            $nestedData['AppvFinanceStaff_At'] = $row['AppvFinanceStaff_At'];
+            $nestedData['IsAppvFinanceManager'] = $row['IsAppvFinanceManager'];
+            $nestedData['Status_AppvFinanceManager'] = $row['Status_AppvFinanceManager'];
+            $nestedData['AppvFinanceManager_By'] = $row['AppvFinanceManager_By'];
+            $nestedData['AppvFinanceManager_At'] = $row['AppvFinanceManager_At'];
+            $nestedData['IsAppvFinanceDirector'] = $row['IsAppvFinanceDirector'];
+            $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
+            $nestedData['AppvFinanceDirector_By'] = $row['AppvFinanceDirector_By'];
+            $nestedData['AppvFinanceDirector_At'] = $row['AppvFinanceDirector_At'];
+            $nestedData['UserName_User'] = $row['UserName_User'];
+            $nestedData['Rec_Created_At'] = $row['Rec_Created_At'];
+            $nestedData['UserDivision'] = $row['UserDivision'];
 
             $data[] = $nestedData;
         }

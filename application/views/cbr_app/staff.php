@@ -7,12 +7,12 @@
                     <ul class="nav nav-tabs fs-6 border-0">
                         <li class="nav-item">
                             <a class="nav-link mr-5 active btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_4">
-                                <h5 class="font-weight-bold" id="table-title-main">Need To Send Submission.</h5>
+                                <h5 class="font-weight-bold" id="table-title-main">Requires Staff Approval.</h5>
                             </a>
                         </li>
                         <li class="nav-item mr-5">
                             <a class="nav-link btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_5">
-                                <h5 class="font-weight-bold" id="table-title-history">Monitoring & History Submission.</h5>
+                                <h5 class="font-weight-bold" id="table-title-history">Monitoring & History Staff Approval.</h5>
                             </a>
                         </li>
                     </ul>

@@ -21,6 +21,12 @@
        background-color: #ECECEC;
    }
 
+   table.table-striped tbody tr:nth-child(even) {
+       background-color: #f2f2f2;
+   }
+
+
+
    td.details-control {
        background: url('../../../../global-assets/DataTables/img/details_open.png') no-repeat left center;
        cursor: pointer;
