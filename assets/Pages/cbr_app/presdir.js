@@ -156,11 +156,11 @@ $(document).ready(function () {
                     name: "IsAppvStaff",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvStaff == null || row.Status_AppvStaff == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvStaff == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvStaff == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvStaff_Name}</span>` :
+                            (data == 1 && (row.Status_AppvStaff == null || row.Status_AppvStaff == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvStaff_Name}</span>` :
+                                (data == 1 && row.Status_AppvStaff == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvStaff_Name}</span>` :
+                                    (data == 1 && row.Status_AppvStaff == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvStaff_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvStaff_Name}</span>`;
 
                     }
                 },
@@ -169,11 +169,11 @@ $(document).ready(function () {
                     name: "IsAppvChief",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvChief == null || row.Status_AppvChief == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvChief == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvChief == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvChief_Name}</span>` :
+                            (data == 1 && (row.Status_AppvChief == null || row.Status_AppvChief == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvChief_Name}</span>` :
+                                (data == 1 && row.Status_AppvChief == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvChief_Name}</span>` :
+                                    (data == 1 && row.Status_AppvChief == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvChief_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvChief_Name}</span>`;
 
                     }
                 },
@@ -182,11 +182,11 @@ $(document).ready(function () {
                     name: "IsAppvAsstManager",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvAsstManager == null || row.Status_AppvAsstManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvAsstManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvAsstManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvAsstManager_Name}</span>` :
+                            (data == 1 && (row.Status_AppvAsstManager == null || row.Status_AppvAsstManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvAsstManager_Name}</span>` :
+                                (data == 1 && row.Status_AppvAsstManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvAsstManager_Name}</span>` :
+                                    (data == 1 && row.Status_AppvAsstManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvAsstManager_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvAsstManager_Name}</span>`;
 
                     }
                 },
@@ -195,11 +195,11 @@ $(document).ready(function () {
                     name: "IsAppvManager",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvManager == null || row.Status_AppvManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvManager_Name}</span>` :
+                            (data == 1 && (row.Status_AppvManager == null || row.Status_AppvManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvManager_Name}</span>` :
+                                (data == 1 && row.Status_AppvManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvManager_Name}</span>` :
+                                    (data == 1 && row.Status_AppvManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvManager_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvManager_Name}</span>`;
 
                     }
                 },
@@ -208,11 +208,11 @@ $(document).ready(function () {
                     name: "IsAppvSeniorManager",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvSeniorManager == null || row.Status_AppvSeniorManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvSeniorManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvSeniorManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvSeniorManager_Name}</span>` :
+                            (data == 1 && (row.Status_AppvSeniorManager == null || row.Status_AppvSeniorManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvSeniorManager_Name}</span>` :
+                                (data == 1 && row.Status_AppvSeniorManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvSeniorManager_Name}</span>` :
+                                    (data == 1 && row.Status_AppvSeniorManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvSeniorManager_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvSeniorManager_Name}</span>`;
 
                     }
                 },
@@ -221,11 +221,11 @@ $(document).ready(function () {
                     name: "IsAppvGeneralManager",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvGeneralManager == null || row.Status_AppvGeneralManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvGeneralManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvGeneralManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvGeneralManager_Name}</span>` :
+                            (data == 1 && (row.Status_AppvGeneralManager == null || row.Status_AppvGeneralManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvGeneralManager_Name}</span>` :
+                                (data == 1 && row.Status_AppvGeneralManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvGeneralManager_Name}</span>` :
+                                    (data == 1 && row.Status_AppvGeneralManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvGeneralManager_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvGeneralManager_Name}</span>`;
 
                     }
                 },
@@ -234,11 +234,11 @@ $(document).ready(function () {
                     name: "IsAppvDirector",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvDirector == null || row.Status_AppvDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvDirector_Name}</span>` :
+                            (data == 1 && (row.Status_AppvDirector == null || row.Status_AppvDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvDirector_Name}</span>` :
+                                (data == 1 && row.Status_AppvDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvDirector_Name}</span>` :
+                                    (data == 1 && row.Status_AppvDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvDirector_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvDirector_Name}</span>`;
 
                     }
                 },
@@ -247,11 +247,11 @@ $(document).ready(function () {
                     name: "IsAppvPresidentDirector",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvPresidentDirector == null || row.Status_AppvPresidentDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvPresidentDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvPresidentDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvPresidentDirector_Name}</span>` :
+                            (data == 1 && (row.Status_AppvPresidentDirector == null || row.Status_AppvPresidentDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvPresidentDirector_Name}</span>` :
+                                (data == 1 && row.Status_AppvPresidentDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvPresidentDirector_Name}</span>` :
+                                    (data == 1 && row.Status_AppvPresidentDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvPresidentDirector_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvPresidentDirector_Name}</span>`;
 
                     }
                 },
@@ -260,11 +260,11 @@ $(document).ready(function () {
                     name: "IsAppvFinanceStaff",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvFinanceStaff == null || row.Status_AppvFinanceStaff == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvFinanceStaff == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvFinanceStaff == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvFinanceStaff_Name}</span>` :
+                            (data == 1 && (row.Status_AppvFinanceStaff == null || row.Status_AppvFinanceStaff == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvFinanceStaff_Name}</span>` :
+                                (data == 1 && row.Status_AppvFinanceStaff == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvFinanceStaff_Name}</span>` :
+                                    (data == 1 && row.Status_AppvFinanceStaff == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvFinanceStaff_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvFinanceStaff_Name}</span>`;
 
                     }
                 },
@@ -273,11 +273,11 @@ $(document).ready(function () {
                     name: "IsAppvFinanceManager",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvFinanceManager == null || row.Status_AppvFinanceManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvFinanceManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvFinanceManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvFinanceManager_Name}</span>` :
+                            (data == 1 && (row.Status_AppvFinanceManager == null || row.Status_AppvFinanceManager == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvFinanceManager_Name}</span>` :
+                                (data == 1 && row.Status_AppvFinanceManager == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvFinanceManager_Name}</span>` :
+                                    (data == 1 && row.Status_AppvFinanceManager == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvFinanceManager_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvFinanceManager_Name}</span>`;
 
                     }
                 },
@@ -286,11 +286,11 @@ $(document).ready(function () {
                     name: "IsAppvFinanceDirector",
                     orderable: false,
                     render: function (data, type, row, meta) {
-                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i></span>` :
-                            (data == 1 && (row.Status_AppvFinanceDirector == null || row.Status_AppvFinanceDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i></span>` :
-                                (data == 1 && row.Status_AppvFinanceDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i></span>` :
-                                    (data == 1 && row.Status_AppvFinanceDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i></span>` :
-                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i></span>`;
+                        return (data == 0) ? `<span title="No approval needed." class="badge btn-icon bg-secondary"><i class="fas fa-ban text-dark"></i> ${row.AppvFinanceDirector_Name}</span>` :
+                            (data == 1 && (row.Status_AppvFinanceDirector == null || row.Status_AppvFinanceDirector == null)) ? `<span title="Approval In Progress" class="badge btn-icon bg-warning"><i class="bi bi-hourglass-split text-dark"></i> ${row.AppvFinanceDirector_Name}</span>` :
+                                (data == 1 && row.Status_AppvFinanceDirector == 0) ? `<span title="rejected" class="badge btn-icon bg-danger"><i class="fas fa-times text-white"></i> ${row.AppvFinanceDirector_Name}</span>` :
+                                    (data == 1 && row.Status_AppvFinanceDirector == 1) ? `<span title="approved" class="badge btn-icon bg-success"><i class="fas fa-check-double text-white"></i> ${row.AppvFinanceDirector_Name}</span>` :
+                                        `<span title="Undefined" class="badge btn-icon bg-info"><i class="fas fa-question"></i> ${row.AppvFinanceDirector_Name}</span>`;
 
                     }
                 }
@@ -857,7 +857,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="CbrAppPresidentDirector"]').attr('content') + "CbrAppDirector/approve_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/approve_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({
@@ -910,7 +910,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="CbrAppPresidentDirector"]').attr('content') + "CbrAppDirector/reject_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/reject_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({

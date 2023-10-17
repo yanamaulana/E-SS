@@ -4,7 +4,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Auth extends CI_Controller
 {
     private $HR;
-    private $Tmst_Bod               = 'Tmst_Bod';
+    private $Tmst_User_NonHR               = 'Tmst_User_NonHR';
     private $ERPQview_User_Employee = 'ERPQview_User_Employee';
     private $Taccess_Approval_Cbr   = 'Taccess_Approval_Cbr';
     private $HRQview_Employee_Detail = 'HRQviewEmployeeDetail';
@@ -66,15 +66,17 @@ class Auth extends CI_Controller
             $sqlemployee = $this->HR->get_where($this->HRQview_Employee_Detail, [
                 'Emp_No' => $login->username,
             ]);
-            $SqlIsBod = $this->db->get_where($this->Tmst_Bod, [
+            $SqlIsBod = $this->db->get_where($this->Tmst_User_NonHR, [
                 'UserID' => $user['User_ID'],
             ]);
+            $is_dir = 0;
             if ($sqlemployee->num_rows() > 0) {
                 $employee = $sqlemployee->row_array();
-                $is_dir = 0;
             } elseif ($SqlIsBod->num_rows() > 0) {
                 $employee = $SqlIsBod->row_array();
-                $is_dir = 1;
+                if ($employe['Division'] = 'Board Of Directors') {
+                    $is_dir = 1;
+                }
             } else {
                 $response = [
                     "code" => 404,

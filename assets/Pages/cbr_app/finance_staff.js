@@ -26,7 +26,7 @@ $(document).ready(function () {
                 [10, 30, 90, 1000]
             ],
             ajax: {
-                url: $('meta[name="base_url"]').attr('content') + "CbrAppSeniorManager/DT_List_History_Approval",
+                url: $('meta[name="base_url"]').attr('content') + "CbrAppFinanceStaff/DT_List_History_Approval",
                 dataType: "json",
                 type: "POST",
                 data: {
@@ -376,7 +376,7 @@ $(document).ready(function () {
             [15, 30, 90, 100]
         ],
         ajax: {
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppSeniorManager/DT_List_To_Approve",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppFinanceStaff/DT_List_To_Approve",
             dataType: "json",
             type: "POST",
         },
@@ -857,7 +857,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppSeniorManager/approve_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppFinanceStaff/approve_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({
@@ -910,7 +910,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppSeniorManager/reject_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppFinanceStaff/reject_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({

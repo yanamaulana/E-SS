@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class CbrAppAsstManager extends CI_Controller
+class CbrAppFinanceStaff extends CI_Controller
 {
     private $Date;
     private $DateTime;
@@ -20,9 +20,9 @@ class CbrAppAsstManager extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "Asst Manager Approval-Cash Book Requisition";
-        $this->data['page_content'] = "cbr_app/asstmanager";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/asstmanager.js"></script>';
+        $this->data['page_title'] = "Finance Staff Approval-Cash Book Requisition";
+        $this->data['page_content'] = "cbr_app/finance_staff";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/finance_staff.js"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
@@ -34,10 +34,10 @@ class CbrAppAsstManager extends CI_Controller
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Status_AppvAsstManager' => 1,
-                'AppvAsstManager_Name' => $this->session->userdata('sys_sba_nama'),
-                'AppvAsstManager_By' => $this->session->userdata('sys_sba_username'),
-                'AppvAsstManager_At' => $this->DateTime,
+                'Status_AppvFinanceStaff' => 1,
+                'AppvFinanceStaff_Name' => $this->session->userdata('sys_sba_nama'),
+                'AppvFinanceStaff_By' => $this->session->userdata('sys_sba_username'),
+                'AppvFinanceStaff_At' => $this->DateTime,
             ]);
         }
 
@@ -65,10 +65,10 @@ class CbrAppAsstManager extends CI_Controller
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Status_AppvAsstManager' => 0,
-                'AppvAsstManager_Name' => $this->session->userdata('sys_sba_nama'),
-                'AppvAsstManager_By' => $this->session->userdata('sys_sba_username'),
-                'AppvAsstManager_At' => $this->DateTime,
+                'Status_AppvFinanceStaff' => 0,
+                'AppvFinanceStaff_Name' => $this->session->userdata('sys_sba_nama'),
+                'AppvFinanceStaff_By' => $this->session->userdata('sys_sba_username'),
+                'AppvFinanceStaff_At' => $this->DateTime,
             ]);
         }
 
@@ -135,11 +135,17 @@ class CbrAppAsstManager extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND IsAppvAsstManager = 1
-        AND Status_AppvAsstManager IS NULL
+        AND IsAppvFinanceStaff = 1
+        AND Status_AppvFinanceStaff IS NULL
         AND (IsAppvStaff = 0 or IsAppvStaff = 1 and Status_AppvStaff = 1)
         AND (IsAppvChief = 0 or IsAppvChief = 1 and Status_AppvChief = 1)
-        AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') ";
+        AND (IsAppvAsstManager = 0 or IsAppvAsstManager = 1 and Status_AppvAsstManager = 1)
+        AND (IsAppvManager = 0 or IsAppvManager = 1 and Status_AppvManager = 1)
+        AND (IsAppvSeniorManager = 0 or IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1)
+        AND (IsAppvGeneralManager = 0 or IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1)
+        AND (IsAppvDirector = 0 or IsAppvDirector = 1 and Status_AppvDirector = 1)
+        AND (IsAppvPresidentDirector = 0 or IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector = 1) ";
+        // AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') 
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 
         $totalData = $this->db->query($sql)->num_rows();
@@ -238,11 +244,17 @@ class CbrAppAsstManager extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND IsAppvAsstManager = 1
-        AND Status_AppvAsstManager IS NOT NULL
+        AND IsAppvFinanceStaff = 1
+        AND Status_AppvFinanceStaff IS NOT NULL
         AND (IsAppvStaff = 0 or IsAppvStaff = 1 and Status_AppvStaff = 1)
         AND (IsAppvChief = 0 or IsAppvChief = 1 and Status_AppvChief = 1)
-        AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') ";
+        AND (IsAppvAsstManager = 0 or IsAppvAsstManager = 1 and Status_AppvAsstManager = 1)
+        AND (IsAppvManager = 0 or IsAppvManager = 1 and Status_AppvManager = 1)
+        AND (IsAppvSeniorManager = 0 or IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1)
+        AND (IsAppvGeneralManager = 0 or IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1)
+        AND (IsAppvDirector = 0 or IsAppvDirector = 1 and Status_AppvDirector = 1)
+        AND (IsAppvPresidentDirector = 0 or IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector = 1) ";
+        // AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') 
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 
         $totalData = $this->db->query($sql)->num_rows();

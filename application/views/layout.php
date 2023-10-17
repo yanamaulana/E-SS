@@ -24,7 +24,7 @@
     <script src="<?= base_url() ?>assets/global-assets/jquery/jquery.min.js"></script>
 </head>
 
-<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled aside-fixed" data-kt-aside-minimize="on">
+<body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled aside-fixed">
     <!-- data-kt-aside-minimize="on" -->
     <div class="d-flex flex-column flex-root">
         <div class="page d-flex flex-row flex-column-fluid">
@@ -74,7 +74,7 @@
                                     <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">Cash Book Requisition</span>
                                 </div>
                             </div>
-                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'MyCbr' || $Menu == 'CbrAppStaff' || $Menu == 'CbrAppChief' || $Menu == 'CbrAppAsstManager' || $Menu == 'CbrAppManager' || $Menu == 'CbrAppSeniorManager' || $Menu == 'CbrAppGeneralManager' || $Menu == 'CbrAppDirector' || $Menu == 'CbrAppPresidentDirector') ? 'hover show' : null; ?>">
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'MyCbr' || $Menu == 'CbrAppStaff' || $Menu == 'CbrAppChief' || $Menu == 'CbrAppAsstManager' || $Menu == 'CbrAppManager' || $Menu == 'CbrAppSeniorManager' || $Menu == 'CbrAppGeneralManager' || $Menu == 'CbrAppDirector' || $Menu == 'CbrAppPresidentDirector' || $Menu == 'CbrAppFinanceStaff' || $Menu == 'CbrAppFinanceManager' || $Menu == 'CbrAppFinanceDirector') ? 'hover show' : null; ?>">
                                 <span class="menu-link" data-bs-toggle="tooltip" title="Cash Book Requisition Entry Approval">
                                     <span class="menu-icon">
                                         <!--begin::Svg Icon | path: assets/media/icons/duotune/general/gen055.svg-->
@@ -88,7 +88,7 @@
                                     <span class="menu-title">Cash Book Requisition Approval</span>
                                     <span class="menu-arrow"></span>
                                 </span>
-                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'MyCbr' || $Menu == 'CbrAppStaff' || $Menu == 'CbrAppChief' || $Menu == 'CbrAppAsstManager' || $Menu == 'CbrAppManager' || $Menu == 'CbrAppSeniorManager' || $Menu == 'CbrAppGeneralManager' || $Menu == 'CbrAppDirector' || $Menu == 'CbrAppPresidentDirector') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
+                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'MyCbr' || $Menu == 'CbrAppStaff' || $Menu == 'CbrAppChief' || $Menu == 'CbrAppAsstManager' || $Menu == 'CbrAppManager' || $Menu == 'CbrAppSeniorManager' || $Menu == 'CbrAppGeneralManager' || $Menu == 'CbrAppDirector' || $Menu == 'CbrAppPresidentDirector' || $Menu == 'CbrAppFinanceStaff' || $Menu == 'CbrAppFinanceManager' || $Menu == 'CbrAppFinanceDirector') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
                                     <div class="menu-item" data-bs-toggle="tooltip" title="List My Cash Book Requisition">
                                         <a class="menu-link <?= ($Menu == 'MyCbr') ? 'active' : null ?>" href="<?= base_url('MyCbr') ?>">
                                             <span class="menu-icon">
@@ -203,7 +203,46 @@
                                                     </svg>
                                                 </span>
                                             </span>
-                                            <span class="menu-title ml-2">PresDir Approval</span>
+                                            <span class="menu-title ml-2">President Director Approval</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item" data-bs-toggle="tooltip" title="Finance Staff Approval : Cash Book Requisition">
+                                        <a class="menu-link <?= ($Menu == 'CbrAppFinanceStaff') ? 'active' : null ?>" href="<?= base_url('CbrAppFinanceStaff') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                        <path opacity="0.3" d="M21.25 18.525L13.05 21.825C12.35 22.125 11.65 22.125 10.95 21.825L2.75 18.525C1.75 18.125 1.75 16.725 2.75 16.325L4.04999 15.825L10.25 18.325C10.85 18.525 11.45 18.625 12.05 18.625C12.65 18.625 13.25 18.525 13.85 18.325L20.05 15.825L21.35 16.325C22.35 16.725 22.35 18.125 21.25 18.525ZM13.05 16.425L21.25 13.125C22.25 12.725 22.25 11.325 21.25 10.925L13.05 7.62502C12.35 7.32502 11.65 7.32502 10.95 7.62502L2.75 10.925C1.75 11.325 1.75 12.725 2.75 13.125L10.95 16.425C11.65 16.725 12.45 16.725 13.05 16.425Z" fill="black" />
+                                                        <path d="M11.05 11.025L2.84998 7.725C1.84998 7.325 1.84998 5.925 2.84998 5.525L11.05 2.225C11.75 1.925 12.45 1.925 13.15 2.225L21.35 5.525C22.35 5.925 22.35 7.325 21.35 7.725L13.05 11.025C12.45 11.325 11.65 11.325 11.05 11.025Z" fill="black" />
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title ml-2">Finance Staff Approval</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item" data-bs-toggle="tooltip" title="Finance Manager Approval : Cash Book Requisition">
+                                        <a class="menu-link <?= ($Menu == 'CbrAppFinanceManager') ? 'active' : null ?>" href="<?= base_url('CbrAppFinanceManager') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M15.6 5.59998L20.9 10.9C21.3 11.3 21.3 11.9 20.9 12.3L17.6 15.6L11.6 9.59998L15.6 5.59998ZM2.3 12.3L7.59999 17.6L11.6 13.6L5.59999 7.59998L2.3 10.9C1.9 11.3 1.9 11.9 2.3 12.3Z" fill="black" />
+                                                        <path opacity="0.3" d="M17.6 15.6L12.3 20.9C11.9 21.3 11.3 21.3 10.9 20.9L7.59998 17.6L13.6 11.6L17.6 15.6ZM10.9 2.3L5.59998 7.6L9.59998 11.6L15.6 5.6L12.3 2.3C11.9 1.9 11.3 1.9 10.9 2.3Z" fill="black" />
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title ml-2">Finance Manager Approval</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item" data-bs-toggle="tooltip" title="Finance Director Approval : Cash Book Requisition">
+                                        <a class="menu-link <?= ($Menu == 'CbrAppFinanceDirector') ? 'active' : null ?>" href="<?= base_url('CbrAppFinanceDirector') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                        <path opacity="0.3" d="M11.425 7.325C12.925 5.825 15.225 5.825 16.725 7.325C18.225 8.825 18.225 11.125 16.725 12.625C15.225 14.125 12.925 14.125 11.425 12.625C9.92501 11.225 9.92501 8.825 11.425 7.325ZM8.42501 4.325C5.32501 7.425 5.32501 12.525 8.42501 15.625C11.525 18.725 16.625 18.725 19.725 15.625C22.825 12.525 22.825 7.425 19.725 4.325C16.525 1.225 11.525 1.225 8.42501 4.325Z" fill="black" />
+                                                        <path d="M11.325 17.525C10.025 18.025 8.425 17.725 7.325 16.725C5.825 15.225 5.825 12.925 7.325 11.425C8.825 9.92498 11.125 9.92498 12.625 11.425C13.225 12.025 13.625 12.925 13.725 13.725C14.825 13.825 15.925 13.525 16.725 12.625C17.125 12.225 17.425 11.825 17.525 11.325C17.125 10.225 16.525 9.22498 15.625 8.42498C12.525 5.32498 7.425 5.32498 4.325 8.42498C1.225 11.525 1.225 16.625 4.325 19.725C7.425 22.825 12.525 22.825 15.625 19.725C16.325 19.025 16.925 18.225 17.225 17.325C15.425 18.125 13.225 18.225 11.325 17.525Z" fill="black" />
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title ml-2">Finance Director Approval</span>
                                         </a>
                                     </div>
                                 </div>
