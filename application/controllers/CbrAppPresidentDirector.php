@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class CbrAppStaff extends CI_Controller
+class CbrAppPresidentDirector extends CI_Controller
 {
     private $Date;
     private $DateTime;
@@ -20,9 +20,9 @@ class CbrAppStaff extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "Staff Approval-Cash Book Requisition";
-        $this->data['page_content'] = "cbr_app/staff";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/staff.js"></script>';
+        $this->data['page_title'] = "President Director Approval-Cash Book Requisition";
+        $this->data['page_content'] = "cbr_app/presdir";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/presdir.js"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
@@ -34,9 +34,9 @@ class CbrAppStaff extends CI_Controller
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Status_AppvStaff' => 1,
-                'AppvStaff_By' => $this->session->userdata('sys_sba_username'),
-                'AppvStaff_At' => $this->DateTime,
+                'Status_AppvPresidentDirector' => 1,
+                'AppvPresidentDirector_By' => $this->session->userdata('sys_sba_username'),
+                'AppvPresidentDirector_At' => $this->DateTime,
             ]);
         }
 
@@ -64,9 +64,9 @@ class CbrAppStaff extends CI_Controller
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Status_AppvStaff' => 0,
-                'AppvStaff_By' => $this->session->userdata('sys_sba_username'),
-                'AppvStaff_At' => $this->DateTime,
+                'Status_AppvPresidentDirector' => 0,
+                'AppvPresidentDirector_By' => $this->session->userdata('sys_sba_username'),
+                'AppvPresidentDirector_At' => $this->DateTime,
             ]);
         }
 
@@ -126,15 +126,16 @@ class CbrAppStaff extends CI_Controller
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
         LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
         WHERE TAccCashBookReq_Header.Type='D'
-        -- And TAccCashBookReq_Header.Document_Date >= {d '2023-10-01'}
-        -- And TAccCashBookReq_Header.Document_Date <= {d '2023-10-31'}
+        -- And TAccCashBookReq_Header.Document_Date >= {d '$from'}
+        -- And TAccCashBookReq_Header.Document_Date <= {d '$until'}
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND IsAppvStaff = 1
-        AND Status_AppvStaff IS NULL
+        AND IsAppvPresidentDirector = 1
+        AND Status_AppvPresidentDirector IS NULL
+        AND (IsAppvDirector = 0 or IsAppvDirector = 1 and Status_AppvDirector = 1)
         AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') ";
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 
@@ -234,8 +235,9 @@ class CbrAppStaff extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND IsAppvStaff = 1
-        AND Status_AppvStaff IS NOT NULL
+        AND IsAppvPresidentDirector = 1
+        AND Status_AppvPresidentDirector IS NOT NULL
+        AND (IsAppvDirector = 0 or IsAppvDirector = 1 and Status_AppvGeneralManager = 1)
         AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') ";
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 

@@ -6,6 +6,7 @@ class Auth extends CI_Controller
     private $HR;
     private $Tmst_Bod               = 'Tmst_Bod';
     private $ERPQview_User_Employee = 'ERPQview_User_Employee';
+    private $Taccess_Approval_Cbr   = 'Taccess_Approval_Cbr';
     private $HRQview_Employee_Detail = 'HRQviewEmployeeDetail';
     public function __construct()
     {
@@ -84,6 +85,8 @@ class Auth extends CI_Controller
 
             $this->delete_cache();
 
+            $Cbr_Depts = $this->get_arr_dept($employee['Division_Name'], $login->username);
+
             $session_data = array(
                 'sys_sba_userid'               => $user['User_ID'],
                 'sys_sba_nama'                 => $user['First_Name'],
@@ -92,7 +95,8 @@ class Auth extends CI_Controller
                 'sys_sba_jabatan'              => $employee['Pos_Name'],
                 'sys_sba_department'           => $employee['Division_Name'],
                 'sys_sba_email'                => $user['Email_Address'],
-                'sys_sba_isDir'                => $is_dir
+                'sys_sba_isDir'                => $is_dir,
+                'sys_cbr_divs'                  => $Cbr_Depts
             );
             $this->session->set_userdata($session_data);
             $response = [
@@ -125,6 +129,24 @@ class Auth extends CI_Controller
                 return $this->help->Fn_resulting_response($response);
             }
         }
+    }
+
+    private function get_arr_dept($div_personal, $username)
+    {
+        $depts = [];
+
+        $sql_depts = $this->db->get_where($this->Taccess_Approval_Cbr, [
+            'UserName' => $username
+        ]);
+
+        if ($sql_depts->num_rows() > 0) {
+            foreach ($sql_depts->row() as $dpt) {
+                $depts[] = $dpt->Additional_Div;
+            }
+        }
+        $depts[] = $div_personal;
+        $divisions = implode(",", $depts);
+        return $divisions;
     }
 
     private function delete_cache()
