@@ -4,7 +4,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Auth extends CI_Controller
 {
     private $HR;
-    private $Tmst_User_NonHR               = 'Tmst_User_NonHR';
+    private $mis = 'Management Information System';
+    private $Tmst_User_NonHR = 'Tmst_User_NonHR';
     private $ERPQview_User_Employee = 'ERPQview_User_Employee';
     private $Taccess_Approval_Cbr   = 'Taccess_Approval_Cbr';
     private $HRQview_Employee_Detail = 'HRQviewEmployeeDetail';
@@ -85,20 +86,26 @@ class Auth extends CI_Controller
                 return $this->help->Fn_resulting_response($response);
             }
 
+            $is_admin = false;
+            if ($employee['Division_Name'] == $this->mis) {
+                $is_admin = true;
+            }
+
             $this->delete_cache();
 
             $Cbr_Depts = $this->get_arr_dept($employee['Division_Name'], $login->username);
 
             $session_data = array(
-                'sys_sba_userid'               => $user['User_ID'],
-                'sys_sba_nama'                 => $user['First_Name'],
-                'sys_sba_NIK'                  => $user['User_Name'],
-                'sys_sba_username'             => $user['User_Name'],
-                'sys_sba_jabatan'              => $employee['Pos_Name'],
-                'sys_sba_department'           => $employee['Division_Name'],
-                'sys_sba_email'                => $user['Email_Address'],
                 'sys_sba_isDir'                => $is_dir,
-                'sys_cbr_divs'                  => $Cbr_Depts
+                'sys_sba_isAdm'                => $is_admin,
+                'sys_cbr_divs'                 => $Cbr_Depts,
+                'sys_sba_userid'               => $user['User_ID'],
+                'sys_sba_username'             => $user['User_Name'],
+                'sys_sba_NIK'                  => $user['User_Name'],
+                'sys_sba_nama'                 => $user['First_Name'],
+                'sys_sba_jabatan'              => $employee['Pos_Name'],
+                'sys_sba_email'                => $user['Email_Address'],
+                'sys_sba_department'           => $employee['Division_Name'],
             );
             $this->session->set_userdata($session_data);
             $response = [
@@ -167,7 +174,10 @@ class Auth extends CI_Controller
             'sys_sba_username',
             'sys_sba_jabatan',
             'sys_sba_department',
-            'sys_sba_email'
+            'sys_sba_email',
+            'sys_sba_isDir',
+            'sys_sba_isAdm',
+            'sys_cbr_divs',
         );
         $this->session->unset_userdata($array_items);
         session_destroy();
