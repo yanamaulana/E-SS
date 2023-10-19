@@ -410,8 +410,8 @@ class MyCbr extends CI_Controller
             if (substr($Ref_no, 0, 3) === 'PWU') {
                 $QPo = $this->db->query("SELECT TAccPO_Header.PO_Number, TAccPO_Header.PO_Date, TAccPO_Header.ETD, TAccPO_Header.SO_NumCustomer, TAccPO_Header.Invoice_Status, TAccPO_Header.isNotActive, TAccPO_Header.isSisterCompany, TAccPO_Header.PO_Status, TAccPO_header.Doc_Status, TAccPO_Header.Approval_Status, Taccount.Account_Name, Taccount.AccountTitle_Code
                 FROM TAccPO_header 
-                    LEFT JOIN TAccount 	ON TAccount.Account_ID = TAccPO_header.Account_ID 
-                    where PO_Number = '$Ref_no'
+                LEFT JOIN TAccount 	ON TAccount.Account_ID = TAccPO_header.Account_ID 
+                where PO_Number = '$Ref_no'
                 ORDER BY TAccPO_header.PO_Number DESC;
                 ");
                 if ($QPo->num_rows() > 0) {
@@ -445,6 +445,8 @@ class MyCbr extends CI_Controller
                 INNER JOIN TAccount	ON TACCVI_Header.Account_ID = TAccount.Account_ID
                 INNER JOIN TUserGroupL ON TAccVI_Header.Created_by = TUserGroupL.User_ID
                 WHERE invoice_number = '$Ref_no'
+                group by Taccount.Account_ID, TAccount.AccountTitle_COde, TAccount.Account_Name, TACCVI_Header.Account_ID, TACCVI_Header.Invoice_Number, TACCVI_Header.VenInvoice_Number, TACCVI_Header.Invoice_Date, TACCVI_Header.Due_Date, TACCVI_Header.Invoice_Status, TACCVI_Header.PO_NUMBER,
+                TACCVI_Header.Paid_invoiceAmount, TACCVI_Header.isDirect, TACCVI_Header.Paid_FreightAmount, isNull(TAccVI_Header.isVoid,0), TaccVI_header.List_TaxCode, TaccVI_Header.LstCBDoc, TACCVI_Header.is_document_received, TACCVI_Header.document_received_date
                 ORDER BY TACCVI_Header.Invoice_Date DESC");
                 if ($vins->num_rows() > 0) {
                     foreach ($vins->result_array() as $li) {
@@ -487,3 +489,122 @@ class MyCbr extends CI_Controller
         ]);
     }
 }
+
+
+// select po_number, rr_number from taccvi_header where invoice_number = 'VIN2072310-0004950'
+	// ===================================================================================================
+// select	taccvi_header.*, 
+// 						taccpo_header.etd,
+// 						taccvi_detail.ref_number, 
+// 						taccount.account_id, 
+// 						taccount.account_name, 
+// 						taccount.account_address1,
+// 						taccount.account_city_id1, 
+// 						taccount.account_state_id1,
+// 						taccount.account_zipcode1,
+// 						taccount.account_phone1,
+// 						taccount.account_fax1,
+// 						taccount.taxfilenumber, 
+// 						tcountry.country_name,
+// 						tuserpersonal.first_name as empname,
+// 						accounttitle_code,
+// 						0 as kawasanberikat
+// 				from	taccpo_detail
+// 						inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
+// 						inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
+// 						inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
+// 							and taccpo_detail.item_code = taccrr_item.item_code 
+// 							and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
+// 							and taccpo_detail.dimension_id = taccrr_item.dimension_id 
+// 						inner join taccvi_header on taccvi_header.invoice_number = 'VIN2072310-0004950' 
+// 							and taccvi_header.po_number = 'PWU2072309-0002663'
+// 							and	taccpo_header.po_number in ('PWU2072309-0002663')
+// 						left join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
+// 							and taccvi_detail.item_code = taccpo_detail.item_code
+// 							and taccvi_detail.dimension_id = taccpo_detail.dimension_id
+// 							and taccvi_detail.ref_number = taccrr_item.rr_number
+// 						inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id
+// 						inner join taccount on taccount.account_id 	= taccvi_header.account_id
+// 						inner join tcountry on taccount.account_country_id1 = tcountry.country_id
+// 						left join tuserpersonal on taccpo_header.user_id = tuserpersonal.user_id
+// 				where	1 = 1 
+// 					and TAccRR_Item.RR_Number in ('RCV2072310-0005145')
+// 					RCV2072310-0005145
+// 					and taccrr_item.qty > 0
+// 					and	taccount.category_id in (SELECT DISTINCT CATEGORY_ID FROM TDATAGROUPACCOUNT WHERE DATAGROUP_ID IN (86))
+// 				order by taccrr_item.detail_id
+	// ===================================================================================================
+// select 	taccvi_detail.item_code, 
+// 				titem.item_name,
+// 				taccvi_detail.qty, 
+// 				taccvi_detail.base_unitprice,
+// 				taccvi_detail.disc_percentage, 
+// 				taccvi_detail.totalprice, 
+// 				taccvi_detail.tax_code1, 
+// 				taccvi_detail.tax_operator1, 
+// 				taccvi_detail.tax_code2, 
+// 				taccvi_detail.tax_operator2, 
+// 				taccunittype.unit_name, 
+// 				taccpo_header.potype as typeppn, 
+// 				taccvi_header.currency_id
+// 		from	taccpo_detail
+// 			inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
+// 			inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
+// 			inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
+// 				and taccpo_detail.item_code = taccrr_item.item_code 
+// 				and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
+// 				and taccpo_detail.dimension_id = taccrr_item.dimension_id 
+// 			inner join titem on taccpo_detail.item_code = titem.item_code 
+// 			inner join taccunittype on titem.unit_type_id = taccunittype.unit_type_id
+// 			inner join taccvi_header on taccvi_header.po_number = 'PWU2072309-0002663'
+// 				and	taccpo_header.po_number in ('PWU2072309-0002663')
+// 			inner join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
+// 				and taccvi_detail.item_code = taccpo_detail.item_code
+// 				and taccvi_detail.dimension_id = taccpo_detail.dimension_id
+// 				and taccvi_header.invoice_number = 'VIN2072310-0004950'
+// 				and taccvi_detail.ref_number = taccrr_item.rr_number
+// 			 inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id 
+// 		where	1 = 1 
+// 			and taccrr_item.rr_number in ('RCV2072310-0005145')
+// 			and taccrr_item.qty > 0
+// 		order by titem.item_name;
+// ===================================================================================================
+// 			Select 	TaccJournalDetail.*, 
+// 				TaccChartAccount.Account_nameen as acc_Name, Account_Number,
+// 				TAccCostCenter.CostCenter_Code,TAccCostCenter.CostCenter_Name_en AS CostCenter_Name
+// 		From 	TaccJournalDetail
+// 				inner join TAccChartAccount on TaccJournalDetail.Acc_id = TAccChartAccount.acc_id
+// 				left join TAccCostCenter on TAccCostCenter.CostCenter_ID = TAccJournalDetail.CostCenter
+// 		Where 	JournalH_Code = 'VIN2072310-0004950'
+// 		Order by Default_Acc;
+// ========================================================================================================
+// select	taccrr_item.item_code, 
+// titem.item_name, 
+// taccrr_item.item_codealias, 
+// titem.customfield1 as item_type, 
+// taccrr_item.item_namealias, 
+// isnull(taccvi_detail.qty,taccrr_item.qty) as qty,
+// isnull(taccvi_detail.secondary_qty,taccrr_item.secondary_qty) as secondary_qty,
+// TAccRR_Header.Ref_Number, 
+// taccrr_header.currency_id, 
+// taccrr_header.rr_type, 
+// taccrr_header.isdirect, 
+// taccunittype.unit_name,
+// taccrr_item.RR_Number
+// from taccrr_item
+// inner join taccrr_header on taccrr_header.rr_number = taccrr_item.rr_number
+// inner join titem on titem.item_code = taccrr_item.item_code
+// inner join taccunittype on taccunittype.unit_type_id = titem.unit_type_id
+// left join taccvi_detail on taccrr_item.rr_number=taccvi_detail.ref_number
+// and taccvi_detail.item_code = taccrr_item.item_code
+// and taccvi_detail.Invoice_Number = 'VIN2072310-0004950'
+// where taccrr_item.rr_number = 'RCV2072310-0005145'
+// and taccrr_item.qty > 0
+// order by TAccRR_Header.Ref_Number, taccrr_item.RR_Number
+// ========================================================================================================
+// select	taccpo_header.so_numcustomer, 
+// taccrr_header.rr_number
+// from taccpo_header 	
+// inner join taccrr_header on taccrr_header.ref_number = taccpo_header.po_number								
+// where taccpo_header.po_number in ('PWU2072309-0002663')								
+// order by taccpo_header.so_numcustomer, taccrr_header.rr_number

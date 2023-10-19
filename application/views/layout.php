@@ -74,7 +74,6 @@
                                     <span class="menu-title">Dashboard</span>
                                 </a>
                             </div>
-
                             <div class="menu-item">
                                 <div class="menu-content pt-4 pb-2">
                                     <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">Cash Book Requisition</span>
@@ -274,6 +273,18 @@
                                         </div>
                                     <?php endif; ?>
                                 </div>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link <?= ($Menu == 'CbrMonitoring') ? 'active' : null ?>" href="<?= base_url('CbrMonitoring') ?>">
+                                    <span class="menu-icon">
+                                        <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
+                                        <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                            <i class="fas fa-tv fs-3"></i>
+                                        </span>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    <span class="menu-title">Monitoring Cash Book Requisition</span>
+                                </a>
                             </div>
                             <div class="menu-item">
                                 <div class="menu-content pb-2">
