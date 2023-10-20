@@ -392,7 +392,6 @@ $(document).ready(function () {
             getInsDetail(row.data().CBReq_No, row.data().Document_Number);
         }
     });
-
     function format(d) {
         let cbr_container = `<div class="row py-3" style="background-color: #CFE2FF;">
                                 <div class="container-fluid">
@@ -405,7 +404,6 @@ $(document).ready(function () {
                                                             <th class="text-dark" colspan="4">Cash Book Requisition Number : ${d.CBReq_No}</th>
                                                         </tr>
                                                         <tr class="bg-dark">
-                                                            <th class="text-center">#</th>
                                                             <th class="text-center">Account</th>
                                                             <th class="text-center">Description</th>
                                                             <th class="text-center">Amount</th>
@@ -429,7 +427,6 @@ $(document).ready(function () {
                                                                         <th class="text-dark" colspan="11">Purchase Invoice  : -N/A-</th>
                                                                     </tr>
                                                                     <tr class="bg-dark">
-                                                                        <th class="text-center">#</th>
                                                                         <th class="text-center">Invoice No</th>
                                                                         <th class="text-center">Vendor Invoice Number</th>
                                                                         <th class="text-center">Invoice Date</th>
@@ -462,7 +459,6 @@ $(document).ready(function () {
                                                                         <th class="text-dark" colspan="11">Purchase Order  : ${d.Document_Number}</th>
                                                                     </tr>
                                                                     <tr class="bg-dark">
-                                                                        <th class="text-center">#</th>
                                                                         <th class="text-center">PO Number</th>
                                                                         <th class="text-center">Vendor</th>
                                                                         <th class="text-center">PO Date</th>
@@ -488,19 +484,22 @@ $(document).ready(function () {
             let container = cbr_container + `<div class="container-fluid">
                                                 <div class="card shadow-sm mt-5">
                                                     <div class="card-body">
-                                                        <div class="table-responsive overflow-auto">
-                                                            <table class="table-sm table-striped overflow-auto table-bordered">
+                                                            <table class="table-sm table-bordered">
                                                                 <thead>
                                                                     <tr>
-                                                                        <th class="text-dark" colspan="11">Purchase Invoice  : ${d.Document_Number}</th>
+                                                                        <th class="text-dark" colspan="7">
+                                                                            Purchase Invoice  : ${d.Document_Number}
+                                                                        </th>
+                                                                        <th style="text-align: center;" colspan="3">
+                                                                            <button type="button" value="${d.Document_Number}" class="btn btn-sm btn-light-danger rpt-vin"><i class="fas fa-search"></i> Purchase Invoice</button>
+                                                                        </th>
                                                                     </tr>
                                                                     <tr class="bg-dark">
-                                                                        <th class="text-center">#</th>
                                                                         <th class="text-center">Invoice No</th>
                                                                         <th class="text-center">Vendor Invoice Number</th>
                                                                         <th class="text-center">Invoice Date</th>
                                                                         <th class="text-center">Due Date</th>
-                                                                        <th class="text-center">Purchase Order Number</th>
+                                                                        <th class="text-center" style="white-space: pre-line; max-width: 200px;">Purchase Order Number</th>
                                                                         <th class="text-center">Vendor Name</th>
                                                                         <th class="text-center">Payment Status</th>
                                                                         <th class="text-center">Is Void</th>
@@ -511,7 +510,6 @@ $(document).ready(function () {
                                                                 <tbody id="tbody_vin_${d.CBReq_No}">
                                                                 </tbody>
                                                             </table>
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -520,6 +518,11 @@ $(document).ready(function () {
         }
 
     }
+    $(document).on('click', '.rpt-vin', function () {
+        let vin = $(this).val();
+
+        window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_purchase_invoice/${vin}`, `RptVin-${vin}`, 'width=800,height=600');
+    })
 
     function getInsDetail(Req_No, Ref_no) {
         $.ajax({
@@ -539,7 +542,6 @@ $(document).ready(function () {
                         console.log(item.Account_Name);
                         tr.append(
                             `<tr>
-                            <td class="text-center">${item.iteration}</td>
                             <td class="text-center">${item.Account_Name}</td>
                             <td class="text-center">${item.Description}</td>
                             <td>${item.Amount_Detail}</td>
@@ -558,8 +560,7 @@ $(document).ready(function () {
                         $.each(response.dataVins, function (index, item) {
                             tr.append(
                                 `<tr>
-                                <td class="text-center">${item.iteration}</td>
-                                <td>${item.PO_Number}</td>
+                                <td style="white-space: pre-line; max-width: 250px;">${item.PO_Number}</td>
                                 <td class="text-center">${item.Account_Name}</td>
                                 <td class="text-center">${item.PO_Date}</td>
                                 <td class="text-center">${item.ETD}</td>
@@ -579,12 +580,11 @@ $(document).ready(function () {
                         $.each(response.dataVins, function (index, item) {
                             tr.append(
                                 `<tr>
-                                <td class="text-center">${item.iteration}</td>
                                 <td>${item.Invoice_Number}</td>
                                 <td>${item.VenInvoice_Number}</td>
                                 <td class="text-center">${item.Invoice_Date}</td>
                                 <td class="text-center">${item.Due_Date}</td>
-                                <td>${item.PO_NUMBER}</td>
+                                <td style="white-space: pre-line; max-width: 250px;">${item.PO_NUMBER}</td>
                                 <td class="text-center">${item.Account_Name}</td>
                                 <td class="text-center">${item.Invoice_Status}</td>
                                 <td class="text-center">${item.isVoid}</td>

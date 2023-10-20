@@ -20,7 +20,7 @@ class CbrAppSeniorManager extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "Manager Approval-Cash Book Requisition";
+        $this->data['page_title'] = "Senior Manager Approval-Cash Book Requisition";
         $this->data['page_content'] = "cbr_app/seniormanager";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/seniormanager.js"></script>';
 
