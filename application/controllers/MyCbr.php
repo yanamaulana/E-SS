@@ -514,131 +514,121 @@ class MyCbr extends CI_Controller
         $this->data['list_po'] = $splitArrayPO;
         $this->data['list_rr'] = $this->db->query("Select rr_number, RR_date From TAccRR_Header where RR_Number in ($arr_rr_number)")->result();
         $this->data['qget_so_numb'] = $this->db->query("select	taccpo_header.so_numcustomer, taccrr_header.rr_number
-                                                from taccpo_header 	
-                                                    inner join taccrr_header on taccrr_header.ref_number = taccpo_header.po_number								
-                                                where taccpo_header.po_number in ($arr_po_number)				
-                                                order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
+                                                        from taccpo_header 	
+                                                            inner join taccrr_header on taccrr_header.ref_number = taccpo_header.po_number								
+                                                        where taccpo_header.po_number in ($arr_po_number)				
+                                                        order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
 
         $qheaderCount = $this->db->query("SELECT count(item_code) as count_item
-		FROM TACCVI_Header, TACCVI_Detail
-		WHERE TACCVI_Header.Invoice_Number = '$vin'
-		AND TACCVI_Detail.Invoice_Number = TACCVI_Header.Invoice_Number")->row();
+                                        FROM TACCVI_Header, TACCVI_Detail
+                                        WHERE TACCVI_Header.Invoice_Number = '$vin'
+                                        AND TACCVI_Detail.Invoice_Number = TACCVI_Header.Invoice_Number")->row();
 
         $qcategory = $this->db->query("SELECT ItemCategoryType FROM TACCVI_Header WHERE TACCVI_Header.Invoice_Number = '$vin'")->row();
 
         if ($qheaderCount->count_item == 0) {
-            $this->data['qheader'] = $this->db->query("SELECT a.*, b.account_id,  b.account_name,  b.account_address1, b.account_city_id1,  b.account_state_id1, b.account_zipcode1, b.account_phone1, b.account_fax1, b.taxfilenumber,  b.accounttitle_code, c.country_name, 0 AS accounttitle_code
-            FROM TAccVI_Header a
-                INNER JOIN TAccount b ON a.account_id = b.account_id
-                INNER JOIN TCountry c on b.account_country_id1 = c.country_id
-            WHERE a.invoice_number = '$vin'")->row();
+            $this->data['qheader'] = $this->db->query("SELECT a.*, b.account_id,  b.account_name,  b.account_address1, b.account_city_id1,  b.account_state_id1, 
+                                                            b.account_zipcode1, b.account_phone1, b.account_fax1, b.taxfilenumber,  b.accounttitle_code, c.country_name, 0 AS kawasanberikat
+                                                            FROM TAccVI_Header a
+                                                            INNER JOIN TAccount b ON a.account_id = b.account_id
+                                                            INNER JOIN TCountry c on b.account_country_id1 = c.country_id
+                                                            WHERE a.invoice_number = '$vin'")->row();
         } else {
             if ($qcategory->ItemCategoryType == 'AST-M') {
                 $this->data['qheader'] = $this->db->query("SELECTTACCVI_Header.*, taccassetmaintenance_header.maintenance_date as etd,
-                Taccount.Account_ID, Taccount.Account_Name,Taccount.Account_Address1,
-                TAccount.Account_City_ID1,TAccount.Account_State_ID1 ,TCountry.Country_Name,
-                Taccount.Account_ZipCode1,Taccount.Account_Phone1,Taccount.Account_Fax1,Taccount.TaxFileNumber,
-                thrmemppersonaldata.First_Name as EMPNAme,AccountTitle_Code
-                ,0 as kawasanberikat
-                FROM 	TACCVI_Header,Taccount,TCountry,taccassetmaintenance_header,thrmemppersonaldata		
-                WHERE 	TACCVI_Header.Invoice_Number  = '$vin'
-                AND		TACCVI_Header.PO_Number = taccassetmaintenance_header.doc_no
-                AND		Taccount.Account_ID 	= TACCVI_Header.Account_ID
-                AND		TAccount.Account_Country_ID1 = TCountry.Country_id
-                AND		taccassetmaintenance_header.emp_id = thrmemppersonaldata.emp_id")->row();
+                                                            Taccount.Account_ID, Taccount.Account_Name,Taccount.Account_Address1,
+                                                            TAccount.Account_City_ID1,TAccount.Account_State_ID1 ,TCountry.Country_Name,
+                                                            Taccount.Account_ZipCode1,Taccount.Account_Phone1,Taccount.Account_Fax1,Taccount.TaxFileNumber,
+                                                            thrmemppersonaldata.First_Name as EMPNAme,accounttitle_code
+                                                            ,0 as kawasanberikat
+                                                            FROM 	TACCVI_Header,Taccount,TCountry,taccassetmaintenance_header,thrmemppersonaldata		
+                                                            WHERE 	TACCVI_Header.Invoice_Number  = '$vin'
+                                                            AND		TACCVI_Header.PO_Number = taccassetmaintenance_header.doc_no
+                                                            AND		Taccount.Account_ID 	= TACCVI_Header.Account_ID
+                                                            AND		TAccount.Account_Country_ID1 = TCountry.Country_id
+                                                            AND		taccassetmaintenance_header.emp_id = thrmemppersonaldata.emp_id")->row();
             } else {
                 $this->data['qheader'] = $this->db->query("SELECT taccvi_header.*, 
-                taccpo_header.etd,
-                taccvi_detail.ref_number, 
-                taccount.account_id, 
-                taccount.account_name, 
-                taccount.account_address1,
-                taccount.account_city_id1, 
-                taccount.account_state_id1,
-                taccount.account_zipcode1,
-                taccount.account_phone1,
-                taccount.account_fax1,
-                taccount.taxfilenumber, 
-                tcountry.country_name,
-                tuserpersonal.first_name as empname,
-                accounttitle_code,
-                0 as kawasanberikat
-        from	taccpo_detail
-                inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
-                inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
-                inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
-                    and taccpo_detail.item_code = taccrr_item.item_code 
-                    and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
-                    and taccpo_detail.dimension_id = taccrr_item.dimension_id 
-                inner join taccvi_header on taccvi_header.invoice_number = '$vin' 
-                    and taccvi_header.po_number = '$row_ref_document->po_number'
-                    and	taccpo_header.po_number in ($arr_po_number)
-                left join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
-                    and taccvi_detail.item_code = taccpo_detail.item_code
-                    and taccvi_detail.dimension_id = taccpo_detail.dimension_id
-                    and taccvi_detail.ref_number = taccrr_item.rr_number
-                inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id
-                inner join taccount on taccount.account_id 	= taccvi_header.account_id
-                inner join tcountry on taccount.account_country_id1 = tcountry.country_id
-                left join tuserpersonal on taccpo_header.user_id = tuserpersonal.user_id
-        where	1 = 1 
-            and TAccRR_Item.RR_Number in ($arr_rr_number)
-            and taccrr_item.qty > 0
-        order by taccrr_item.detail_id")->row();
+                                                                    taccpo_header.etd,
+                                                                    taccvi_detail.ref_number, 
+                                                                    taccount.account_id, 
+                                                                    taccount.account_name, 
+                                                                    taccount.account_address1,
+                                                                    taccount.account_city_id1, 
+                                                                    taccount.account_state_id1,
+                                                                    taccount.account_zipcode1,
+                                                                    taccount.account_phone1,
+                                                                    taccount.account_fax1,
+                                                                    taccount.taxfilenumber, 
+                                                                    tcountry.country_name,
+                                                                    tuserpersonal.first_name as empname,
+                                                                    accounttitle_code,
+                                                                    0 as kawasanberikat
+                                                            from	taccpo_detail
+                                                                    inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
+                                                                    inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
+                                                                    inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
+                                                                        and taccpo_detail.item_code = taccrr_item.item_code 
+                                                                        and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
+                                                                        and taccpo_detail.dimension_id = taccrr_item.dimension_id 
+                                                                    inner join taccvi_header on taccvi_header.invoice_number = '$vin' 
+                                                                        and taccvi_header.po_number = '$row_ref_document->po_number'
+                                                                        and	taccpo_header.po_number in ($arr_po_number)
+                                                                    left join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
+                                                                        and taccvi_detail.item_code = taccpo_detail.item_code
+                                                                        and taccvi_detail.dimension_id = taccpo_detail.dimension_id
+                                                                        and taccvi_detail.ref_number = taccrr_item.rr_number
+                                                                    inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id
+                                                                    inner join taccount on taccount.account_id 	= taccvi_header.account_id
+                                                                    inner join tcountry on taccount.account_country_id1 = tcountry.country_id
+                                                                    left join tuserpersonal on taccpo_header.user_id = tuserpersonal.user_id
+                                                            where	1 = 1 
+                                                                and TAccRR_Item.RR_Number in ($arr_rr_number)
+                                                                and taccrr_item.qty > 0
+                                                            order by taccrr_item.detail_id")->row();
             }
         }
 
         // =====================================================================================================
-        $this->data['qDetail'] = $this->db->query("SELECT taccvi_detail.item_code, 
-        titem.item_name,
-        taccvi_detail.qty, 
-        taccvi_detail.base_unitprice,
-        taccvi_detail.disc_percentage, 
-        taccvi_detail.totalprice, 
-        taccvi_detail.tax_code1, 
-        taccvi_detail.tax_operator1, 
-        taccvi_detail.tax_code2, 
-        taccvi_detail.tax_operator2, 
-        taccunittype.unit_name, 
-        taccpo_header.potype as typeppn, 
-        taccvi_header.currency_id
-        from taccpo_detail
-        inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
-        inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
-        inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
-            and taccpo_detail.item_code = taccrr_item.item_code 
-            and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
-            and taccpo_detail.dimension_id = taccrr_item.dimension_id 
-        inner join titem on taccpo_detail.item_code = titem.item_code 
-        inner join taccunittype on titem.unit_type_id = taccunittype.unit_type_id
-        inner join taccvi_header on taccvi_header.po_number = '$row_ref_document->po_number'
-            and	taccpo_header.po_number in ('$row_ref_document->po_number')
-        inner join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
-            and taccvi_detail.item_code = taccpo_detail.item_code
-            and taccvi_detail.dimension_id = taccpo_detail.dimension_id
-            and taccvi_header.invoice_number = '$vin'
-            and taccvi_detail.ref_number = taccrr_item.rr_number
-        inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id 
-        where	1 = 1 
-            and taccrr_item.rr_number in ('$row_ref_document->rr_number')
-            and taccrr_item.qty > 0
-        order by titem.item_name")->row();
+        $this->data['qDetail'] = $this->db->query("SELECT taccvi_detail.item_code, titem.item_name,taccvi_detail.qty, taccvi_detail.base_unitprice,
+                                                taccvi_detail.disc_percentage, taccvi_detail.totalprice, taccvi_detail.tax_code1, taccvi_detail.tax_operator1, taccvi_detail.tax_code2, taccvi_detail.tax_operator2, taccunittype.unit_name, taccpo_header.potype as typeppn, taccvi_header.currency_id
+                                                from taccpo_detail
+                                                inner join taccpo_header on taccpo_header.po_number = taccpo_detail.po_number
+                                                inner join taccrr_header on taccrr_header.ref_number = taccpo_detail.po_number
+                                                inner join taccrr_item on taccrr_item.rr_number = taccrr_header.rr_number 
+                                                    and taccpo_detail.item_code = taccrr_item.item_code 
+                                                    and isnull(taccpo_detail.parent_path,0) = isnull(taccrr_item.parent_path,0) 
+                                                    and taccpo_detail.dimension_id = taccrr_item.dimension_id 
+                                                inner join titem on taccpo_detail.item_code = titem.item_code 
+                                                inner join taccunittype on titem.unit_type_id = taccunittype.unit_type_id
+                                                inner join taccvi_header on taccvi_header.po_number = '$row_ref_document->po_number'
+                                                    and	taccpo_header.po_number in ('$row_ref_document->po_number')
+                                                inner join taccvi_detail on taccvi_detail.invoice_number = taccvi_header.invoice_number
+                                                    and taccvi_detail.item_code = taccpo_detail.item_code
+                                                    and taccvi_detail.dimension_id = taccpo_detail.dimension_id
+                                                    and taccvi_header.invoice_number = '$vin'
+                                                    and taccvi_detail.ref_number = taccrr_item.rr_number
+                                                inner join titemdimension itd on itd.dimension_id = taccpo_detail.dimension_id 
+                                                where	1 = 1 
+                                                    and taccrr_item.rr_number in ('$row_ref_document->rr_number')
+                                                    and taccrr_item.qty > 0
+                                                order by titem.item_name")->row();
 
         $this->data['QCariJournal'] = $this->db->query("SELECT TaccJournalDetail.*, 
-        TaccChartAccount.Account_nameen as acc_Name, Account_Number,
-        TAccCostCenter.CostCenter_Code,TAccCostCenter.CostCenter_Name_en AS CostCenter_Name
-        From TaccJournalDetail
-        inner join TAccChartAccount on TaccJournalDetail.Acc_id = TAccChartAccount.acc_id
-        left join TAccCostCenter on TAccCostCenter.CostCenter_ID = TAccJournalDetail.CostCenter
-        Where JournalH_Code = '$vin'
-        Order by Default_Acc")->result();
+                                                    TaccChartAccount.Account_nameen as acc_Name, Account_Number,
+                                                    TAccCostCenter.CostCenter_Code,TAccCostCenter.CostCenter_Name_en AS CostCenter_Name
+                                                    From TaccJournalDetail
+                                                    inner join TAccChartAccount on TaccJournalDetail.Acc_id = TAccChartAccount.acc_id
+                                                    left join TAccCostCenter on TAccCostCenter.CostCenter_ID = TAccJournalDetail.CostCenter
+                                                    Where JournalH_Code = '$vin'
+                                                    Order by Default_Acc")->result();
 
         $this->data['Qget_VendorSONumber']  = $this->db->query("SELECT taccpo_header.so_numcustomer, 
-        taccrr_header.rr_number
-        from taccpo_header 	
-        inner join taccrr_header on taccrr_header.ref_number = taccpo_header.po_number								
-        where taccpo_header.po_number in ('$row_ref_document->po_number')								
-        order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
+                                                    taccrr_header.rr_number
+                                                    from taccpo_header 	
+                                                    inner join taccrr_header on taccrr_header.ref_number = taccpo_header.po_number								
+                                                    where taccpo_header.po_number in ('$row_ref_document->po_number')								
+                                                    order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
 
         $this->load->view('mycbr/rpt_detail_vin', $this->data);
     }

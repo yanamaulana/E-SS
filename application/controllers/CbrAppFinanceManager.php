@@ -144,8 +144,8 @@ class CbrAppFinanceManager extends CI_Controller
         AND (IsAppvSeniorManager = 0 or IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1)
         AND (IsAppvGeneralManager = 0 or IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1)
         AND (IsAppvDirector = 0 or IsAppvDirector = 1 and Status_AppvDirector = 1)
-        AND (IsAppvPresidentDirector = 0 or IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector = 1)
-        AND (IsAppvFinanceStaff = 0 or IsAppvFinanceStaff = 1 and Status_AppvFinanceStaff = 1) ";
+        AND (IsAppvPresidentDirector = 0 or IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector = 1)";
+        // ==== AND (IsAppvFinanceStaff = 0 or IsAppvFinanceStaff = 1 and Status_AppvFinanceStaff = 1) | STAFF FINANCE DI DECLINE PERMINTAAN MBAK DEVI & INDRI ACC ==== //
         // AND UserDivision IN ('" . $this->session->userdata('sys_cbr_divs') . "') 
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 

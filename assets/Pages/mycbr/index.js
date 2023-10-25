@@ -637,7 +637,8 @@ $(document).ready(function () {
                                                 <table class="table-sm table-striped overflow-auto table-bordered" style="width:100%;">
                                                     <thead>
                                                         <tr>
-                                                            <th class="text-dark" colspan="4">Cash Book Requisition Number : ${d.CBReq_No}</th>
+                                                            <th class="text-dark" colspan="2">Cash Book Requisition Number : ${d.CBReq_No}</th>
+                                                            <th class="text-dark text-center"><button type="button" value="${d.Document_Number}" class="btn btn-sm btn-primary  btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button></th>
                                                         </tr>
                                                         <tr class="bg-dark">
                                                             <th class="text-center">Account</th>
