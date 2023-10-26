@@ -638,7 +638,7 @@ $(document).ready(function () {
                                                     <thead>
                                                         <tr>
                                                             <th class="text-dark" colspan="2">Cash Book Requisition Number : ${d.CBReq_No}</th>
-                                                            <th class="text-dark text-center"><button type="button" value="${d.Document_Number}" class="btn btn-sm btn-primary  btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button></th>
+                                                            <th class="text-dark text-center"><button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button></th>
                                                         </tr>
                                                         <tr class="bg-dark">
                                                             <th class="text-center">Account</th>
@@ -844,6 +844,11 @@ $(document).ready(function () {
             }
         });
     }
+
+    $(document).on('click', '.btn-attachment', function () {
+        $('#txt-vin').text($(this).val());
+        $('#ModalAttachment').modal('show');
+    })
 
 
     function Fn_Send_Submission() {

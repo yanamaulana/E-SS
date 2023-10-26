@@ -132,4 +132,29 @@
         </div>
     </div>
 </div>
-<div id="location"></div>
+<div id="location">
+    <div class="modal fade" id="ModalAttachment" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ModalAttachmentLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="ModalAttachmentLabel">Upload Attachment : <span id="txt-vin"></span></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mt-2">
+                        <label for="attachment" class="form-label font-weight-bold"><b>Choose Attachment :</b></label>
+                        <input type="file" required class="form-control" name="attachment" id="attachment" placeholder="Choose file attachment....">
+                    </div>
+                    <div class="mt-9">
+                        <label for="attachment" class="form-label font-weight-bold"><b>Note Attachment :</b></label>
+                        <textarea rows="4" required class="form-control" name="attachment" id="attachment" placeholder="Note attachment...."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-times"></i> Close</button>
+                    <button type="button" class="btn btn-primary float-end"><i class="fas fa-folder"></i> Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
