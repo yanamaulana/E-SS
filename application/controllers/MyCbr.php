@@ -8,6 +8,8 @@ class MyCbr extends CI_Controller
     private $layout = 'layout';
     private $Ttrx_Cbr_Approval = 'Ttrx_Cbr_Approval';
     private $TmstTrxSettingSteppApprovalCbr = 'TmstTrxSettingSteppApprovalCbr';
+    private $Ttrx_Dtl_Attachment_Cbr = 'Ttrx_Dtl_Attachment_Cbr';
+    private $Ttrx_DtlHst_Attachment_Cbr = 'Ttrx_DtlHst_Attachment_Cbr';
 
     public function __construct()
     {
@@ -631,5 +633,69 @@ class MyCbr extends CI_Controller
                                                     order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
 
         $this->load->view('mycbr/rpt_detail_vin', $this->data);
+    }
+
+    public function m_f_cbr_attachment()
+    {
+        $CbrNo = $this->input->get('CbrNo');
+        $this->data['CbrNo'] = $CbrNo;
+        $this->data['Attachments'] = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
+
+        $this->load->view('mycbr/m_f_cbr_attachment', $this->data);
+    }
+
+    public function store_attachment()
+    {
+        $attachment_file_name = '';
+        $upload_attachment = $_FILES['attachment']['name'];
+        $Year = date('Y');
+        $folderPath = 'assets/Files/AttachmentCbr/' . $Year;
+        if (!is_dir($folderPath)) {
+            mkdir($folderPath, 0755, true);
+        }
+        if ($upload_attachment) {
+            $config['allowed_types'] = 'pdf|png|jpg|jpeg';
+            $config['max_size']      = '4096';
+            $config['upload_path'] = $folderPath;
+            $config['file_name'] = $this->input->post('CbrNo') . '-' . $upload_attachment;
+
+            $this->load->library('upload', $config);
+            $this->upload->initialize($config);
+
+            if ($this->upload->do_upload('attachment')) {
+                $attachment_file_name = $Year . "/" . $this->input->post('CbrNo') . '-' . $upload_attachment;
+            } else {
+                $response = [
+                    "code" => 500,
+                    "msg" => $this->upload->display_errors()
+                ];
+                return $this->help->Fn_resulting_response($response);
+            }
+        }
+
+        $this->db->trans_start();
+
+        $this->db->insert($this->Ttrx_Dtl_Attachment_Cbr, [
+            'CbrNo' => $this->input->post('CbrNo'),
+            'Attachment_FileName' => $attachment_file_name,
+            'Note' => $this->input->post('note'),
+            'Created_by' => $this->session->userdata('sys_sba_username'),
+            'Created_at' => $this->DateTime
+        ]);
+
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return $this->help->Fn_resulting_response([
+                "code" => 500,
+                "msg" => "Add cbr attachment Failed !"
+            ]);
+        } else {
+            $this->db->trans_commit();
+            return $this->help->Fn_resulting_response([
+                "code" => 200,
+                "msg" => "Successfully add cbr attachment ! " . $this->input->post('CbrNo')
+            ]);
+        }
     }
 }

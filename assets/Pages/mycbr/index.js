@@ -846,8 +846,36 @@ $(document).ready(function () {
     }
 
     $(document).on('click', '.btn-attachment', function () {
-        $('#txt-vin').text($(this).val());
-        $('#ModalAttachment').modal('show');
+        $('#txt-cbr').text($(this).val());
+        $.ajax({
+            // dataType: "json",
+            type: "GET",
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/m_f_cbr_attachment",
+            data: {
+                CbrNo: $(this).val(),
+            }, beforeSend: function () {
+                Swal.fire({
+                    title: 'Loading....',
+                    html: '<div class="spinner-border text-primary"></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                })
+            },
+            success: function (ajaxData) {
+                Swal.close()
+                $("#location").html(ajaxData);
+                $("#ModalAttachment").modal('show');
+            }, error: function (xhr, status, error) {
+                var statusCode = xhr.status;
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    html: `Kode HTTP: ${statusCode}<br\>message: ${errorMessage}`,
+                });
+            }
+        });
     })
 
 
