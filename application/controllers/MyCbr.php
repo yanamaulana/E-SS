@@ -653,17 +653,31 @@ class MyCbr extends CI_Controller
         if (!is_dir($folderPath)) {
             mkdir($folderPath, 0755, true);
         }
+
+
+        $ValidateUniqueFile = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, [
+            'CbrNo' => $this->input->post('CbrNo'),
+            'Attachment_FileName' => $Year . "/" . $this->input->post('CbrNo') . '-' . str_replace(" ", "_", $upload_attachment)
+        ]);
+
+        if ($ValidateUniqueFile->num_rows() > 0) {
+            return $this->help->Fn_resulting_response([
+                "code" => 500,
+                "msg" => "File name redundan please choose the other file or rename recent file !"
+            ]);
+        }
+
         if ($upload_attachment) {
             $config['allowed_types'] = 'pdf|png|jpg|jpeg';
             $config['max_size']      = '4096';
             $config['upload_path'] = $folderPath;
-            $config['file_name'] = $this->input->post('CbrNo') . '-' . $upload_attachment;
+            $config['file_name'] = $this->input->post('CbrNo') . '-' . str_replace(" ", "_", $upload_attachment);
 
             $this->load->library('upload', $config);
             $this->upload->initialize($config);
 
             if ($this->upload->do_upload('attachment')) {
-                $attachment_file_name = $Year . "/" . $this->input->post('CbrNo') . '-' . $upload_attachment;
+                $attachment_file_name = $Year . "/" . $this->input->post('CbrNo') . '-' . str_replace(" ", "_", $upload_attachment);
             } else {
                 $response = [
                     "code" => 500,
@@ -682,6 +696,7 @@ class MyCbr extends CI_Controller
             'Created_by' => $this->session->userdata('sys_sba_username'),
             'Created_at' => $this->DateTime
         ]);
+        $inserted_id = $this->db->insert_id();
 
         $this->db->trans_complete();
         if ($this->db->trans_status() === FALSE) {
@@ -690,12 +705,20 @@ class MyCbr extends CI_Controller
                 "code" => 500,
                 "msg" => "Add cbr attachment Failed !"
             ]);
-        } else {
-            $this->db->trans_commit();
-            return $this->help->Fn_resulting_response([
-                "code" => 200,
-                "msg" => "Successfully add cbr attachment ! " . $this->input->post('CbrNo')
-            ]);
         }
+        $this->db->trans_commit();
+
+        $datas = new stdClass();
+        $datas->Attachment_FileName = "<a target='_blank' href='" . base_url() . "assets/Files/AttachmentCbr/$attachment_file_name'>$attachment_file_name</a>";
+        $datas->Note = $this->input->post('note');
+        $datas->Action = '<button type="button" value="' . $inserted_id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="delete" class="btn btn-icon btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>';
+
+        return $this->help->Fn_resulting_response([
+            "code" => 200,
+            "msg" => "Successfully add cbr attachment ! " . $this->input->post('CbrNo'),
+            "data" => $datas
+        ]);
     }
 }

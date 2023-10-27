@@ -1,6 +1,5 @@
 <div class="modal fade" id="ModalAttachment" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ModalAttachmentLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <!-- modal-lg -->
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="ModalAttachmentLabel">Upload Attachment : <?= $CbrNo; ?></h1>
@@ -9,44 +8,68 @@
             <div class="modal-body">
                 <form id="form-attachment" enctype="multipart/form-data" method="post">
                     <input type="hidden" name="CbrNo" id="CbrNo" value="<?= $CbrNo; ?>">
-                    <div class="mt-1 fv-row">
-                        <label for="attachment" class="form-label font-weight-bold"><b>Choose Attachment :</b></label>
-                        <input type="file" accept="image/jpeg,image/png,application/pdf" required class="form-control form-control-sm" name="attachment" id="attachment" placeholder="Choose file attachment....">
+
+                    <div class="row mb-3">
+                        <label for="attachment" class="col-sm-3 col-form-label"><b>Choose Attachment :</b></label>
+                        <div class="col-sm-9 fv-row">
+                            <input type="file" accept="image/jpeg,image/png,application/pdf" required class="form-control form-control-sm" name="attachment" id="attachment" placeholder="Choose file attachment....">
+                        </div>
                     </div>
-                    <div class="mt-5 fv-row">
-                        <label for="attachment" class="form-label font-weight-bold"><b>Note Attachment :</b></label>
-                        <textarea rows="2" required class="form-control form-control-sm" name="note" id="note" placeholder="Note attachment...."></textarea>
+                    <div class="row mb-3">
+                        <label for="note" class="col-sm-3 col-form-label"><b>Note Attachment :</b></label>
+                        <div class="col-sm-9 fv-row">
+                            <textarea rows="2" required class="form-control form-control-sm" name="note" id="note" placeholder="Note attachment...."></textarea>
+                        </div>
                     </div>
-                    <?php if ($Attachments->num_rows() > 0) : ?>
+                    <div class="row mb-3">
+                        <label for="note" class="col-sm-3 col-form-label">&nbsp;</label>
+                        <div class="col-sm-9">
+                            <button type="button" id="submit--data" class="btn btn-sm btn-primary"><i class="fas fa-folder"></i> Upload</button>
+                        </div>
+                    </div>
+                    <div class="row">
                         <hr />
-                        <div class="mt-3 table-responsive">
-                            <table class="table-sm table-striped table-hover table-bordered w-100">
-                                <thead>
-                                    <tr style="background-color: #CFE2FF;">
-                                        <th class="text-center">#</th>
-                                        <th class="text-center">File Name</th>
-                                        <th class="text-center">Description</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                    </div>
+                    <div class="mt-3 table-responsive">
+                        <table class="table-sm table-striped table-hover table-bordered w-100">
+                            <thead>
+                                <tr style="background-color: #CFE2FF;">
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">File Name</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center"><i class="fas fa-cogs text-dark"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-attachment">
+                                <?php if ($Attachments->num_rows() > 0) : ?>
                                     <?php $i = 1; ?>
                                     <?php foreach ($Attachments->result() as $li) : ?>
                                         <tr>
                                             <td class="text-center"><?= $i; ?></td>
-                                            <td class=""><?= $li->Attachment_FileName; ?></td>
+                                            <td class="">
+                                                <a target='_blank' href="<?= base_url() ?>assets/Files/AttachmentCbr/<?= $li->Attachment_FileName; ?>"><?= $li->Attachment_FileName; ?></a>
+                                            </td>
                                             <td class=""><?= $li->Note; ?></td>
+                                            <td class="text-center">
+                                                <button type="button" value="<?= $li->SysId ?>" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="delete" class="btn btn-icon btn-danger btn-sm">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
                                         </tr>
                                         <?php $i++; ?>
                                     <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    <?php endif; ?>
+                                <?php else : ?>
+                                    <tr>
+                                        <td colspan="3" class="text-center">This Cbr Doesnt Have Attachment</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal"><i class="fas fa-times"></i> Close</button>
-                <button type="button" id="submit--data" class="btn btn-sm btn-primary float-end"><i class="fas fa-folder"></i> Submit</button>
             </div>
         </div>
     </div>
@@ -133,6 +156,8 @@
                             icon: 'success',
                             title: response.msg
                         });
+                        main_form.trigger('reset');
+                        Fn_reload_Table_Attachment(response.data)
                     } else {
                         Toast.fire({
                             icon: 'error',
@@ -152,5 +177,31 @@
                 }
             });
         }
+
+        function Fn_reload_Table_Attachment(data) {
+            // Mengambil elemen tbody dari tabel (ganti 'TableData' dengan ID tabel Anda)
+            var tbody = document.getElementById('tbody-attachment');
+            var tr = tbody.getElementsByTagName('tr');
+            var td = tr[0].getElementsByTagName('td');
+            var colspanValue = td[0].getAttribute('colspan');
+            if (colspanValue === '3') {
+                $('#tbody-attachment').empty()
+            }
+            var jumlahBaris = tbody.childElementCount;
+            // Melakukan loop melalui data dan membuat elemen <tr> dan <td> untuk setiap item data
+            var row = tbody.insertRow(tbody.rows.length); // Menambahkan baris ke dalam tbody
+            // Menambahkan data ke dalam elemen <td>
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+            var cell4 = row.insertCell(3);
+            // Menetapkan nilai untuk masing-masing sel
+            cell1.innerHTML = 1 + jumlahBaris;
+            cell2.innerHTML = data.Attachment_FileName;
+            cell3.innerHTML = data.Note;
+            cell4.innerHTML = data.Action;
+        }
+
+        $('[data-bs-toggle="tooltip"]').tooltip();
     });
 </script>

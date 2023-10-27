@@ -776,7 +776,6 @@ $(document).ready(function () {
                 tr.empty();
                 if (response.code == 200) {
                     $.each(response.data, function (index, item) {
-                        console.log(item.Account_Name);
                         tr.append(
                             `<tr>
                             <td class="text-center">${item.Account_Name}</td>
