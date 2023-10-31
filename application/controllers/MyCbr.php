@@ -711,7 +711,7 @@ class MyCbr extends CI_Controller
         $datas = new stdClass();
         $datas->Attachment_FileName = "<a target='_blank' href='" . base_url() . "assets/Files/AttachmentCbr/$attachment_file_name'>$attachment_file_name</a>";
         $datas->Note = $this->input->post('note');
-        $datas->Action = '<button type="button" value="' . $inserted_id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="delete" class="btn btn-icon btn-danger btn-sm">
+        $datas->Action = '<button type="button" value="' . $inserted_id . '" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="Delete" class="btn btn-icon btn-danger btn-sm btn-delete-attachment">
                             <i class="fas fa-trash"></i>
                         </button>';
 
@@ -720,5 +720,32 @@ class MyCbr extends CI_Controller
             "msg" => "Successfully add cbr attachment ! " . $this->input->post('CbrNo'),
             "data" => $datas
         ]);
+    }
+
+    public function Delete_Attachment()
+    {
+        $id = $this->input->post('id');
+        $DataAtt = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, ['SysId' => $id])->row();
+        $file_path = 'assets/Files/AttachmentCbr/' . $DataAtt->Attachment_FileName;
+
+        $this->db->trans_start();
+
+        unlink($file_path);
+        $this->db->delete($this->Ttrx_Dtl_Attachment_Cbr, ['SysId' => $id]);
+
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return $this->help->Fn_resulting_response([
+                "code" => 500,
+                "msg" => "Server Busy, Delete Failed !"
+            ]);
+        } else {
+            $this->db->trans_commit();
+            return $this->help->Fn_resulting_response([
+                "code" => 200,
+                "msg" => "Attachment successfully deleted !"
+            ]);
+        }
     }
 }

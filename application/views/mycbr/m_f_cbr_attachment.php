@@ -36,7 +36,7 @@
                                 <tr style="background-color: #CFE2FF;">
                                     <th class="text-center">#</th>
                                     <th class="text-center">File Name</th>
-                                    <th class="text-center">Description</th>
+                                    <th class="text-center">Note</th>
                                     <th class="text-center"><i class="fas fa-cogs text-dark"></i></th>
                                 </tr>
                             </thead>
@@ -51,7 +51,7 @@
                                             </td>
                                             <td class=""><?= $li->Note; ?></td>
                                             <td class="text-center">
-                                                <button type="button" value="<?= $li->SysId ?>" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="delete" class="btn btn-icon btn-danger btn-sm">
+                                                <button type="button" value="<?= $li->SysId ?>" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="Delete" class="btn btn-icon btn-danger btn-sm  btn-delete-attachment">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </td>
@@ -203,5 +203,64 @@
         }
 
         $('[data-bs-toggle="tooltip"]').tooltip();
+
+        $(document).on('click', '.btn-delete-attachment', function() {
+            let tr = $(this).closest('tr');
+            let vall = $(this).val();
+
+            Swal.fire({
+                title: 'System Message !',
+                text: `Are you sure to delete this record ?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.isConfirmed == true) {
+                    $.ajax({
+                        dataType: "json",
+                        type: "POST",
+                        url: $('meta[name="base_url"]').attr('content') + "MyCbr/Delete_Attachment",
+                        data: {
+                            id: vall,
+                        },
+                        beforeSend: function() {
+                            Swal.fire({
+                                title: 'Loading....',
+                                html: '<div class="spinner-border text-primary"></div>',
+                                showConfirmButton: false,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            })
+                        },
+                        success: function(response) {
+                            Swal.close()
+                            if (response.code == 200) {
+                                Toast.fire({
+                                    icon: 'success',
+                                    title: response.msg
+                                });
+                                tr.remove();
+                            } else {
+                                Toast.fire({
+                                    icon: 'error',
+                                    title: response.msg
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            var statusCode = xhr.status;
+                            var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error!",
+                                html: `Kode HTTP: ${statusCode}<br\>Pesan: ${errorMessage}`,
+                            });
+                        }
+                    })
+                }
+            })
+        });
     });
 </script>
