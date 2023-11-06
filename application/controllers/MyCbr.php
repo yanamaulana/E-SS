@@ -644,6 +644,15 @@ class MyCbr extends CI_Controller
         $this->load->view('mycbr/m_f_cbr_attachment', $this->data);
     }
 
+    public function m_list_cbr_attachment()
+    {
+        $CbrNo = $this->input->get('CbrNo');
+        $this->data['CbrNo'] = $CbrNo;
+        $this->data['Attachments'] = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
+
+        $this->load->view('mycbr/m_list_cbr_attachment', $this->data);
+    }
+
     public function store_attachment()
     {
         $attachment_file_name = '';

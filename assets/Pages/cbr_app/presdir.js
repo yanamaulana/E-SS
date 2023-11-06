@@ -636,9 +636,10 @@ $(document).ready(function () {
                                             <div class="table-responsive overflow-auto">
                                                 <table class="table-sm table-striped overflow-auto table-bordered" style="width:100%;">
                                                     <thead>
-                                                        <tr>
-                                                            <th class="text-dark" colspan="4">Cash Book Requisition Number : ${d.CBReq_No}</th>
-                                                        </tr>
+                                                    <tr>
+                                                        <th class="text-dark" colspan="2">Cash Book Requisition Number : ${d.CBReq_No}</th>
+                                                        <th class="text-dark text-center" colspan="2"><button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-attachment"><i class="fas fa-paperclip"></i> List Attachment</button></th>
+                                                    </tr>
                                                         <tr class="bg-dark">
                                                             <th class="text-center">Account</th>
                                                             <th class="text-center">Description</th>
@@ -950,6 +951,39 @@ $(document).ready(function () {
             }
         });
     }
+
+    $(document).on('click', '.btn-attachment', function () {
+        $('#txt-cbr').text($(this).val());
+        $.ajax({
+            // dataType: "json",
+            type: "GET",
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/m_list_cbr_attachment",
+            data: {
+                CbrNo: $(this).val(),
+            }, beforeSend: function () {
+                Swal.fire({
+                    title: 'Loading....',
+                    html: '<div class="spinner-border text-primary"></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                })
+            },
+            success: function (ajaxData) {
+                Swal.close()
+                $("#location").html(ajaxData);
+                $("#ModalAttachment").modal('show');
+            }, error: function (xhr, status, error) {
+                var statusCode = xhr.status;
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    html: `Kode HTTP: ${statusCode}<br\>message: ${errorMessage}`,
+                });
+            }
+        });
+    })
 
 
 })
