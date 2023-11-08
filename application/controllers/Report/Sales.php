@@ -36,6 +36,19 @@ class Sales extends CI_Controller
         AND TAccount.Company_ID = 2
         ORDER BY TAccount.Account_Name");
 
+        $this->data['qCurrency'] = $this->db->query("SELECT Currency_ID,currency_symbol
+        FROM TCurrency
+        WHERE status = 1");
+
+        $this->data['SelCurr'] = $this->input->get('SelCurr');
+
+
         $this->load->view($this->layout, $this->data);
+    }
+
+    public function Rpt_OstSO_v_Bom_v_StokMtrl()
+    {
+        var_dump($this->input->get());
+        die;
     }
 }

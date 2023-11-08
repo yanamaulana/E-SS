@@ -12,7 +12,7 @@
                                             <strong>Sales Report</strong>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu1">
-                                            <li><a href="<?= base_url('Report/Sales/OstSO_v_Bom_v_StokMtrl') ?>" class="dropdown-item">Outstanding SO vs BOM vs Stok Material</a></li>
+                                            <li><a href="<?= base_url('Report/Sales/OstSO_v_Bom_v_StokMtrl?SelCurr=IDR') ?>" class="dropdown-item">Outstanding SO vs BOM vs Stok Material</a></li>
                                         </ul>
                                     </div>
                                     <div class="text-center px-4">
