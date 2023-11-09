@@ -35,6 +35,7 @@ $(document).ready(function () {
             "&TxtGBP=" + $('[name="TxtGBP"]').val() +
             "&report_type=" + $(this).val(), 'WindowReportPdf', 'width=800,height=600');
     });
+
     $('#Excel').on('click', function () {
         window.open($('meta[name="base_url"]').attr('content') +
             "Report/Sales/Rpt_OstSO_v_Bom_v_StokMtrl?" +

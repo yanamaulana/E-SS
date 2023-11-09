@@ -48,7 +48,24 @@ class Sales extends CI_Controller
 
     public function Rpt_OstSO_v_Bom_v_StokMtrl()
     {
-        var_dump($this->input->get());
-        die;
+        $until = $this->input->get("until");;
+        $newUntil = date('Y-m-d', strtotime($until . ' +1 day'));
+
+        $this->data['customer'] = $this->input->get("customer");
+        $this->data['sales_type'] = $this->input->get("sales_type");
+        $this->data['from'] = $this->input->get("from");
+        $this->data['until'] = $newUntil;
+        $this->data['rdocurrency'] = $this->input->get("rdocurrency");
+        $this->data['selCurrency'] = $this->input->get("selCurrency");
+        $this->data['TxtUSD'] = $this->input->get("TxtUSD");
+        $this->data['TxtEUR'] = $this->input->get("TxtEUR");
+        $this->data['TxtAUD'] = $this->input->get("TxtAUD");
+        $this->data['TxtSGD'] = $this->input->get("TxtSGD");
+        $this->data['TxtKRW'] = $this->input->get("TxtKRW");
+        $this->data['TxtJPY'] = $this->input->get("TxtJPY");
+        $this->data['TxtGBP'] = $this->input->get("TxtGBP");
+        $this->data['report_type'] = $this->input->get("report_type");
+
+        $this->load->view('Report/Sales/Rpt_OstSO_v_Bom_v_StokMtrl', $this->data);
     }
 }

@@ -4,7 +4,7 @@
             <form action="" target="popup" id="FormReport" action="<?= base_url() ?>Report/Sales/Rpt_OstSO_v_Bom_v_StokMtrl" method="post">
                 <div class="card-body pt-0">
                     <div class="py-5">
-                        <div class="row g-5">
+                        <div class="row g-5 mt-5">
                             <div class="row mb-6">
                                 <label for="Account" class="col-sm-2 col-form-label-sm col-form-label">Customer :</label>
                                 <div class="col-sm-5">
@@ -47,15 +47,15 @@
                                 <label for="Account" class="col-sm-2 col-form-label-sm col-form-label">Currency :</label>
                                 <div class="col-sm-10">
                                     <div class="form-check form-check-inline form-check-sm">
-                                        <input type="radio" class="form-check-input form-check-input-sm" name="rdocurrency" value="doc" id="doc" checked="">
+                                        <input type="radio" class="form-check-input form-check-input-sm" name="rdocurrency" value="Doc" id="doc" checked="">
                                         <label class="form-check-label form-check-label-sm" for="inlineRadio1">Document</label>
                                     </div>
                                     <div class="form-check form-check-inline form-check-sm">
-                                        <input class="form-check-input form-check-input-sm" type="radio" name="rdocurrency" id="base" value="base">
+                                        <input class="form-check-input form-check-input-sm" type="radio" name="rdocurrency" id="Base" value="base">
                                         <label class="form-check-label form-check-label-sm" for="inlineRadio2">Base Currency</label>
                                     </div>
                                     <div class="form-check form-check-inline form-check-sm">
-                                        <input class="form-check-input form-check-input-sm" type="radio" name="rdocurrency" id="rate" value="rate">
+                                        <input class="form-check-input form-check-input-sm" type="radio" name="rdocurrency" id="Rate" value="rate">
                                         <label class="form-check-label form-check-label-sm" for="inlineRadio3">Rate</label>
                                     </div>
                                 </div>
@@ -81,7 +81,7 @@
                                         AND Company_ID = 2 ")->row();
                                     ?>
 
-                                    <div class="row mt-6">
+                                    <div class="row mt-1">
                                         <label for="Account" class="col-sm-2 col-form-label-sm col-form-label text-end"><?= $qc->currency_symbol ?> :</label>
                                         <div class="col-sm-3">
                                             <input class="form-control form-control-sm" name="Txt<?= $qc->currency_symbol ?>" id="Txt<?= $qc->currency_symbol ?>" <?php if (empty($QRate->scale)) : ?> value="0.0000" <?php else : ?> value="<?= number_format(floatval($QRate->scale), 4, ".", ","); ?>" <?php endif; ?>>
