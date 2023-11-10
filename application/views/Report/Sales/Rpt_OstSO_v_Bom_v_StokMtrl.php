@@ -594,11 +594,86 @@
                         </td>
                         <td><?= number_format($li->qtyDeliver, 2, '.', ',') ?></td>
                         <td><?= number_format(floatval($li->qty) - floatval($li->qtyDeliver), 2, '.', ',') ?></td>
+                        <?php
+                        // Eksekusi query
+                        $query = "SELECT DISTINCT TAccSI_Header.Invoice_Number, CONVERT(VARCHAR(50), TAccSI_Header.Invoice_Date, 106) AS Invoice_Date 
+                                    FROM TaccSI_Header
+                                    INNER JOIN TAccSN_Header ON TAccSN_Header.Ref_Number = TAccSI_Header.SO_Number
+                                    INNER JOIN TAccSN_Item ON TAccSN_Item.SN_Number = TAccSN_Header.SN_Number
+                                    WHERE TAccSN_Item.SO_Number = '$li->DocNumber'
+                                    AND TaccSN_Item.Item_Code = '$li->Item_code'
+                                    AND ISNULL(TAccSI_Header.isVoid, 0) = 0";
+
+                        $result = $this->db->query($query)->result();
+
+                        echo '<td align="center">';
+                        if (!empty($result)) {
+                            foreach ($result as $row) {
+                                echo $row->Invoice_Number . '<br>';
+                            }
+                        } else {
+                            echo '&nbsp;';
+                        }
+                        echo '</td>';
+
+                        $lstSIDate = implode(",", array_column($result, 'Invoice_Date'));
+
+                        echo '<td align="center">';
+                        if (!empty($result)) {
+                            $dates = explode(",", $lstSIDate);
+                            foreach ($dates as $i) {
+                                echo date("d-m-y", strtotime($i)) . '<br>';
+                            }
+                        } else {
+                            echo '&nbsp;';
+                        }
+                        echo '</td>';
+                        ?>
+
 
 
                     </tr>
                     <?php $i++; ?>
                 <?php endforeach; ?>
+                <?php $tmpColspan = 18; ?>
+                <?php if ($rdocurrency == 'rate') : ?>
+                    <?php $totalAll = 0; ?>
+                    <?php foreach ($qGetCurrency->result_array() as $row) {
+                        $totalAll += intval(${'intGrandTotal' . $row['Currency_ID']});
+                    } ?>
+                    <tr>
+                        <td colspan="<?php echo $tmpColspan; ?>" align="right">
+                            <strong><?php echo 'Grand Total' ?></strong>
+                        </td>
+                        <td class="formtextreport" align="right">
+                            <div style="height:5px; border-bottom:solid 2px black;white-space:nowrap"></div>
+                            <font size="2"><?php echo $selCurrency . ' ' . number_format($totalAll, 2, '.', ','); ?></font>
+                            <div style="height:1px; border-top:solid 2px black"></div>
+                        </td>
+                        <td colspan="7" class="formtextreport">&nbsp;</td>
+                    </tr>
+                <?php else : ?>
+                    <?php
+                    foreach ($qGetCurrency->result_array() as $row) {
+                        $currencyID = $row['Currency_ID'];
+                        $grandTotal = ${'intGrandTotal' . $currencyID};
+                        if ($grandTotal > 0) {
+                            echo '<tr>';
+                            echo '<td colspan="' . $tmpColspan . '" align="right" class="formtextreport">';
+                            echo '<strong>' . 'Grand Total' . '</strong>';
+                            echo '</td>';
+                            echo '<td class="formtextreport" align="right" nowrap>';
+                            echo '<div style="height:5px; border-bottom:solid 2px black"></div>';
+                            echo '<font size="2">' . $currencyID . ' ' . number_format($grandTotal, 2, '.', ',') . '</font>';
+                            echo '<div style="height:1px; border-top:solid 2px black"></div>';
+                            echo '</td>';
+                            echo '<td colspan="7" class="formtextreport">&nbsp;</td>';
+                            echo '</tr>';
+                        }
+                    }
+                    ?>
+
+                <?php endif; ?>
             </tbody>
         </table>
     </div>
