@@ -19,7 +19,7 @@ $(document).ready(function () {
 
     $('#Pdf').on('click', function () {
         window.open($('meta[name="base_url"]').attr('content') +
-            "Report/Sales/Rpt_OstSO_v_Bom_v_StokMtrl?" +
+            "Report/Sales/Rpt_sales_order?" +
             "customer=" + $('[name="customer"]').val() +
             "&sales_type=" + $('[name="sales_type"]').val() +
             "&from=" + $('[name="from"]').val() +
@@ -38,7 +38,7 @@ $(document).ready(function () {
 
     $('#Excel').on('click', function () {
         window.open($('meta[name="base_url"]').attr('content') +
-            "Report/Sales/Rpt_OstSO_v_Bom_v_StokMtrl?" +
+            "Report/Sales/Rpt_sales_order?" +
             "customer=" + $('[name="customer"]').val() +
             "&sales_type=" + $('[name="sales_type"]').val() +
             "&from=" + $('[name="from"]').val() +
