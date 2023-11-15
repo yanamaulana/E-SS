@@ -185,8 +185,87 @@
     <div class="row">
         <table class="table-ttd">
             <thead>
+                <tr>
+                    <th>PRODUCT/ITEM CODE</th>
+                    <th>TOTAL QTY PO PER ITEM</th>
+                    <th>TOTAL QTY DELIVER</th>
+                    <th>OUTSTANDING QTY PO</th>
+                    <th>BOM CODE</th>
+                    <th>BOM RAW MATERIAL CODE</th>
+                    <th>RAW MATERIAL NAME</th>
+                    <th>RAW MATERIAL SIZE</th>
+                    <th>RAW MATERIAL TYPE</th>
+                    <th>RAW MATERIAL BRAND</th>
+                    <th>RAW MATERIAL COLOR</th>
+                    <th>RAW MATERIAL DIMENSION</th>
+                    <th>RAW MATERIAL UOM</th>
+                    <th>CURRENCY</th>
+                    <th>BOM RAW MATERIAL QTY</th>
+                    <th>BOM RAW MATERIAL COST</th>
+                    <th>OUTSTANDING QTY PO x BOM RAW MATERIAL QTY</th>
+                    <th>COST OUTSTANDING QTY PO x BOM RAW MATERIAL</th>
+                </tr>
             </thead>
+            <?php
+            $product_code = '';
+            $qty_po = '';
+            $qty_deliver = '';
+            $qty_outstanding = '';
+            $bom_code = '';
+            ?>
             <tbody>
+                <?php foreach ($SqlBomPerOstPO->result() as $li) : ?>
+                    <?php if ($product_code = $li->ITEM_CODE && $qty_po = $li->QTY_PO_PERITEM && $qty_deliver != $li->qtyDeliver && $qty_outstanding != $li->RemainingQty && $bom_code != $li->bom_code) : ?>
+                        <tr>
+                            <td class="font-weight-bold"><?= $li->ITEM_CODE; ?></td>
+                            <td class="font-weight-bold"><?= formatNumber($li->QTY_PO_PERITEM); ?></td>
+                            <td class="font-weight-bold"><?= formatNumber($li->qtyDeliver); ?></td>
+                            <td class="font-weight-bold"><?= formatNumber($li->RemainingQty); ?></td>
+                            <td class="font-weight-bold"><?= $li->bom_code; ?></td>
+                            <td><?= $li->rm_code; ?></td>
+                            <td><?= $li->item_name; ?></td>
+                            <td><?= $li->item_size; ?></td>
+                            <td><?= $li->type; ?></td>
+                            <td><?= $li->brand; ?></td>
+                            <td><?= $li->color_name; ?></td>
+                            <td><?= $li->dimension_name; ?></td>
+                            <td><?= $li->unit_name; ?></td>
+                            <td><?= $li->currency_id; ?></td>
+                            <td><?= formatNumber($li->rm_qty); ?></td>
+                            <td><?= formatNumber($li->cost); ?></td>
+                            <td><?= formatNumber($li->Qty_Needed_ForSO); ?></td>
+                            <td><?= formatNumber(floatval($li->cost) * floatval($li->Qty_Needed_ForSO)) ?></td>
+                        </tr>
+                    <?php else : ?>
+                        <tr style="border: none;">
+                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                            <td><?= $li->rm_code; ?></td>
+                            <td><?= $li->item_name; ?></td>
+                            <td><?= $li->item_size; ?></td>
+                            <td><?= $li->type; ?></td>
+                            <td><?= $li->brand; ?></td>
+                            <td><?= $li->color_name; ?></td>
+                            <td><?= $li->dimension_name; ?></td>
+                            <td><?= $li->unit_name; ?></td>
+                            <td><?= $li->currency_id; ?></td>
+                            <td><?= formatNumber($li->rm_qty); ?></td>
+                            <td><?= formatNumber($li->cost); ?></td>
+                            <td><?= formatNumber($li->Qty_Needed_ForSO); ?></td>
+                            <td><?= formatNumber(floatval($li->cost) * floatval($li->Qty_Needed_ForSO)) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php
+                    $product_code = $li->ITEM_CODE;
+                    $qty_po = $li->QTY_PO_PERITEM;
+                    $qty_deliver = $li->qtyDeliver;
+                    $qty_outstanding = $li->RemainingQty;
+                    $bom_code = $li->bom_code;
+                    ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
@@ -220,6 +299,14 @@ function penyebut($nilai)
         $temp = penyebut($nilai / 1000000000000) . " Trilyun" . penyebut(fmod($nilai, 1000000000000));
     }
     return $temp;
+}
+
+function formatNumber($number)
+{
+    // Menggunakan number_format untuk menambahkan pemisah ribuan dan dua desimal
+    $formattedNumber = number_format($number, 2, '.', ',');
+
+    return $formattedNumber;
 }
 ?>
 

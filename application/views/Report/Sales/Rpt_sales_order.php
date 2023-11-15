@@ -320,8 +320,8 @@
                 $sql .= "AND TAccSO_Header.isExport = $sales_type ";
             }
             $sql .= " ORDER BY (CAST(DATEPART(yyyy,TAccSO_Header.SO_Date) AS VARCHAR(5)) + '-' + RIGHT('00' + CAST(DATEPART(mm,TAccSO_Header.SO_Date) AS VARCHAR(5)),2) + '-' + RIGHT('00' + CAST(DATEPART(dd,TAccSO_Header.SO_Date) AS VARCHAR(5)),2)), RIGHT(TAccSO_Header.SO_Number,5) ASC";
-            print_r($sql);
-            die;
+            // print_r($sql);
+            // die;
             $data = $this->db->query($sql);
             $RecordCount = $data->num_rows();
             $qVendor = $data->result();
