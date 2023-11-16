@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<title><?= $this->config->item('init_app_name') ?></title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="shortcut icon" href="<?= base_url() ?>assets/E-SBA_assets/web-logo/favicon.ico" />
+
+<head>
+    <title><?= $this->config->item('init_app_name') ?> | Report Bom Vs Oustanding SO</title>
+    <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="<?= base_url() ?>assets/E-SBA_assets/web-logo/favicon.ico" />
+    <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+</head>
 <style>
     @page {
         size: A4 landscape;
@@ -18,6 +23,10 @@
             margin: 20px 20px 20px 20px;
             font-size: 9pt !important;
             font-family: sans-serif;
+        }
+
+        #btnExport {
+            display: none;
         }
     }
 
@@ -147,15 +156,13 @@
         display: table;
     } */
 </style>
-
-<head>
-    <title><?= $vin ?></title>
-</head>
 <?php $i = 1; ?>
 
 <body>
+    <button id="btnExport" onclick="ExportToExcel('xlsx')">Export to excel</button>
+    <br>
     <div class="row">
-        <table class="tablee">
+        <table class="tablee" id="Header">
             <tbody>
                 <tr>
                     <td rowspan="7"><img src="<?= base_url() ?>assets/media/Samick/samick4.bmp" alt=""></td>
@@ -183,7 +190,7 @@
     </div>
 
     <div class="row">
-        <table class="table-ttd">
+        <table class="table-ttd" id="tbl_exporttable_to_xls">
             <thead>
                 <tr>
                     <th>PRODUCT/ITEM CODE</th>
@@ -191,6 +198,7 @@
                     <th>TOTAL QTY DELIVER</th>
                     <th>OUTSTANDING QTY PO</th>
                     <th>BOM CODE</th>
+                    <th>order</th>
                     <th>BOM RAW MATERIAL CODE</th>
                     <th>RAW MATERIAL NAME</th>
                     <th>RAW MATERIAL SIZE</th>
@@ -214,14 +222,18 @@
             $bom_code = '';
             ?>
             <tbody>
+                <?php $rowColor = true; ?>
                 <?php foreach ($SqlBomPerOstPO->result() as $li) : ?>
                     <?php if ($product_code = $li->ITEM_CODE && $qty_po = $li->QTY_PO_PERITEM && $qty_deliver != $li->qtyDeliver && $qty_outstanding != $li->RemainingQty && $bom_code != $li->bom_code) : ?>
-                        <tr>
-                            <td class="font-weight-bold"><?= $li->ITEM_CODE; ?></td>
-                            <td class="font-weight-bold"><?= formatNumber($li->QTY_PO_PERITEM); ?></td>
-                            <td class="font-weight-bold"><?= formatNumber($li->qtyDeliver); ?></td>
-                            <td class="font-weight-bold"><?= formatNumber($li->RemainingQty); ?></td>
-                            <td class="font-weight-bold"><?= $li->bom_code; ?></td>
+                        <?php $bgColor = $rowColor ? '#b1d7fc' : '#ffffff'; ?>
+                        <?php $i = 1; ?>
+                        <tr <?= "style='background-color: $bgColor;'"; ?>>
+                            <td class="font-weight-bold" style="font-size: 12pt !important;"><?= $li->ITEM_CODE; ?></td>
+                            <td class="font-weight-bold" style="font-size: 12pt !important;"><?= formatNumber($li->QTY_PO_PERITEM); ?></td>
+                            <td class="font-weight-bold" style="font-size: 12pt !important;"><?= formatNumber($li->qtyDeliver); ?></td>
+                            <td class="font-weight-bold" style="font-size: 12pt !important;"><?= formatNumber($li->RemainingQty); ?></td>
+                            <td class="font-weight-bold" style="font-size: 12pt !important;"><?= $li->bom_code; ?></td>
+                            <td><?= $i; ?></td>
                             <td><?= $li->rm_code; ?></td>
                             <td><?= $li->item_name; ?></td>
                             <td><?= $li->item_size; ?></td>
@@ -236,13 +248,16 @@
                             <td><?= formatNumber($li->Qty_Needed_ForSO); ?></td>
                             <td><?= formatNumber(floatval($li->cost) * floatval($li->Qty_Needed_ForSO)) ?></td>
                         </tr>
+                        <?php $rowColor = !$rowColor; ?>
                     <?php else : ?>
-                        <tr style="border: none;">
-                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
-                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
-                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
-                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
-                            <td class="font-weight-bold" style="border-top: none; border-bottom: none;">&nbsp;</td>
+                        <?php $i++; ?>
+                        <tr <?= "style='background-color: $bgColor; border: none;'"; ?>>
+                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
+                            <td><?= $i; ?></td>
                             <td><?= $li->rm_code; ?></td>
                             <td><?= $li->item_name; ?></td>
                             <td><?= $li->item_size; ?></td>
@@ -309,5 +324,21 @@ function formatNumber($number)
     return $formattedNumber;
 }
 ?>
+
+<script>
+    function ExportToExcel(type, fn, dl) {
+        var elt = document.getElementById('tbl_exporttable_to_xls');
+        var wb = XLSX.utils.table_to_book(elt, {
+            sheet: "sheet1"
+        });
+        return dl ?
+            XLSX.write(wb, {
+                bookType: type,
+                bookSST: true,
+                type: 'base64'
+            }) :
+            XLSX.writeFile(wb, fn || ('OST PO vs MATERIAL BOM , PO DATE <?= $from ?> sd <?= $until ?>.' + (type || 'xlsx')));
+    }
+</script>
 
 </html>

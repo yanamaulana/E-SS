@@ -94,7 +94,7 @@
                 </div>
             </form>
             <div class="card-footer" style="border-top:solid #EFF2F5 2px;">
-                <button type="button" value="pdf" class="btn btn-sm btn-light-danger" id="Pdf"><i class="fas fa-file-pdf"></i> Display Report PDF</button>
+                <button type="button" value="pdf" class="btn btn-sm btn-light-danger" id="Pdf"><i class="fas fa-file-pdf"></i> Display Report</button>
                 <!-- <button type="button" value="excel" class="btn btn-sm btn-light-success" id="Excel"><i class="fas fa-file-excel"></i> Export To Ms. Excel</button> -->
                 <a href="<?= base_url() ?>" class="btn btn-danger btn-sm float-end"><i class="far fa-arrow-alt-circle-left"></i> Back</a>
             </div>
