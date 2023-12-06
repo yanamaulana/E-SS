@@ -317,8 +317,30 @@
                                     <span class="menu-title">Samick Report</span>
                                 </a>
                             </div>
+                            <?php $month = floatval(date('m')); ?>
+                            <?php if ($month > 11 && $this->session->userdata('sys_sba_isDir') != 1) :  ?>
+                                <div class="menu-item">
+                                    <div class="menu-content pb-2">
+                                        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Inventory</span>
+                                    </div>
+                                </div>
+                                <div class="menu-item">
+                                    <a class="menu-link <?= ($Menu == 'Opname') ? 'active' : null ?>" href="<?= base_url('Opname') ?>">
+                                        <span class="menu-icon">
+                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/layouts/lay007.svg-->
+                                            <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                                    <path opacity="0.3" d="M14 10V20C14 20.6 13.6 21 13 21H10C9.4 21 9 20.6 9 20V10C9 9.4 9.4 9 10 9H13C13.6 9 14 9.4 14 10ZM20 9H17C16.4 9 16 9.4 16 10V20C16 20.6 16.4 21 17 21H20C20.6 21 21 20.6 21 20V10C21 9.4 20.6 9 20 9Z" fill="black" />
+                                                    <path d="M7 10V20C7 20.6 6.6 21 6 21H3C2.4 21 2 20.6 2 20V10C2 9.4 2.4 9 3 9H6C6.6 9 7 9.4 7 10ZM21 6V3C21 2.4 20.6 2 20 2H3C2.4 2 2 2.4 2 3V6C2 6.6 2.4 7 3 7H20C20.6 7 21 6.6 21 6Z" fill="black" />
+                                                </svg></span>
+                                            <!--end::Svg Icon-->
+                                        </span>
+                                        <span class="menu-title">Stock Opname</span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+
                             <!-- <div class="menu-item">
-                                <a class="menu-link <?= ($Menu == 'ReportPemakaianCuti') ? 'active' : null ?>" href="<?= base_url('ReportPemakaianCuti') ?>">
+                                <a class="menu-link <= ($Menu == 'ReportPemakaianCuti') ? 'active' : null ?>" href="<= base_url('ReportPemakaianCuti') ?>">
                                     <span class="menu-icon">
                                         <span class="svg-icon svg-icon-2">
                                             <span class="svg-icon svg-icon-muted svg-icon-2qx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">

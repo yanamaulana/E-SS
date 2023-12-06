@@ -105,120 +105,120 @@ class Sales extends CI_Controller
         $this->data['report_type'] = $this->input->get("report_type");
 
         $sql = "SELECT MainQ.Item_SO_Times,
-                                MainQ.dimension_id,
-                                MainQ.QTY_PO_PERITEM,
-                                MainQ.qtyDeliver,
-                                MainQ.RemainingQty,
-                                tppicitembom_detail.bom_code,
-                                BOMHDR.ITEM_CODE,
-                                tppicitembom_detail.rm_code,
-                                tppicitembom_detail.rm_qty,
-                                MainQ.RemainingQty * tppicitembom_detail.rm_qty as Qty_Needed_ForSO,
-                                tppicitembom_detail.rm_unittypeid,
-                                tppicitembom_detail.bom_id,
-                                tppicitembom_detail.dimension_id,
-                                case
-                                    when titemcompany.itemcategory_id in (49,50,51,52,53,62,63,64,65,66)
-                                    then
-                                        (select	top 1 tppicitembom.cost
-                                        from	tppicitembom
-                                        where	tppicitembom_detail.rm_code = tppicitembom.item_code order by last_update desc )
-                                    else
-                                        tppicitembom_detail.cost
-                                end as cost,
-                                case
-                                    when titemcompany.itemcategory_id in (49,50,51,52,53,62,63,64,65,66)
-                                    then
-                                        (select	top 1 tppicitembom.currency_id
-                                        from	tppicitembom
-                                        where	tppicitembom_detail.rm_code = tppicitembom.item_code order by last_update desc)
-                                    else
-                                        isnull(tppicitembom_detail.currency_id, 'IDR')
-                                end as currency_id,
-                                -- tppicitembom_detail.group,
-                                tppicitembom_detail.account_id,
-                                tppicitembom_detail.item_convertion,
-                                tppicitembom_detail.is_accessories,
-                                tppicitembom_detail.is_expensive_parts,
-                                tppicitembom_detail.loss_percentage,
-                                tppicitembom_detail.comp_loss_percentage,
-                                titem.item_name,
-                                isnull(cast(titem.item_height as varchar), '-') + ' x ' +
-                                isnull(cast(titem.item_width as varchar), '-') + ' x ' +
-                                isnull(cast(titem.item_length as varchar), '-') as item_size,
-                                titem.customfield1 as type,
-                                titem.item_size as brand,
-                                tgscolor.color_name,
-                                titemdimension.dimension_name,
-                                taccunittype.unit_name,
-                                taccount.account_name
-                            from tppicitembom_detail
-                            inner join titem on tppicitembom_detail.rm_code = titem.item_code
-                            inner join TPPICITEMBOM AS BOMHDR on BOMHDR.BOM_CODE = tppicitembom_detail.bom_code
-                            inner join titemcompany on titemcompany.item_code = titem.item_code and titemcompany.dimension_id = tppicitembom_detail.dimension_id
-                            inner join titemdimension on titemdimension.dimension_id = titemcompany.dimension_id
-                            inner join taccunittype on taccunittype.unit_type_id = titem.unit_type_id
-                            inner join (SELECT SODTL.Item_Code, 
-                                COUNT(SODTL.Item_Code) AS Item_SO_Times, 
-                                SODTL.dimension_id, 
-                                SUM(SODTL.Qty) AS QTY_PO_PERITEM, 
-                                ISNULL(
-                                    (
+                MainQ.dimension_id,
+                MainQ.QTY_PO_PERITEM,
+                MainQ.qtyDeliver,
+                MainQ.RemainingQty,
+                tppicitembom_detail.bom_code,
+                BOMHDR.ITEM_CODE,
+                tppicitembom_detail.rm_code,
+                tppicitembom_detail.rm_qty,
+                MainQ.RemainingQty * tppicitembom_detail.rm_qty as Qty_Needed_ForSO,
+                tppicitembom_detail.rm_unittypeid,
+                tppicitembom_detail.bom_id,
+                tppicitembom_detail.dimension_id,
+                case
+                    when titemcompany.itemcategory_id in (49,50,51,52,53,62,63,64,65,66)
+                    then
+                        (select	top 1 tppicitembom.cost
+                        from	tppicitembom
+                        where	tppicitembom_detail.rm_code = tppicitembom.item_code order by last_update desc )
+                    else
+                        tppicitembom_detail.cost
+                end as cost,
+                case
+                    when titemcompany.itemcategory_id in (49,50,51,52,53,62,63,64,65,66)
+                    then
+                        (select	top 1 tppicitembom.currency_id
+                        from	tppicitembom
+                        where	tppicitembom_detail.rm_code = tppicitembom.item_code order by last_update desc)
+                    else
+                        isnull(tppicitembom_detail.currency_id, 'IDR')
+                end as currency_id,
+                -- tppicitembom_detail.group,
+                tppicitembom_detail.account_id,
+                tppicitembom_detail.item_convertion,
+                tppicitembom_detail.is_accessories,
+                tppicitembom_detail.is_expensive_parts,
+                tppicitembom_detail.loss_percentage,
+                tppicitembom_detail.comp_loss_percentage,
+                titem.item_name,
+                isnull(cast(titem.item_height as varchar), '-') + ' x ' +
+                isnull(cast(titem.item_width as varchar), '-') + ' x ' +
+                isnull(cast(titem.item_length as varchar), '-') as item_size,
+                titem.customfield1 as type,
+                titem.item_size as brand,
+                tgscolor.color_name,
+                titemdimension.dimension_name,
+                taccunittype.unit_name,
+                taccount.account_name
+                    from tppicitembom_detail
+                    inner join titem on tppicitembom_detail.rm_code = titem.item_code
+                    inner join TPPICITEMBOM AS BOMHDR on BOMHDR.BOM_CODE = tppicitembom_detail.bom_code
+                    inner join titemcompany on titemcompany.item_code = titem.item_code and titemcompany.dimension_id = tppicitembom_detail.dimension_id
+                    inner join titemdimension on titemdimension.dimension_id = titemcompany.dimension_id
+                    inner join taccunittype on taccunittype.unit_type_id = titem.unit_type_id
+                    inner join (SELECT SODTL.Item_Code, 
+                        COUNT(SODTL.Item_Code) AS Item_SO_Times, 
+                        SODTL.dimension_id, 
+                        SUM(SODTL.Qty) AS QTY_PO_PERITEM, 
+                        ISNULL(
+                            (
+                                SELECT 
+                                    SUM(taccSN_Item.Qty) 
+                                FROM 
+                                    taccSN_Header 
+                                    INNER JOIN taccSN_Item ON taccSN_Item.SN_number = taccSN_Header.SN_number
+                                WHERE 
+                                    ISNULL(TAccSN_Header.isVoid, 0) = 0 
+                                    AND taccSN_Item.Item_code = SODTL.item_code 
+                                    AND TAccSN_Item.SO_number IN (
                                         SELECT 
-                                            SUM(taccSN_Item.Qty) 
+                                            SOHDR2.SO_Number 
                                         FROM 
-                                            taccSN_Header 
-                                            INNER JOIN taccSN_Item ON taccSN_Item.SN_number = taccSN_Header.SN_number
+                                            dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR2
                                         WHERE 
-                                            ISNULL(TAccSN_Header.isVoid, 0) = 0 
-                                            AND taccSN_Item.Item_code = SODTL.item_code 
-                                            AND TAccSN_Item.SO_number IN (
-                                                SELECT 
-                                                    SOHDR2.SO_Number 
-                                                FROM 
-                                                    dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR2
-                                                WHERE 
-                                                    SOHDR2.SO_Date >= {d '$from'}
-                                                    AND SOHDR2.SO_Date < {d '$newUntil'} 
-                                                GROUP BY 
-                                                    SOHDR2.SO_Number
-                                            )
-                                            AND taccSN_Item.dimension_id = SODTL.dimension_id
-                                            AND taccSN_Header.Approval_Status = 3
-                                    ), 
-                                    0
-                                ) AS qtyDeliver,
-                                SUM(SODTL.Qty) - ISNULL(
-                                    (
+                                            SOHDR2.SO_Date >= {d '$from'}
+                                            AND SOHDR2.SO_Date < {d '$newUntil'} 
+                                        GROUP BY 
+                                            SOHDR2.SO_Number
+                                    )
+                                    AND taccSN_Item.dimension_id = SODTL.dimension_id
+                                    AND taccSN_Header.Approval_Status = 3
+                            ), 
+                            0
+                        ) AS qtyDeliver,
+                        SUM(SODTL.Qty) - ISNULL(
+                            (
+                                SELECT 
+                                    SUM(taccSN_Item.Qty) 
+                                FROM 
+                                    taccSN_Header 
+                                    INNER JOIN taccSN_Item ON taccSN_Item.SN_number = taccSN_Header.SN_number
+                                WHERE 
+                                    ISNULL(TAccSN_Header.isVoid, 0) = 0 
+                                    AND taccSN_Item.Item_code = SODTL.item_code 
+                                    AND TAccSN_Item.SO_number IN (
                                         SELECT 
-                                            SUM(taccSN_Item.Qty) 
+                                            SOHDR2.SO_Number 
                                         FROM 
-                                            taccSN_Header 
-                                            INNER JOIN taccSN_Item ON taccSN_Item.SN_number = taccSN_Header.SN_number
+                                            dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR2
                                         WHERE 
-                                            ISNULL(TAccSN_Header.isVoid, 0) = 0 
-                                            AND taccSN_Item.Item_code = SODTL.item_code 
-                                            AND TAccSN_Item.SO_number IN (
-                                                SELECT 
-                                                    SOHDR2.SO_Number 
-                                                FROM 
-                                                    dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR2
-                                                WHERE 
-                                                    SOHDR2.SO_Date >= {d '$from'}
-                                                    AND SOHDR2.SO_Date < {d '$newUntil'} 
-                                                GROUP BY 
-                                                    SOHDR2.SO_Number
-                                            )
-                                            AND taccSN_Item.dimension_id = SODTL.dimension_id
-                                            AND taccSN_Header.Approval_Status = 3
-                                    ), 
-                                    0) AS RemainingQty
-                            FROM dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR
-                                INNER JOIN TAccSO_Detail AS SODTL ON SODTL.SO_Number = SOHDR.SO_Number
-                                inner JOIN tppicitembom AS bom1 on SODTL.Item_Code = bom1.ITEM_CODE
-                            WHERE 
-                                SOHDR.SO_Date >= {d '$from'}
-                                AND SOHDR.SO_Date < {d '$newUntil'} ";
+                                            SOHDR2.SO_Date >= {d '$from'}
+                                            AND SOHDR2.SO_Date < {d '$newUntil'} 
+                                        GROUP BY 
+                                            SOHDR2.SO_Number
+                                    )
+                                    AND taccSN_Item.dimension_id = SODTL.dimension_id
+                                    AND taccSN_Header.Approval_Status = 3
+                            ), 
+                            0) AS RemainingQty
+                    FROM dbsai_erp_uat.dbo.TAccSO_Header AS SOHDR
+                        INNER JOIN TAccSO_Detail AS SODTL ON SODTL.SO_Number = SOHDR.SO_Number
+                        inner JOIN tppicitembom AS bom1 on SODTL.Item_Code = bom1.ITEM_CODE
+                    WHERE 
+                        SOHDR.SO_Date >= {d '$from'}
+                        AND SOHDR.SO_Date < {d '$newUntil'} ";
         if ($sales_type != 'ALL') {
             $sql .= "AND TAccSO_Header.isExport = '$sales_type' ";
         }
@@ -229,8 +229,8 @@ class Sales extends CI_Controller
                 SODTL.dimension_id) AS MainQ ON BOMHDR.ITEM_CODE = MainQ.Item_Code
                 left join taccount on taccount.account_id = tppicitembom_detail.account_id
                 left join tgscolor on tgscolor.color_code = titem.color_code
-                where MainQ.qtyDeliver > 0
-                order by BOMHDR.BOM_CODE ,BOMHDR.ITEM_CODE ASC";
+                WHERE MainQ.RemainingQty > 0
+                order by BOMHDR.ITEM_CODE, tppicitembom_detail.rm_code ASC";
         $this->data['SqlBomPerOstPO'] = $this->db->query($sql);
 
         $this->load->view('Report/Sales/Rpt_ostpo_rawmaterial', $this->data);

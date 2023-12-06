@@ -532,8 +532,8 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 $config['user_employees'] = 'qview_user_employee';
-$config['app_name'] = 'E-Samick Budget Approval';
-$config['init_app_name'] = 'E-SBA';
+$config['app_name'] = 'E-Samick Support System';
+$config['init_app_name'] = 'E-SSS';
 $config['company_name'] = 'Samick Indonesia';
 $config['company_initial'] = 'Samick';
 $config['website'] = 'https://ptsamick.com/';

@@ -32,7 +32,7 @@
                 <div class="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
                     <form id="form-login" method="post" action="<?= base_url('Auth/post_login') ?>" class="form w-100" novalidate="novalidate">
                         <div class="text-center mb-10">
-                            <h2 class="text-dark mb-3">Login to Electronic Approval Budget</h2>
+                            <h2 class="text-dark mb-3">Login to Samick Support System</h2>
                             <div class="text-gray-600 fw-bold fs-4">By Samick Indonesia</div>
                         </div>
                         <div class="fv-row mb-10">

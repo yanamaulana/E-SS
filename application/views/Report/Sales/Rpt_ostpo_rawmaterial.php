@@ -7,7 +7,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="<?= base_url() ?>assets/E-SBA_assets/web-logo/favicon.ico" />
-    <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
 </head>
 <style>
     @page {
@@ -198,7 +197,7 @@
                     <th>TOTAL QTY DELIVER</th>
                     <th>OUTSTANDING QTY PO</th>
                     <th>BOM CODE</th>
-                    <th>order</th>
+                    <th>Short</th>
                     <th>BOM RAW MATERIAL CODE</th>
                     <th>RAW MATERIAL NAME</th>
                     <th>RAW MATERIAL SIZE</th>
@@ -224,8 +223,8 @@
             <tbody>
                 <?php $rowColor = true; ?>
                 <?php foreach ($SqlBomPerOstPO->result() as $li) : ?>
-                    <?php if ($product_code = $li->ITEM_CODE && $qty_po = $li->QTY_PO_PERITEM && $qty_deliver != $li->qtyDeliver && $qty_outstanding != $li->RemainingQty && $bom_code != $li->bom_code) : ?>
-                        <?php $bgColor = $rowColor ? '#b1d7fc' : '#ffffff'; ?>
+                    <?php if ($product_code = $li->ITEM_CODE && $bom_code != $li->bom_code) : ?>
+                        <?php $bgColor = $rowColor ? '#fcfbb6' : '#ffffff'; ?>
                         <?php $i = 1; ?>
                         <tr <?= "style='background-color: $bgColor;'"; ?>>
                             <td class="font-weight-bold" style="font-size: 12pt !important;"><?= $li->ITEM_CODE; ?></td>
@@ -252,25 +251,25 @@
                     <?php else : ?>
                         <?php $i++; ?>
                         <tr <?= "style='background-color: $bgColor; border: none;'"; ?>>
-                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
-                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
-                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
-                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
-                            <td class="font-weight-bold" style="border:none">&nbsp;</td>
-                            <td><?= $i; ?></td>
-                            <td><?= $li->rm_code; ?></td>
-                            <td><?= $li->item_name; ?></td>
-                            <td><?= $li->item_size; ?></td>
-                            <td><?= $li->type; ?></td>
-                            <td><?= $li->brand; ?></td>
-                            <td><?= $li->color_name; ?></td>
-                            <td><?= $li->dimension_name; ?></td>
-                            <td><?= $li->unit_name; ?></td>
-                            <td><?= $li->currency_id; ?></td>
-                            <td><?= formatNumber($li->rm_qty); ?></td>
-                            <td><?= formatNumber($li->cost); ?></td>
-                            <td><?= formatNumber($li->Qty_Needed_ForSO); ?></td>
-                            <td><?= formatNumber(floatval($li->cost) * floatval($li->Qty_Needed_ForSO)) ?></td>
+                            <td class="font-weight-bold" style="border:none; vertical-align: middle;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none; vertical-align: middle;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none; vertical-align: middle;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none; vertical-align: middle;">&nbsp;</td>
+                            <td class="font-weight-bold" style="border:none; vertical-align: middle;">&nbsp;</td>
+                            <td style="vertical-align: middle;"><?= $i; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->rm_code; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->item_name; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->item_size; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->type; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->brand; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->color_name; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->dimension_name; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->unit_name; ?></td>
+                            <td style="vertical-align: middle;"><?= $li->currency_id; ?></td>
+                            <td style="vertical-align: middle;"><?= formatNumber($li->rm_qty); ?></td>
+                            <td style="vertical-align: middle;"><?= formatNumber($li->cost); ?></td>
+                            <td style="vertical-align: middle;"><?= formatNumber($li->Qty_Needed_ForSO); ?></td>
+                            <td style="vertical-align: middle;"><?= formatNumber(floatval($li->cost) * floatval($li->Qty_Needed_ForSO)) ?></td>
                         </tr>
                     <?php endif; ?>
                     <?php
