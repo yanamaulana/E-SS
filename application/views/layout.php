@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title><?= $this->config->item('init_app_name') ?> | <?= $page_title ?></title>
+    <title><?= $page_title ?></title>
     <meta name="base_url" content="<?= base_url() ?>">
     <meta name="description" content="E Teacher Attendance" />
     <meta name="keywords" content="E Teacher Attendance" />

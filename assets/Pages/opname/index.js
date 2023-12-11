@@ -14,9 +14,29 @@ $(document).ready(function () {
         minDate: formattedDate,
         maxDate: formattedDate
     });
+
+
+    $('#Generate').on('click', function () {
+        let SelLocation = $('#SelLocation').val();
+        let DatePeriod = $('#DatePeriod').val();
+        let selCatType = $('#selCatType').val();
+        let item_code = $('#item_code').val();
+        let Category = $('#Category').val();
+        let Gudang = $('#Gudang').val();
+
+        if (!SelLocation || SelLocation.trim() === '') {
+
+        }
+
+
+        window.location.href = $('meta[name="base_url"]').attr('content') + `Opname/Generate?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
+    })
+
 })
 
 function Initialize_select2_category(el_selCatType) {
+    $('#Category').val('ALL').trigger('change');
+
     $('#Category').select2({
         minimumInputLength: 0,
         allowClear: true,
@@ -45,6 +65,12 @@ function Initialize_select2_category(el_selCatType) {
 }
 
 function Initialize_select2_bin(el_location) {
+    if (el_location != 1) {
+        $('#Gudang').val(null).trigger('change');
+    } else {
+        $('#Gudang').val(1).trigger('change');
+    }
+
     $('#Gudang').select2({
         minimumInputLength: 0,
         allowClear: true,
