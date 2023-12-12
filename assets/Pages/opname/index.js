@@ -25,11 +25,68 @@ $(document).ready(function () {
         let Gudang = $('#Gudang').val();
 
         if (!SelLocation || SelLocation.trim() === '') {
-
+            return Swal.fire({
+                title: 'System Message !',
+                text: `You need to select warehouse location !`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            })
         }
 
+        if (!DatePeriod || DatePeriod.trim() === '') {
+            return Swal.fire({
+                title: 'System Message !',
+                text: `You need to choose date period !`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            })
+        }
 
-        window.location.href = $('meta[name="base_url"]').attr('content') + `Opname/Generate?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
+        if (!selCatType || selCatType.trim() === '') {
+            return Swal.fire({
+                title: 'System Message !',
+                text: `You need to choose date period !`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            })
+        }
+
+        if (!Category || Category.trim() === '') {
+            return Swal.fire({
+                title: 'System Message !',
+                text: `You need to choose item Category !`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            })
+        }
+
+        if (!Gudang || Gudang.trim() === '') {
+            return Swal.fire({
+                title: 'System Message !',
+                text: `You need to select BIN !`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            })
+        }
+
+        let urls = $('meta[name="base_url"]').attr('content') + `Opname/Generate?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
+
+        console.log(urls)
     })
 
 })
