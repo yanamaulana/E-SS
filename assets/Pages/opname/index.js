@@ -84,9 +84,11 @@ $(document).ready(function () {
             })
         }
 
-        let urls = $('meta[name="base_url"]').attr('content') + `Opname/Generate?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
+        let urls = $('meta[name="base_url"]').attr('content') + `Opname/GenerateDataOpname?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
 
-        console.log(urls)
+        window.open(urls, 'WindowInsertCurrentStockToOpname', 'width=800,height=600');
+
+
     })
 
 })

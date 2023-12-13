@@ -26,6 +26,47 @@ class Opname extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    public function GenerateDataOpname()
+    {
+        $SelLocation = $this->input->get('SelLocation');
+        $DatePeriod = $this->input->get('DatePeriod');
+        $selCatType = $this->input->get('selCatType');
+        $item_code = $this->input->get('item_code');
+        $Category = $this->input->get('Category');
+        $Gudang = $this->input->get('Gudang');
+
+        $sqlItem = "";
+        if (!empty($item_code)) {
+            $sqlItem = " AND ((UPPER(TItem.Item_Code) LIKE UPPER('$item_code'))) ";
+        }
+
+        $SqlOpname = "SELECT TItem.Item_Code, TItemCompany.ItemCategory_ID, TItemCategory.ItemCategory_NAme, Item_Name, TItemWHBin.Item_Qty,
+        Item_size, TitemCompany.Asset_Account, ViewCategory, currency_id, TitemCompany.AVG_VALUE, CostingMethod, selling_currency_id,
+        TItem.Habis, Option_code, InActive, generate_flag, TItem.Unit_Type_ID, Unit_Name, TItemCompany.Dimension_ID, 
+        ISNULL(itd.Dimension_Name, '') AS Dimension_Name 
+        FROM TItemWHBin
+        INNER JOIN  TItem ON TItem.item_Code = TItemWHBin.Item_Code
+        INNER JOIN 	TItemCompany ON TItem.item_Code = TItemCompany.Item_Code
+        INNER JOIN	TItemCategory ON TItemCompany.ItemCategory_ID = TItemCategory.ItemCategory_ID
+        INNER JOIN TItemDimension itd ON itd.Dimension_ID = TItemCompany.Dimension_ID 
+        INNER JOIN	TAccUnitType ON TITEM.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
+        WHERE TITEM.status = 1 
+        AND TItemWHBin.wh_id = '$SelLocation'
+        AND	TItemWHBin.bin_id = '$Gudang'
+        AND TItemWHBin.ItemCategoryType = '$selCatType'
+        AND TItemCompany.company_id = 2 
+        AND TItem.habis = 1
+        AND ( InActive is NULL OR InActive = 0)
+        AND TItemCompany.Itemcategory_ID in ('$Category') $sqlItem
+        AND TItem.item_code in(SELECT DISTINCT ITEM_CODE FROM TDATAGROUPITEM WHERE DATAGROUP_ID IN (20,86)) 
+        ORDER BY TItemWHBin.Item_Qty DESC";
+
+        $this->data['qOpname'] = $this->db->query($SqlOpname);
+        $this->data['DateOpname'] = $DatePeriod;
+
+        $this->load->view('Opname/generateopname', $this->data);
+    }
+
     public function select2_category()
     {
         $selCatType = $this->input->get('selCatType');
