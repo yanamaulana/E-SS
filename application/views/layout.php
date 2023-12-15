@@ -4,15 +4,15 @@
 <head>
     <title><?= $page_title ?></title>
     <meta name="base_url" content="<?= base_url() ?>">
-    <meta name="description" content="E Teacher Attendance" />
-    <meta name="keywords" content="E Teacher Attendance" />
+    <meta name="description" content="E-Samick Support System" />
+    <meta name="keywords" content="E-Samick Support System" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="E-Teacher Attendance" />
+    <meta property="og:title" content="E-Samick Support System" />
     <meta property="og:url" content="<?= base_url() ?>" />
-    <meta property="og:site_name" content="E-Teacher Attendance" />
+    <meta property="og:site_name" content="E-Samick Support System" />
     <link rel="canonical" href="<?= base_url() ?>" />
     <link rel="shortcut icon" href="<?= base_url() ?>assets/E-SBA_assets/web-logo/favicon.ico" />
     <link rel="stylesheet" href="<?= base_url() ?>assets/E-SBA_assets/font/main-font.css">

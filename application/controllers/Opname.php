@@ -5,6 +5,7 @@ class Opname extends CI_Controller
 {
     private $Day;
     private $Date;
+    protected $ItemCategoryType;
     private $layout = 'layout';
 
     public function __construct()
@@ -13,6 +14,7 @@ class Opname extends CI_Controller
         is_logged_in();
         $this->Day = date("l");
         $this->Date = date("Y-m-d");
+        $this->ItemCategoryType = ['RM' => 'Raw Material', 'FG' => 'Finished Goods or Services', 'SP' => 'Supplies', 'SF' => 'Semi-Finished Goods', 'WIP' => 'Working In Process'];
         $this->load->model('m_helper', 'help');
     }
 
@@ -36,11 +38,24 @@ class Opname extends CI_Controller
         $Gudang = $this->input->get('Gudang');
 
         $sqlItem = "";
+        $sqlItemCode = "";
         if (!empty($item_code)) {
             $sqlItem = " AND ((UPPER(TItem.Item_Code) LIKE UPPER('$item_code'))) ";
+            $sqlItemCode = " AND TCOUNTITEM.ITEM_CODE = '$item_code' ";
+        }
+        $sqlCategory = "";
+        $SqlBinCountItem = "";
+        $this->data['Category'] = $Category;
+        if ($Category != 'ALL') {
+            $sqlCategory = " AND TItemCompany.Itemcategory_ID in ('$Category') ";
+            $SqlBinCountItem = " AND TCOUNTITEM.Bin_ID = '$Category' ";
+            $RowCategory = $this->db->get_where('TItemCategory', ['ItemCategory_id' => $Category])->row();
+            $this->data['TxtCategory'] = $RowCategory->ItemCategory_name;
+        } else {
+            $this->data['TxtCategory'] = 'ALL';
         }
 
-        $SqlOpname = "SELECT TItem.Item_Code, TItemCompany.ItemCategory_ID, TItemCategory.ItemCategory_NAme, Item_Name, TItemWHBin.Item_Qty,
+        $SqlOpname = "SELECT TItem.Item_Code, TItemCompany.ItemCategory_ID, TItemCategory.ItemCategory_NAme, Item_Name, ISNULL(TItemWHBin.Item_Qty,0) as Item_Qty,
         Item_size, TitemCompany.Asset_Account, ViewCategory, currency_id, TitemCompany.AVG_VALUE, CostingMethod, selling_currency_id,
         TItem.Habis, Option_code, InActive, generate_flag, TItem.Unit_Type_ID, Unit_Name, TItemCompany.Dimension_ID, 
         ISNULL(itd.Dimension_Name, '') AS Dimension_Name 
@@ -57,12 +72,55 @@ class Opname extends CI_Controller
         AND TItemCompany.company_id = 2 
         AND TItem.habis = 1
         AND ( InActive is NULL OR InActive = 0)
-        AND TItemCompany.Itemcategory_ID in ('$Category') $sqlItem
+        $sqlCategory $sqlItem
         AND TItem.item_code in(SELECT DISTINCT ITEM_CODE FROM TDATAGROUPITEM WHERE DATAGROUP_ID IN (20,86)) 
         ORDER BY TItemWHBin.Item_Qty DESC";
 
+        $SqlValidateOpname = "SELECT TCOUNTITEM.COUNTITEM_ID, 
+        TCOUNTITEM.COUNTITEM_CATEGORY_TYPE, 
+        TCOUNTITEM.ITEM_CODE, 
+        TItem.Item_Name,
+        TAccUnitType.Unit_Name,
+        TCOUNTITEM.QTY_ONHAND, 
+        TCOUNTITEM.STOCK_OPNAME, 
+        TCOUNTITEM.BALANCE_OPNAME, 
+        TCOUNTITEM.COMPANY_ID, 
+        TCOUNTITEM.WH_ID,
+        TCOUNTITEM.Bin_ID,
+        TCOUNTITEM.LAST_UPDATE,
+        TCOUNTITEM.UPDATED_BY, 
+        TCOUNTITEM.Dimension_ID,
+        ISNULL(TItemDimension.Dimension_Name, '') AS Dimension_Name 
+        FROM dbsai_erp_uat.dbo.TCOUNTITEM
+        INNER JOIN  TItem ON TItem.item_Code = TCOUNTITEM.ITEM_CODE
+        INNER JOIN	TAccUnitType ON TITEM.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
+        LEFT JOIN TItemDimension ON TItemDimension.Dimension_ID = TCOUNTITEM.Dimension_ID
+        WHERE TCOUNTITEM.COUNTITEM_CATEGORY_TYPE = '$selCatType' 
+        AND TCOUNTITEM.COMPANY_ID = 2
+        AND TCOUNTITEM.WH_ID = $Gudang
+        $SqlBinCountItem
+        $sqlItemCode
+        AND TCOUNTITEM.LAST_UPDATE = '$DatePeriod' ORDER BY TCOUNTITEM.QTY_ONHAND DESC";
+
+        $SqlDestroyOpname = "DELETE FROM TCOUNTITEM WHERE COUNTITEM_CATEGORY_TYPE = '$selCatType' 
+        AND COMPANY_ID = 2
+        AND WH_ID = $Gudang
+        $SqlBinCountItem
+        $sqlItemCode
+        AND LAST_UPDATE = '$DatePeriod'";
+
+        $this->data['page_title'] = 'Generate Qty Stock Opname';
         $this->data['qOpname'] = $this->db->query($SqlOpname);
+        $this->data['qValidateOpname'] = $this->db->query($SqlValidateOpname);
+        $this->data['qDeleteOpname'] = $SqlDestroyOpname;
         $this->data['DateOpname'] = $DatePeriod;
+        $this->data['SelLocation'] = $SelLocation;
+        $this->data['RowLocation'] = $this->db->get_where('TAccWHLocation', ['wh_id' => $SelLocation])->row();
+        $this->data['selCatType'] = $selCatType;
+        $this->data['ItemCategoryTypeTxt'] = $this->ItemCategoryType[$selCatType];
+        $this->data['Gudang'] = $Gudang;
+        $this->data['RowGudang'] = $this->db->get_where('taccwhbin', ['bin_id' => $Gudang])->row();
+        $this->data['item_code'] = $item_code;
 
         $this->load->view('Opname/generateopname', $this->data);
     }
