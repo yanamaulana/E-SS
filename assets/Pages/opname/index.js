@@ -86,11 +86,21 @@ $(document).ready(function () {
 
         let urls = $('meta[name="base_url"]').attr('content') + `Opname/GenerateDataOpname?SelLocation=${SelLocation}&DatePeriod=${DatePeriod}&selCatType=${selCatType}&item_code=${item_code}&Category=${Category}&Gudang=${Gudang}`;
 
-        window.open(urls, 'WindowInsertCurrentStockToOpname', 'width=800,height=600');
 
-
+        Swal.fire({
+            title: 'Apakah Anda Yakin ?',
+            text: `Click confirm apabila anda sudah yakin dengan pilihan anda !`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Confirm !'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open(urls, 'WindowInsertCurrentStockToOpname', 'width=800,height=600');
+            }
+        });
     })
-
 })
 
 function Initialize_select2_category(el_selCatType) {
