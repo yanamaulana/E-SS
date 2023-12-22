@@ -1,20 +1,13 @@
 $(document).ready(function () {
-    // Membuat objek Date untuk mendapatkan tanggal hari ini
     var today = new Date();
-
-    // Mendapatkan tahun, bulan, dan tanggal dari objek Date
     var year = today.getFullYear();
-    var month = ('0' + (today.getMonth() + 1)).slice(-2); // Ditambah 1 karena bulan dimulai dari 0
+    var month = ('0' + (today.getMonth() + 1)).slice(-2);
     var day = ('0' + today.getDate()).slice(-2);
-
-    // Menggabungkan tahun, bulan, dan tanggal dengan format YYYY-MM-DD
     var formattedDate = year + '-' + month + '-' + day;
 
     $('.date-picker').flatpickr({
-        minDate: formattedDate,
         maxDate: formattedDate
     });
-
 
     $('#Generate').on('click', function () {
         let SelLocation = $('#SelLocation').val();

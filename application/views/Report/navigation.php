@@ -49,9 +49,7 @@
                                             <strong>Logistic Report</strong>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu3">
-                                            <li><button class="dropdown-item" type="button">Action</button></li>
-                                            <li><button class="dropdown-item" type="button">Another action</button></li>
-                                            <li><button class="dropdown-item" type="button">Something else here</button></li>
+                                            <li><a href="<?= base_url('Report/Logistic/eta_purchase_order') ?>" class="dropdown-item">ETA Purchase Order</a></li>
                                         </ul>
                                     </div>
                                     <div class="text-center px-4">

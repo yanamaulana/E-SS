@@ -13,7 +13,7 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
-    $('#Pdf').on('click', function () {
+    $('#Rpt-detail').on('click', function () {
         window.open($('meta[name="base_url"]').attr('content') +
             "Report/Sales/Rpt_ostpo_rawmaterial?" +
             "customer=" + $('[name="customer"]').val() +
@@ -22,4 +22,13 @@ $(document).ready(function () {
             "&until=" + $('[name="until"]').val() +
             "&report_type=" + $(this).val(), 'WindowReportPdf', 'width=800,height=600');
     });
+    // $('#Rpt-detail').on('click', function () {
+    //     window.open($('meta[name="base_url"]').attr('content') +
+    //         "Report/Sales/Rpt_ostpo_summary_rawmaterial?" +
+    //         "customer=" + $('[name="customer"]').val() +
+    //         "&sales_type=" + $('[name="sales_type"]').val() +
+    //         "&from=" + $('[name="from"]').val() +
+    //         "&until=" + $('[name="until"]').val() +
+    //         "&report_type=" + $(this).val(), 'WindowReportPdf', 'width=800,height=600');
+    // });
 })

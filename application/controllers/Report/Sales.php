@@ -235,6 +235,10 @@ class Sales extends CI_Controller
 
         $this->load->view('Report/Sales/Rpt_ostpo_rawmaterial', $this->data);
     }
+
+    public function Rpt_ostpo_summary_rawmaterial()
+    {
+    }
 }
 
 
