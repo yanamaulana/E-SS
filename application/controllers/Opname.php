@@ -48,11 +48,12 @@ class Opname extends CI_Controller
         $this->data['Category'] = $Category;
         if ($Category != 'ALL') {
             $sqlCategory = " AND TItemCompany.Itemcategory_ID in ('$Category') ";
-            $SqlBinCountItem = " AND TCOUNTITEM.Bin_ID = '$Category' ";
+            $SqlBinCountItem = " AND TCOUNTITEM.Bin_ID = '$Gudang' ";
             $RowCategory = $this->db->get_where('TItemCategory', ['ItemCategory_id' => $Category])->row();
             $this->data['TxtCategory'] = $RowCategory->ItemCategory_name;
         } else {
             $this->data['TxtCategory'] = 'ALL';
+            $SqlBinCountItem = " AND TCOUNTITEM.Bin_ID = '$Gudang' ";
         }
 
         $SqlOpname = "SELECT TItem.Item_Code, TItemCompany.ItemCategory_ID, TItemCategory.ItemCategory_NAme, Item_Name, ISNULL(TItemWHBin.Item_Qty,0) as Item_Qty,
@@ -97,14 +98,14 @@ class Opname extends CI_Controller
         LEFT JOIN TItemDimension ON TItemDimension.Dimension_ID = TCOUNTITEM.Dimension_ID
         WHERE TCOUNTITEM.COUNTITEM_CATEGORY_TYPE = '$selCatType' 
         AND TCOUNTITEM.COMPANY_ID = 2
-        AND TCOUNTITEM.WH_ID = $Gudang
+        AND TCOUNTITEM.WH_ID = $SelLocation
         $SqlBinCountItem
-        $sqlItemCode
+        $sqlItem
         AND TCOUNTITEM.LAST_UPDATE = '$DatePeriod' ORDER BY TCOUNTITEM.QTY_ONHAND DESC";
 
         $SqlDestroyOpname = "DELETE FROM TCOUNTITEM WHERE COUNTITEM_CATEGORY_TYPE = '$selCatType' 
         AND COMPANY_ID = 2
-        AND WH_ID = $Gudang
+        AND WH_ID = $SelLocation
         $SqlBinCountItem
         $sqlItemCode
         AND LAST_UPDATE = '$DatePeriod'";

@@ -119,8 +119,8 @@
                                                     'STOCK_OPNAME' => $li->Item_Qty,
                                                     'BALANCE_OPNAME' => 0,
                                                     'COMPANY_ID' => 2,
-                                                    'WH_ID' => $Gudang,
-                                                    'BIN_ID' => $li->ItemCategory_ID,
+                                                    'WH_ID' => $SelLocation,
+                                                    'BIN_ID' => $Gudang,
                                                     'LAST_UPDATE' => $DateOpname,
                                                     'UPDATED_BY' => $this->session->userdata('sys_sba_userid'),
                                                     'DIMENSION_ID' => $li->Dimension_ID,
@@ -134,7 +134,6 @@
                                             <td class="text-center">0.00</td>
                                             <td class="text-center"><?= $li->Unit_Name ?></td>
                                             <td class="text-center">
-
                                                 <?php if ($insert) : ?>
                                                     <i class="fas fa-check text-success"></i>
                                                 <?php else : ?>
