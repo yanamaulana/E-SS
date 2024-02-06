@@ -187,4 +187,47 @@ class Opname extends CI_Controller
             echo "hasil kosong";
         }
     }
+
+    public function generate_inj_qty_value_zero_ag_eg()
+    {
+        $qryInj0 = $this->db->query("SELECT History_ID, JournalH_Code, JournalD_Id, DocumentNO, Transaction_Date, ItemCategory_id, Item_Code, Qty_Plus, Qty_Min, QtyRR_Plus, QtyRR_Min, QtySN_Plus, QtySN_Min, QtyProd_Plus, QtyProd_Min, Transaction_Type, ItemCategoryType, Transaction_Value, Company_ID, Currency_ID, WH_ID, sourcewh, Return_BorrowCode, LstBinQty, transaction_value_base, transaction_value_item, Available_ID, Creation_DateTime, REASON, MEMO, COSTCENTER_ID, Dimension_Id, isCloseBorrow, isValue, DateExpected, DatePhysical, ShipmentNotesID, Bin_ID, ReceiptReportID, transaction_value_base_diff, journaldiff, SO_Number, isJournalVerified, isJournalChecked, isVoid, isRecountSQLDone, ori_transaction_value, ori_transaction_value_base
+        FROM dbsai_erp_uat.dbo.TAccItemHistory where Item_Code in 
+        ('HW027257', 'HW027450', 'HW028028', 'HW028416', 'EL023467', 'EL026307', 'EL026923', 'EL027021', 'HW003457', 'HW003474', 'HW017151', 'HW026100', 'HW026505', 'HW003316', 'EL016404', 'PL003009', 'HW001537', 'HW001620', 'HW001631', 'HW018781', 'HW020884', 'HW025313', 'EL003243', 'HW027546', 'HW002670', 'HW025915', 'HW026213', 'HW027137', 'PL026343', 'EL002074', 'EL023466', 'EL026306', 'EL026791', 'HW025868', 'PL001253', 'PL014366', 'PL025807', 'PL025840', 'PL026356', 'PL026515', 'PL002857', 'PL002889', 'PL021427', 'PL023138', 'PL025808', 'PL026142', 'PL026186', 'PL026194', 'PL026438', 'PL027526', 'EL027533', 'EL003504', 'EL003511', 'EL003519', 'EL015764', 'EL022334', 'EL022341', 'EL025838', 'EL025855', 'EL026664', 'EL026667', 'EL026668', 'HW001695', 'HW027209', 'HW026232', 'HW026752', 'PL025935', 'EL025839', 'EL026855', 'EL026998',)
+        and YEAR(Transaction_Date) >= '2023'
+        and JournalH_Code like '%INJ%'
+        and Transaction_Value = 0
+        order by Transaction_Date desc")->result();
+
+        // 'HW027061',
+        // 'HW027080',
+        // 'PL026614',
+        // 'HW023468',
+
+
+        foreach ($qryInj0 as $li) {
+
+            $qrySNS = $this->db->query(
+                "SELECT top 1 History_ID, JournalH_Code, JournalD_Id, DocumentNO, Transaction_Date, ItemCategory_id, Item_Code, Qty_Plus, Qty_Min, QtyRR_Plus, QtyRR_Min, QtySN_Plus, QtySN_Min, QtyProd_Plus, QtyProd_Min, Transaction_Type, ItemCategoryType, Transaction_Value, Company_ID, Currency_ID, WH_ID, sourcewh, Return_BorrowCode, LstBinQty, transaction_value_base, transaction_value_item, Available_ID, Creation_DateTime, REASON, MEMO, COSTCENTER_ID, Dimension_Id, isCloseBorrow, isValue, DateExpected, DatePhysical, ShipmentNotesID, Bin_ID, ReceiptReportID, transaction_value_base_diff, journaldiff, SO_Number, isJournalVerified, isJournalChecked, isVoid, isRecountSQLDone, ori_transaction_value, ori_transaction_value_base
+                FROM dbsai_erp_uat.dbo.TAccItemHistory where Item_Code in ('$li->Item_Code') and YEAR(Transaction_Date) >= '2007'
+                and Transaction_Value > 0
+                and JournalH_Code like '%SNS%'
+                order by Transaction_Date desc;
+                "
+            )->row();
+
+            $Transaction_Value = floatval($qrySNS->Transaction_Value);
+            $transaction_value_base = floatval($qrySNS->transaction_value_base);
+            $transaction_value_item = floatval($qrySNS->transaction_value_item);
+            $this->db->query(
+                "update TAccItemHistory 
+                    set 
+                    Transaction_Value = $Transaction_Value,
+                    transaction_value_base = $transaction_value_base,
+                    transaction_value_item =  $transaction_value_item
+                    where JournalH_Code = '$li->JournalH_Code'
+                    and Item_Code = '$li->Item_Code'
+                "
+            );
+        }
+    }
 }

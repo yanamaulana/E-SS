@@ -238,14 +238,7 @@ class Sales extends CI_Controller
 
     public function Rpt_ostpo_summary_rawmaterial()
     {
+        var_dump($this->input->get());
+        die;
     }
 }
-
-
-// -- HDR
-// --SOHDR.SO_Number, TrxNo, SO_Date, SO_Notes, SOHDR.Account_ID,
-// -- ACcount
-// --TAccount.Cust_FG, TAccount.Cust_RM,TAccount.Cust_Ast,TAccount.Cust_SP,TAccount.AccountTitle_Code,TAccount.Account_Name,
-// -- Detail
-// --Item_Code, Item_Description, Qty, Qty_DO, UnitPrice, Base_UnitPrice, Disc_percentage, ExtraPrice,
-// --Tax_Code1, Tax_Percentage1, Tax_Operator1, Tax_Amount1, Tax_Code2, Tax_Percentage2, Tax_Operator2, Tax_Amount2, TotalPrice, Base_TotalPrice
