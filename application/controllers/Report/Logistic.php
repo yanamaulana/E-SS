@@ -56,4 +56,13 @@ class Logistic extends CI_Controller
 
         $this->load->view('Report/Logistic/Rpt_eta_po', $this->data);
     }
+
+    public function index_price_comparison_last_v_this_year()
+    {
+        $this->data['page_title'] = "Comparison Price Last Year vs This Year";
+        $this->data['page_content'] = "Report/Logistic/price_compare_year";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Report/Logistic/price_compare_year.js"></script>';
+
+        $this->load->view($this->layout, $this->data);
+    }
 }
