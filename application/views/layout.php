@@ -22,6 +22,7 @@
     <link href="<?= base_url() ?>assets/Metronic/dist/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
     <link href="<?= base_url() ?>assets/Metronic/dist/assets/css/custom.css" rel="stylesheet" type="text/css" />
     <script src="<?= base_url() ?>assets/global-assets/jquery/jquery.min.js"></script>
+    <script src="<?= base_url() ?>assets/global-assets/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css"></script>
 </head>
 
 <body id="kt_body" class="header-fixed header-tablet-and-mobile-fixed aside-enabled aside-fixed">
@@ -612,6 +613,7 @@
     <script src="<?= base_url() ?>assets/Metronic/dist/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
     <script src="<?= base_url() ?>assets/Metronic/dist/assets/plugins/custom/datatables/datatables.bundle.js"></script>
     <script src="<?= base_url() ?>assets/global-assets/jquery-validation/jquery.validate.js"></script>
+    <script src="<?= base_url() ?>assets/global-assets/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
     <?= $script_page ?>
 </body>
 
