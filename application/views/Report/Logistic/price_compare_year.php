@@ -25,7 +25,7 @@
                                     <div class="input-group input-group-sm">
                                         <select type="text" name="year" id="year" class="form-control form-select text-center" placeholder="Year...">
                                             <?php
-                                            $tahun_awal = date('Y', strtotime("-1 year"));
+                                            $tahun_awal = date('Y');
                                             $tahun_akhir = 2010;
                                             for ($tahun = $tahun_awal; $tahun >= $tahun_akhir; $tahun--) {
                                                 echo "<option value=\"$tahun\">$tahun</option>";

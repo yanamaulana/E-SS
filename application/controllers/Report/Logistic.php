@@ -70,6 +70,37 @@ class Logistic extends CI_Controller
     {
         $Year = $this->input->get('year');
         $Month = $this->input->get('month');
-        $MonthYear = $this->input->get('year') . '-' . $this->input->get('month');
+
+        $this->data['Year'] = $Year;
+        $this->data['Year_Minus'] = floatval($Year) - 1;
+        $this->data['Month'] = $Month;
+        $this->data['DataSql'] = $this->db->query("Select Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
+                    Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, SUM(Qty) as Sum_Qty_RR, UnitPrice, (SUM(Qty) * UnitPrice) as total_price , WhBin, Bin_Name
+                    from (
+                    select TAccRR_Item.Item_Code, TItem.Item_Name, TItemCategory.ItemCategory_Name,
+                    TItem.CustomField1 AS Item_Type, TItem.Item_Color, TItemColor.Color_Name, TItem.Item_Size, TItem.Item_Length, TItem.Item_Width, TItem.Item_Height,
+                    TAccUnitType.Unit_Name, TAccPO_Header.Currency_ID, TAccRR_Item.Qty, TAccPO_Detail.UnitPrice,
+                    CASE 
+                        WHEN CHARINDEX('|', TAccRR_Item.LstBinQty) > 0 THEN LEFT(TAccRR_Item.LstBinQty, CHARINDEX('|', TAccRR_Item.LstBinQty) - 1)
+                        ELSE LstBinQty
+                    END AS WhBin
+                    from TAccRR_Item
+                    join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
+                    join TItem on TAccRR_Item.Item_Code = TItem.Item_Code
+                    left join TItemCompany on TItem.Item_Code = TItemCompany.item_code 
+                    left join TItemCategory on TITEMCompany.ItemCategory_ID = TItemCategory.ItemCategory_ID
+                    left join TAccUnitType on TAccRR_Item.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
+                    left JOIN TItemDimension ON TItemDimension.Dimension_ID = TAccRR_Item.Dimension_ID	
+                    left JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
+                    left join TAccPO_Detail on TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+                    left join TAccPO_Header on TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
+                    where TAccRR_Item.Qty > 0 and YEAR(TAccRR_Header.RR_Date) = '$Year' and MONTH(TAccRR_Header.RR_Date) = '$Month'
+                    ) as Qview_Summary_Pembelian_Perbulan
+                    left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
+                    group by Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
+                    Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, UnitPrice , WhBin, Bin_Name
+                    order by Item_Code")->result();
+
+        $this->load->view('Report/Logistic/Rpt_item_price_comparison', $this->data);
     }
 }
