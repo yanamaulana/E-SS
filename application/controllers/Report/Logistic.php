@@ -68,6 +68,8 @@ class Logistic extends CI_Controller
 
     public function rpt_comparison_price_last_year()
     {
+        $Year = $this->input->get('year');
+        $Month = $this->input->get('month');
         $MonthYear = $this->input->get('year') . '-' . $this->input->get('month');
     }
 }
