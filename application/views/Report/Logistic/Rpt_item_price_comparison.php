@@ -238,8 +238,8 @@ function format_rpt_date($dateString)
         <table class="table-ttd" id="tbl_exporttable_to_xls">
             <thead>
                 <tr>
-                    <th colspan="10"><?= $Year ?></th>
-                    <th colspan="4"><?= $Year_Minus ?></th>
+                    <th colspan="10">Year :<?= $Year ?>, Month : <?= $Month ?></th>
+                    <th colspan="4">Last Purchase on <?= $Year_Minus ?></th>
                 </tr>
                 <tr>
                     <th>ITEM CODE</th>
@@ -255,8 +255,8 @@ function format_rpt_date($dateString)
                     <!-- Delimiter -->
                     <th>Last Purchase Price</th>
                     <th>Last Purchase Curr</th>
-                    <th>Last Purchase Qty</th>
                     <th>Total Last Purchase Price</th>
+                    <th>Last Purchase Qty</th>
                     <th>Total Purchase <?= $Year_Minus ?></th>
                 </tr>
             </thead>
@@ -270,12 +270,12 @@ function format_rpt_date($dateString)
                         <td><?= $li->Item_Name ?></td>
                         <td><?= $li->Bin_Name ?></td>
                         <td><?= $li->Item_Type ?></td>
-                        <td><?= $li->Item_Length ?> x <?= $li->Item_Width ?> x <?= $li->Item_Height ?></td>
+                        <td><?= floatval($li->Item_Length) ?> x <?= floatval($li->Item_Width) ?> x <?= floatval($li->Item_Height) ?></td>
                         <td><?= $li->Unit_Name ?></td>
                         <td><?= $li->Currency_ID ?></td>
-                        <td><?= $li->Sum_Qty_RR ?></td>
-                        <td><?= $li->UnitPrice  ?></td>
-                        <td><?= $li->total_price; ?></td>
+                        <td><?= floatval($li->UnitPrice)  ?></td>
+                        <td><?= floatval($li->Sum_Qty_RR) ?></td>
+                        <td><?= floatval($li->total_price); ?></td>
                         <!-- Delimiter -->
                         <?php
                         $Sql_Compare = $this->db->query("SELECT TOP 1 RR_Date, TAccPO_Detail.Qty, TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
@@ -291,10 +291,10 @@ function format_rpt_date($dateString)
                                                     and YEAR(TAccPO_Header.PO_Date) = '$Year_Minus'
                                                     order by TAccRR_Header.RR_Date desc")->row();
                         ?>
-                        <td><?= empty($Sql_Compare->UnitPrice) ? 'No Data' : $Sql_Compare->UnitPrice ?></td>
+                        <td><?= empty($Sql_Compare->UnitPrice) ? 'No Data' : floatval($Sql_Compare->UnitPrice) ?></td>
                         <td><?= empty($Sql_Compare->Currency_ID) ? 'No Data' : $Sql_Compare->Currency_ID ?></td>
-                        <td><?= empty($Sql_Compare->Qty) ? 'No Data' : $Sql_Compare->Qty ?></td>
-                        <td><?= empty($Sql_Compare->Total_Price) ? 'No Data' : $Sql_Compare->Total_Price ?></td>
+                        <td><?= empty($Sql_Compare->Qty) ? 'No Data' : floatval($Sql_Compare->Qty) ?></td>
+                        <td><?= empty($Sql_Compare->Total_Price) ? 'No Data' : floatval($Sql_Compare->Total_Price) ?></td>
                         <?php $SqlCompareSumQty = $this->db->query("SELECT Item_Code, ISNULL(SUM(Qty),0) as Total_Qty_purchase
                             from TAccPO_Detail
                             join TAccPO_Header on TAccPO_Detail.PO_Number = TAccPO_Header.PO_Number
@@ -304,7 +304,7 @@ function format_rpt_date($dateString)
                             and TAccPO_Header.isNotActive = 0
                             and year(PO_Date) = '$Year_Minus'
                             group by Item_Code")->row()  ?>
-                        <td><?= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : $SqlCompareSumQty->Total_Qty_purchase ?></td>
+                        <td><?= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : floatval($SqlCompareSumQty->Total_Qty_purchase) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -324,7 +324,7 @@ function format_rpt_date($dateString)
                 bookSST: true,
                 type: 'base64'
             }) :
-            XLSX.writeFile(wb, fn || ('Report Po item, ETA date <?= $from ?> sd <?= $until ?>.' + (type || 'xlsx')));
+            XLSX.writeFile(wb, fn || ('Report Item Price Comparison <?= $Year . '-' . $Month ?> Vs Last <?= $Year_Minus ?>.' + (type || 'xlsx')));
     }
 </script>
 
