@@ -239,7 +239,7 @@ function format_rpt_date($dateString)
             <thead>
                 <tr>
                     <th colspan="10">Year :<?= $Year ?>, Month : <?= $Month ?></th>
-                    <th colspan="4">Last Purchase on <?= $Year_Minus ?></th>
+                    <th colspan="5">Last Purchase on <?= $Year_Minus ?></th>
                 </tr>
                 <tr>
                     <th>ITEM CODE</th>
@@ -248,15 +248,15 @@ function format_rpt_date($dateString)
                     <th>ITEM Type</th>
                     <th>ITEM Size (LxWxH)</th>
                     <th>Uom</th>
+                    <th>Unit Price</th>
                     <th>Curr</th>
                     <th>Qty</th>
-                    <th>Unit Price</th>
                     <th>Total Price</th>
                     <!-- Delimiter -->
                     <th>Last Purchase Price</th>
                     <th>Last Purchase Curr</th>
-                    <th>Total Last Purchase Price</th>
                     <th>Last Purchase Qty</th>
+                    <th>Total Last Purchase Price</th>
                     <th>Total Purchase <?= $Year_Minus ?></th>
                 </tr>
             </thead>
@@ -272,8 +272,8 @@ function format_rpt_date($dateString)
                         <td><?= $li->Item_Type ?></td>
                         <td><?= floatval($li->Item_Length) ?> x <?= floatval($li->Item_Width) ?> x <?= floatval($li->Item_Height) ?></td>
                         <td><?= $li->Unit_Name ?></td>
-                        <td><?= $li->Currency_ID ?></td>
                         <td><?= floatval($li->UnitPrice)  ?></td>
+                        <td><?= $li->Currency_ID ?></td>
                         <td><?= floatval($li->Sum_Qty_RR) ?></td>
                         <td><?= floatval($li->total_price); ?></td>
                         <!-- Delimiter -->
@@ -281,9 +281,9 @@ function format_rpt_date($dateString)
                         $Sql_Compare = $this->db->query("SELECT TOP 1 RR_Date, TAccPO_Detail.Qty, TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
                                                     from TAccRR_Item
                                                     join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
-                                                    join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
-                                                    join TAccPO_Detail on TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number
-                                                    and TAccRR_Item.Item_Code = '$li->Item_Code' 
+                                                    left join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
+                                                    left join TAccPO_Detail on TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+                                                    where TAccRR_Item.Item_Code = '$li->Item_Code' 
                                                     and TAccRR_Header.isVoid = 0 
                                                     and TAccRR_Header.Approval_Status not in (4)
                                                     and TAccPO_Header.isNotActive = 0
