@@ -94,7 +94,7 @@ class Logistic extends CI_Controller
                     left JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
                     left join TAccPO_Detail on TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
                     left join TAccPO_Header on TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
-                    where TAccRR_Item.Qty > 0 and YEAR(TAccRR_Header.RR_Date) = '$Year' and MONTH(TAccRR_Header.RR_Date) = '$Month'
+                    where TAccRR_Item.Qty > 0 and YEAR(TAccRR_Header.RR_Date) = '$Year'
                     ) as Qview_Summary_Pembelian_Perbulan
                     left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
                     group by Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,

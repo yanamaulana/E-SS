@@ -238,8 +238,9 @@ function format_rpt_date($dateString)
         <table class="table-ttd" id="tbl_exporttable_to_xls">
             <thead>
                 <tr>
-                    <th colspan="10">Year :<?= $Year ?>, Month : <?= $Month ?></th>
-                    <th colspan="5">Last Purchase on <?= $Year_Minus ?></th>
+                    <!-- , Month : <?= $Month ?> -->
+                    <th colspan="10">Year :<?= $Year ?></th>
+                    <th colspan="6">Last Purchase under <?= $Year ?></th>
                 </tr>
                 <tr>
                     <th>ITEM CODE</th>
@@ -253,6 +254,7 @@ function format_rpt_date($dateString)
                     <th>Qty</th>
                     <th>Total Price</th>
                     <!-- Delimiter -->
+                    <th>RR Date</th>
                     <th>Last Purchase Price</th>
                     <th>Last Purchase Curr</th>
                     <th>Last Purchase Qty</th>
@@ -278,7 +280,7 @@ function format_rpt_date($dateString)
                         <td><?= floatval($li->total_price); ?></td>
                         <!-- Delimiter -->
                         <?php
-                        $Sql_Compare = $this->db->query("SELECT TOP 1 RR_Date, TAccPO_Detail.Qty, TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
+                        $Sql_Compare = $this->db->query("SELECT TOP 1 TAccPO_Header.PO_Date, TAccPO_Detail.Qty, TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
                                                     from TAccRR_Item
                                                     join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
                                                     left join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
@@ -287,10 +289,13 @@ function format_rpt_date($dateString)
                                                     and TAccRR_Header.isVoid = 0 
                                                     and TAccRR_Header.Approval_Status not in (4)
                                                     and TAccPO_Header.isNotActive = 0
+                                                    and TAccPO_Header.Approval_Status = 3
+                                                    and TAccPO_Header.PO_Status = 3
                                                     and TAccPO_header.Approval_Status not in (4)
-                                                    and YEAR(TAccPO_Header.PO_Date) = '$Year_Minus'
-                                                    order by TAccRR_Header.RR_Date desc")->row();
+                                                    and YEAR(TAccPO_Header.PO_Date) not in ('2024','2023')
+                                                    order by TAccPO_Header.PO_Date desc")->row();
                         ?>
+                        <td><?= empty($Sql_Compare->PO_Date) ? 'No Data' : (new DateTime($Sql_Compare->PO_Date))->format('Y-m-d') ?></td>
                         <td><?= empty($Sql_Compare->UnitPrice) ? 'No Data' : floatval($Sql_Compare->UnitPrice) ?></td>
                         <td><?= empty($Sql_Compare->Currency_ID) ? 'No Data' : $Sql_Compare->Currency_ID ?></td>
                         <td><?= empty($Sql_Compare->Qty) ? 'No Data' : floatval($Sql_Compare->Qty) ?></td>
@@ -300,9 +305,10 @@ function format_rpt_date($dateString)
                             join TAccPO_Header on TAccPO_Detail.PO_Number = TAccPO_Header.PO_Number
                             where Item_Code = '$li->Item_Code' 
                             and TAccPO_Header.isNotActive = 0
+                            and TAccPO_Header.Approval_Status = 3
+                            and TAccPO_Header.PO_Status = 3
                             and TAccPO_header.Approval_Status not in (4)
-                            and TAccPO_Header.isNotActive = 0
-                            and year(PO_Date) = '$Year_Minus'
+                            and year(PO_Date) not in ('2024','2023')
                             group by Item_Code")->row()  ?>
                         <td><?= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : floatval($SqlCompareSumQty->Total_Qty_purchase) ?></td>
                     </tr>
