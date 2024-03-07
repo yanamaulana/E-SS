@@ -149,7 +149,7 @@ class Auth extends CI_Controller
         ]);
 
         if ($sql_depts->num_rows() > 0) {
-            foreach ($sql_depts->row() as $dpt) {
+            foreach ($sql_depts->result() as $dpt) {
                 $depts[] = $dpt->Additional_Div;
             }
         }

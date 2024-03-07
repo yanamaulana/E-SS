@@ -77,13 +77,13 @@
                                         <option selected value="1">YES</option>
                                     </select>
                                 </div>
-                                <div class="fv-row mb-5">
+                                <!-- <div class="fv-row mb-5">
                                     <label class="form-label">FINANCE STAFF <span class="text-danger">*</span> :</label>
                                     <select disabled id="FinanceStaff" name="FinanceStaff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
+                                        <option value="0" selected>NO</option>
                                         <option selected value="1">YES</option>
                                     </select>
-                                </div>
+                                </div> -->
                                 <div class="fv-row mb-5">
                                     <label class="form-label">FINANCE MANAGER <span class="text-danger">*</span> :</label>
                                     <select disabled id="FInanceManager" name="FInanceManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
@@ -160,13 +160,13 @@
                                         <option selected value="1">YES</option>
                                     </select>
                                 </div>
-                                <div class="fv-row mb-5">
+                                <!-- <div class="fv-row mb-5">
                                     <label class="form-label">FINANCE STAFF <span class="text-danger">*</span> :</label>
                                     <select disabled id="FinanceStaff" name="FinanceStaff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
+                                        <option value="0" selected>NO</option>
                                         <option selected value="1">YES</option>
                                     </select>
-                                </div>
+                                </div> -->
                                 <div class="fv-row mb-5">
                                     <label class="form-label">FINANCE MANAGER <span class="text-danger">*</span> :</label>
                                     <select disabled id="FInanceManager" name="FInanceManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
