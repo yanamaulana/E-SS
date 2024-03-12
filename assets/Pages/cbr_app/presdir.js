@@ -126,14 +126,13 @@ $(document).ready(function () {
                     visible: false
                 },
                 {
-                    data: "Created_By",
-                    name: "Created_By",
-                    visible: false
-                },
-                {
                     data: "First_Name",
                     name: "First_Name",
                     orderable: false,
+                },
+                {
+                    data: "UserDivision",
+                    name: "UserDivision",
                 },
                 {
                     data: "Last_Update",
@@ -473,13 +472,13 @@ $(document).ready(function () {
             visible: false
         },
         {
-            data: "Created_By",
-            name: "Created_By",
-            visible: false
-        },
-        {
             data: "First_Name",
             name: "First_Name",
+        },
+        {
+            data: "UserDivision",
+            name: "UserDivision",
+            // visible: false
         },
         {
             data: "Last_Update",

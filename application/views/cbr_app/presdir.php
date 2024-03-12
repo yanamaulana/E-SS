@@ -50,7 +50,7 @@
                                                 <th class="text-center text-white">Paid Status</th>
                                                 <th class="text-center text-white">Creation_DateTime</th>
                                                 <th class="text-center text-white">Created_By</th>
-                                                <th class="text-center text-white">Created By</th>
+                                                <th class="text-center text-white">Dept</th>
                                                 <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
@@ -102,7 +102,7 @@
                                             <th class="text-center text-white">Paid Status</th>
                                             <th class="text-center text-white">Creation_DateTime</th>
                                             <th class="text-center text-white">Created_By</th>
-                                            <th class="text-center text-white">Created By</th>
+                                            <th class="text-center text-white">Dept</th>
                                             <th class="text-center text-white">Last_Update</th>
                                             <th class="text-center text-white">Acc_ID</th>
                                             <th class="text-center text-white">Approved Date</th>

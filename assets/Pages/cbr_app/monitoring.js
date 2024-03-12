@@ -127,9 +127,9 @@ $(document).ready(function () {
                     visible: false
                 },
                 {
-                    data: "Created_By",
-                    name: "Created_By",
-                    visible: false
+                    data: "UserDivision",
+                    name: "UserDivision",
+                    orderable: true
                 },
                 {
                     data: "First_Name",

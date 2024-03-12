@@ -126,9 +126,9 @@ $(document).ready(function () {
                     visible: false
                 },
                 {
-                    data: "Created_By",
-                    name: "Created_By",
-                    visible: false
+                    data: "UserDivision",
+                    name: "UserDivision",
+                    // visible: false
                 },
                 {
                     data: "First_Name",
@@ -473,9 +473,8 @@ $(document).ready(function () {
             visible: false
         },
         {
-            data: "Created_By",
-            name: "Created_By",
-            visible: false
+            data: "UserDivision",
+            name: "UserDivision",
         },
         {
             data: "First_Name",
