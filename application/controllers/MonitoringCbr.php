@@ -1,12 +1,13 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class MyCbr extends CI_Controller
+class MonitoringCbr extends CI_Controller
 {
     private $Date;
     private $DateTime;
     private $layout = 'layout';
     private $Ttrx_Cbr_Approval = 'Ttrx_Cbr_Approval';
+
     private $TmstTrxSettingSteppApprovalCbr = 'TmstTrxSettingSteppApprovalCbr';
     private $Ttrx_Dtl_Attachment_Cbr = 'Ttrx_Dtl_Attachment_Cbr';
     private $Ttrx_DtlHst_Attachment_Cbr = 'Ttrx_DtlHst_Attachment_Cbr';
@@ -23,9 +24,9 @@ class MyCbr extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "My Cash Book Requisition";
-        $this->data['page_content'] = "mycbr/index";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/mycbr/index.js"></script>';
+        $this->data['page_title'] = "Monitoring Cash Book Requisition";
+        $this->data['page_content'] = "cbr_app/monitoring_cbr";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/monitoring_cbr.js"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
@@ -160,8 +161,8 @@ class MyCbr extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Paid_Status = 'NP'
-        AND Ttrx_Cbr_Approval.CBReq_No IS NULL
-        AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
+        AND Ttrx_Cbr_Approval.CBReq_No IS NULL";
+        // AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 
         $totalData = $this->db->query($sql)->num_rows();
@@ -756,27 +757,5 @@ class MyCbr extends CI_Controller
                 "msg" => "Attachment successfully deleted !"
             ]);
         }
-    }
-
-    public function get_rpt_cbr($Cbr)
-    {
-        $this->data['CbrHeader'] = $this->db->query("Select TAccCashBookReq_Header.*,
-		(SELECT Project_Code FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Code,
-		(SELECT Project_Name FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Name,
-		THRMEmpPersonalData.First_Name +' '+ THRMEmpPersonalData.Middle_Name +' '+ THRMEmpPersonalData.Last_Name AS Request_Name,
-		TAccCostCenter.CostCenter_Code,
-		TaccCostCenter.CostCenter_Name_en AS CostCenter_Name
-        FROM TAccCashBookReq_Header
-        INNER JOIN THRMEmpPersonalData ON THRMEmpPersonalData.User_ID = TAccCashBookReq_Header.Created_By
-        LEFT JOIN TAccCostCenter ON TAccCashBookReq_Header.Comp_ID = TAccCostCenter.CostCenter_ID
-        WHERE CBReq_No='CBR2092403-0001520'")->row();
-
-        $this->data['CbrDetail'] = $this->db->query("SELECT TAccCashBookReq_Detail.*, TAccChartAccount.Account_Number, TAccChartAccount.Account_Nameen AS Account_Name
-        FROM TAccCashBookReq_Detail
-        INNER JOIN TAccChartAccount ON TAccChartAccount.Acc_ID = TAccCashBookReq_Detail.Acc_ID
-        WHERE CBReq_No='CBR2092403-0001520'");
-
-
-        $this->load->view('mycbr/rpt_detail_cbr', $this->data);
     }
 }
