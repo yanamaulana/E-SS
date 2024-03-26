@@ -769,12 +769,12 @@ class MyCbr extends CI_Controller
         FROM TAccCashBookReq_Header
         INNER JOIN THRMEmpPersonalData ON THRMEmpPersonalData.User_ID = TAccCashBookReq_Header.Created_By
         LEFT JOIN TAccCostCenter ON TAccCashBookReq_Header.Comp_ID = TAccCostCenter.CostCenter_ID
-        WHERE CBReq_No='CBR2092403-0001520'")->row();
+        WHERE CBReq_No='$Cbr'")->row();
 
         $this->data['CbrDetail'] = $this->db->query("SELECT TAccCashBookReq_Detail.*, TAccChartAccount.Account_Number, TAccChartAccount.Account_Nameen AS Account_Name
         FROM TAccCashBookReq_Detail
         INNER JOIN TAccChartAccount ON TAccChartAccount.Acc_ID = TAccCashBookReq_Detail.Acc_ID
-        WHERE CBReq_No='CBR2092403-0001520'");
+        WHERE CBReq_No='$Cbr'");
 
 
         $this->load->view('mycbr/rpt_detail_cbr', $this->data);

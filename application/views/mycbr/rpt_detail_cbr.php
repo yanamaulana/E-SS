@@ -92,6 +92,11 @@
         font-family: sans-serif;
     }
 
+    .container {
+        display: flex;
+        justify-content: space-between;
+    }
+
     .text-center {
         text-align: center;
         vertical-align: middle;
@@ -174,7 +179,7 @@ $i = 1;
 function format_rupiah($angka)
 {
     $rupiah = number_format($angka, 2, ',', '.');
-    return 'Rp ' . $rupiah;
+    return $rupiah;
 }
 ?>
 
@@ -204,12 +209,12 @@ function format_rupiah($angka)
 
         <table class="table-ttd table-loop" style="width: 100%;">
             <tr>
-                <td>NO</td>
-                <td>DESCRIPTION</td>
-                <td>ACCOUNT</td>
-                <td style="border-right: solid black 8px;">AMOUNT</td>
-                <td></td>
-                <td></td>
+                <td class="text-center">NO</td>
+                <td class="text-center">DESCRIPTION</td>
+                <td class="text-center">ACCOUNT</td>
+                <td class="text-center" style="border-right: solid black 8px;">AMOUNT</td>
+                <td class="text-center"></td>
+                <td class="text-center"></td>
             </tr>
             <?php
             $Must = 9;
@@ -218,14 +223,16 @@ function format_rupiah($angka)
             ?>
             <?php foreach ($CbrDetail->result() as $li) : ?>
                 <tr>
-                    <td><?= $i ?></td>
+                    <td style="width: 3%;"><?= $i ?></td>
                     <td><?= $li->Description ?></td>
                     <td><?= '[' . $li->Acc_ID . ']' . ' ' . $li->Account_Name ?></td>
-                    <td style="border-right: solid black 8px;">
-                        <div style="text-align: left;"><?= $li->currency_id ?></div>
-                        <div style="text-align: right;"><?= format_rupiah($li->Amount_Detail) ?></div>
+                    <td style="border-right: solid black 8px; width: 15%;">
+                        <div class="container">
+                            <div style="text-align: left;"><?= $li->currency_id ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($li->Amount_Detail) ?></div>
+                        </div>
                     </td>
-                    <td>
+                    <td style="border-right: none;">
                         <?php
                         if ($i == 1) {
                             echo 'Date Line';
@@ -246,16 +253,96 @@ function format_rupiah($angka)
                         }
                         ?>
                     </td>
-                    <td>
+                    <td style="border-left: none;"><b>:</b>
                         <?php
                         if ($i == 1) {
                             echo substr($CbrHeader->duedate, 0, 10);
+                        } else {
+                            echo ' ';
                         }
                         ?>
                     </td>
+                    <?php $i++; ?>
                 </tr>
-                <?php $i++; ?>
             <?php endforeach; ?>
+            <?php for ($loop = 1; $loop <= $RestLine; $loop++) : ?>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td style="border-right: solid black 8px;">&nbsp;</td>
+                    <td style="border-right: none;">
+                        <?php
+                        if ($i == 1) {
+                            echo 'Date Line';
+                        } else if ($i == 2) {
+                            echo 'Amount of Payment';
+                        } else if ($i == 3) {
+                            echo '1st Payment';
+                        } else if ($i == 4) {
+                            echo '2nd Payment';
+                        } else if ($i == 5) {
+                            echo 'Discount';
+                        } else if ($i == 6) {
+                            echo 'Amount of Deduction';
+                        } else if ($i == 7) {
+                            echo 'Sum of Payment';
+                        } else {
+                            echo '';
+                        }
+                        ?>
+                    </td>
+                    <td style="border-left: none;"><b>:</b>
+                        <?php
+                        if ($i == 1) {
+                            echo substr($CbrHeader->duedate, 0, 10);
+                        } else {
+                            echo ' ';
+                        }
+                        ?>
+                    </td>
+                    <?php $i++; ?>
+                </tr>
+            <?php endfor; ?>
+            <tr>
+                <td colspan="2">TOTAL AMOUNT</td>
+                <td>TOTAL ==> <?= $CbrHeader->Currency_ID ?></td>
+                <td style="border-right: solid black 8px;">
+                    <?php if ($CbrHeader->Currency_ID == 'IDR') : ?>
+                        <div class="container">
+                            <div style="text-align: left;"><?= $CbrHeader->Currency_ID ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->Amount) ?></div>
+                        </div>
+                    <?php else : ?>
+                        <div class="container">
+                            <div style="text-align: left;"><?= $CbrHeader->Currency_ID ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->Amount) ?></div>
+                        </div>
+                        <div class="container">
+                            <div style="text-align: left;"><?= 'IDR' ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->BaseAmount) ?></div>
+                        </div>
+                    <?php endif; ?>
+                </td>
+                <td colspan="2">
+                    <?php if ($CbrHeader->Currency_ID == 'IDR') : ?>
+                        <div class="container">
+                            <div style="text-align: left;"><?= $CbrHeader->Currency_ID ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->Amount) ?></div>
+                        </div>
+                    <?php else : ?>
+                        <div class="container">
+                            <div style="text-align: left;"><?= $CbrHeader->Currency_ID ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->Amount) ?></div>
+                        </div>
+                        <div class="container">
+                            <div style="text-align: left;"><?= 'IDR' ?></div>
+                            <div style="text-align: right;"><?= format_rupiah($CbrHeader->BaseAmount) ?></div>
+                        </div>
+                    <?php endif; ?>
+                </td>
+
+            </tr>
         </table>
     </div>
 </body>
