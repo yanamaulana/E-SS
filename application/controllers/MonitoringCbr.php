@@ -169,8 +169,7 @@ class MonitoringCbr extends CI_Controller
         LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
         WHERE TAccCashBookReq_Header.Type='D'
         And TAccCashBookReq_Header.Document_Date >= {d '$from'}
-        And TAccCashBookReq_Header.Document_Date <= {d '$until'}
-        $sqlCreatedBy
+        And TAccCashBookReq_Header.Document_Date <= {d '$until'} $sqlCreatedBy
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
