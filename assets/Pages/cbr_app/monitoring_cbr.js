@@ -32,7 +32,8 @@ $(document).ready(function () {
                 type: "POST",
                 data: {
                     from: $('#from').val(),
-                    until: $('#until').val()
+                    until: $('#until').val(),
+                    employee: $('#employee').find(':selected').val()
                 }
             },
             columns: [{

@@ -28,6 +28,13 @@ class MonitoringCbr extends CI_Controller
         $this->data['page_content'] = "cbr_app/monitoring_cbr";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/monitoring_cbr.js"></script>';
 
+        $this->data['employees'] = $this->db->query("SELECT THRMEmpPersonalData.User_ID, THRMEmpPersonalData.Emp_ID, THRMEmpPersonalData.First_Name
+        FROM THRMEmpPersonalData, THRMCompany
+        WHERE THRMEmpPersonalData.Company_ID = THRMCompany.Company_ID 
+        AND THRMCompany.Company_ID = 2 
+        AND THRMEmpPersonalData.Terminate_Date IS  NULL
+        Order By THRMEmpPersonalData.First_Name ASC")->result();
+
         $this->load->view($this->layout, $this->data);
     }
 
@@ -149,6 +156,12 @@ class MonitoringCbr extends CI_Controller
         $from   = $this->input->post('from');
         $until  = $this->input->post('until');
 
+        $created_by = $this->input->post('employee');
+        $sqlCreatedBy = "";
+        if ($created_by != 'ALL') {
+            $sqlCreatedBy = " AND TAccCashBookReq_Header.Created_By = '$created_by' ";
+        }
+
         $sql = "Select  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
@@ -157,6 +170,7 @@ class MonitoringCbr extends CI_Controller
         WHERE TAccCashBookReq_Header.Type='D'
         And TAccCashBookReq_Header.Document_Date >= {d '$from'}
         And TAccCashBookReq_Header.Document_Date <= {d '$until'}
+        $sqlCreatedBy
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3

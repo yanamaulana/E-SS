@@ -12,6 +12,16 @@
                         <div class="row">
                             <form action="#" method="post" id="filter-data">
                                 <div class="row">
+                                    <div class="col-xl-2 py-2 col-md-6">
+                                        <div class="input-group">
+                                            <select type="text" name="employee" id="employee" class="form-control form-control-sm  text-center" data-control="select2">
+                                                <option value="ALL" selected>-- ALL --</option>
+                                                <?php foreach ($employees as $li) : ?>
+                                                    <option value="<?= $li->User_ID ?>"><?= $li->First_Name ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div class="col-xl-4 py-2 col-md-6">
                                         <div class="input-group">
                                             <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
