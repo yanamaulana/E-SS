@@ -9,6 +9,25 @@
             <div class="card-body pt-0">
                 <div class="py-5">
                     <div class="tab-content" id="myTabContent">
+                        <div class="row">
+                            <form action="#" method="post" id="filter-data">
+                                <div class="row">
+                                    <div class="col-xl-4 py-2 col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
+                                            <span class="input-group-text btn btn-sm btn-primary" title="Date Range" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
+                                            <input type="text" name="until" id="until" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-t') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 py-2 col-md-6">
+                                        <div class="input-group">
+                                            <button type="button" id="do--filter" class="btn btn-danger btn-sm text-white">&nbsp;<i class="fas fa-search fs-4 me-2"></i> Search</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <hr style="padding-top: 5px; color: black; background-color: black;" />
                         <div class="pb-5 table-responsive">
                             <form action="#" id="form-submission" method="post">
                                 <table id="TableData" class="display compact table-bordered table-striped table-hover table-sm align-middle gy-5 gs-5">
