@@ -69,11 +69,13 @@ class Logistic extends CI_Controller
     public function rpt_comparison_price_last_year()
     {
         $Year = $this->input->get('year');
-        $Month = $this->input->get('month');
+        // $Month = $this->input->get('month');
+        $thisMonth = date('m');
 
         $this->data['Year'] = $Year;
         $this->data['Year_Minus'] = floatval($Year) - 1;
-        $this->data['Month'] = $Month;
+        // $this->data['Month'] = $Month;
+        $this->data['thisMonth'] = $thisMonth;
         $this->data['DataSql'] = $this->db->query("Select Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
                     Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, SUM(Qty) as Sum_Qty_RR, UnitPrice, (SUM(Qty) * UnitPrice) as total_price , WhBin, Bin_Name
                     from (
@@ -94,7 +96,14 @@ class Logistic extends CI_Controller
                     left JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
                     left join TAccPO_Detail on TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
                     left join TAccPO_Header on TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
-                    where TAccRR_Item.Qty > 0 and YEAR(TAccRR_Header.RR_Date) = '$Year'
+                    where TAccRR_Item.Qty > 0 
+                    and YEAR(TAccRR_Header.RR_Date) = '$Year' 
+                    and Month(TAccRR_Header.RR_Date) <> '$thisMonth'
+                    and TAccRR_Header.isVoid = 0 
+                    and TAccRR_Header.Approval_Status = 3 
+                    and TAccRR_Header.RR_Status = 3
+                    and TAccPO_Header.Approval_Status = 3
+					and TAccPO_Header.PO_Status = 3
                     ) as Qview_Summary_Pembelian_Perbulan
                     left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
                     group by Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,

@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title><?= $this->config->item('init_app_name') ?> | Report Item Price Comparison <?= $Year . '-' . $Month ?> Vs Last <?= $Year_Minus ?></title>
+    <title><?= $this->config->item('init_app_name') ?> | Report Item Price Comparison <?= $Year . '-' ?> Vs Last <?= $Year_Minus ?></title>
     <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -238,7 +238,6 @@ function format_rpt_date($dateString)
         <table class="table-ttd" id="tbl_exporttable_to_xls">
             <thead>
                 <tr>
-                    <!-- , Month : <?= $Month ?> -->
                     <th colspan="10">Year :<?= $Year ?></th>
                     <th colspan="6">Last Purchase under <?= $Year ?></th>
                 </tr>
@@ -259,7 +258,7 @@ function format_rpt_date($dateString)
                     <th>Last Purchase Curr</th>
                     <th>Last Purchase Qty</th>
                     <th>Total Last Purchase Price</th>
-                    <th>Total Purchase <?= $Year_Minus ?></th>
+                    <!-- <th>Total Purchase 2023</th> -->
                 </tr>
             </thead>
             <!-- Select , , ItemCategory_Name, , Item_Color, Color_Name, Item_Size,
@@ -280,37 +279,37 @@ function format_rpt_date($dateString)
                         <td><?= floatval($li->total_price); ?></td>
                         <!-- Delimiter -->
                         <?php
-                        $Sql_Compare = $this->db->query("SELECT TOP 1 TAccPO_Header.PO_Date, TAccPO_Detail.Qty, TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
-                                                    from TAccRR_Item
-                                                    join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
-                                                    left join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
-                                                    left join TAccPO_Detail on TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
-                                                    where TAccRR_Item.Item_Code = '$li->Item_Code' 
-                                                    and TAccRR_Header.isVoid = 0 
-                                                    and TAccRR_Header.Approval_Status not in (4)
-                                                    and TAccPO_Header.isNotActive = 0
-                                                    and TAccPO_Header.Approval_Status = 3
-                                                    and TAccPO_Header.PO_Status = 3
-                                                    and TAccPO_header.Approval_Status not in (4)
-                                                    and YEAR(TAccPO_Header.PO_Date) not in ('2024','2023')
-                                                    order by TAccPO_Header.PO_Date desc")->row();
+                        $Sql_Compare = $this->db->query("SELECT TOP 1 TAccRR_Header.RR_Date, TAccPO_Detail.Qty , TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
+                        from TAccRR_Item
+                        join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
+                        left join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
+                        left join TAccPO_Detail on TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+                        where TAccRR_Item.Item_Code = '$li->Item_Code'
+                        and TAccRR_Header.isVoid = 0 
+                        and TAccRR_Header.Approval_Status = 3 
+                        and TAccRR_Header.RR_Status = 3
+                        and TAccPO_Header.Approval_Status = 3
+                        and TAccPO_Header.PO_Status = 3
+                        and YEAR(TAccRR_Header.RR_Date) = '$Year_Minus'
+                        order by  TAccRR_Header.RR_Date desc")->row();
                         ?>
-                        <td><?= empty($Sql_Compare->PO_Date) ? 'No Data' : (new DateTime($Sql_Compare->PO_Date))->format('Y-m-d') ?></td>
-                        <td><?= empty($Sql_Compare->UnitPrice) ? 'No Data' : floatval($Sql_Compare->UnitPrice) ?></td>
-                        <td><?= empty($Sql_Compare->Currency_ID) ? 'No Data' : $Sql_Compare->Currency_ID ?></td>
-                        <td><?= empty($Sql_Compare->Qty) ? 'No Data' : floatval($Sql_Compare->Qty) ?></td>
-                        <td><?= empty($Sql_Compare->Total_Price) ? 'No Data' : floatval($Sql_Compare->Total_Price) ?></td>
-                        <?php $SqlCompareSumQty = $this->db->query("SELECT Item_Code, ISNULL(SUM(Qty),0) as Total_Qty_purchase
+                        <td><?= empty($Sql_Compare->RR_Date) ? '-' : (new DateTime($Sql_Compare->RR_Date))->format('Y-m-d') ?></td>
+                        <td><?= empty($Sql_Compare->UnitPrice) ? 0 : floatval($Sql_Compare->UnitPrice) ?></td>
+                        <td><?= empty($Sql_Compare->Currency_ID) ? '-' : $Sql_Compare->Currency_ID ?></td>
+                        <td><?= empty($Sql_Compare->Qty) ? 0 : floatval($Sql_Compare->Qty) ?></td>
+                        <td><?= empty($Sql_Compare->Total_Price) ? 0 : floatval($Sql_Compare->Total_Price) ?></td>
+                        <!-- <php $SqlCompareSumQty = $this->db->query("SELECT Item_Code, ISNULL(SUM(Qty),0) as Total_Qty_purchase
                             from TAccPO_Detail
                             join TAccPO_Header on TAccPO_Detail.PO_Number = TAccPO_Header.PO_Number
                             where Item_Code = '$li->Item_Code' 
                             and TAccPO_Header.isNotActive = 0
                             and TAccPO_Header.Approval_Status = 3
                             and TAccPO_Header.PO_Status = 3
-                            and TAccPO_header.Approval_Status not in (4)
-                            and year(PO_Date) not in ('2024','2023')
+                            -- and TAccPO_header.Approval_Status not in (4)
+                            and YEAR(TAccPO_Header.PO_Date) = '$Year_Minus'
+                            -- and Month(TAccPO_Header.PO_Date) not in ('03''04')
                             group by Item_Code")->row()  ?>
-                        <td><?= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : floatval($SqlCompareSumQty->Total_Qty_purchase) ?></td>
+                        <td><= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : floatval($SqlCompareSumQty->Total_Qty_purchase) ?></td> -->
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -330,7 +329,7 @@ function format_rpt_date($dateString)
                 bookSST: true,
                 type: 'base64'
             }) :
-            XLSX.writeFile(wb, fn || ('Report Item Price Comparison <?= $Year . '-' . $Month ?> Vs Last <?= $Year_Minus ?>.' + (type || 'xlsx')));
+            XLSX.writeFile(wb, fn || ('Report Item Price Comparison <?= $Year . '-' ?> Vs Last <?= $Year_Minus ?>.' + (type || 'xlsx')));
     }
 </script>
 

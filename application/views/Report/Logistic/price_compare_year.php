@@ -20,7 +20,7 @@
                     <div class="py-5">
                         <div class="row g-5 mt-5">
                             <div class="row mb-6">
-                                <label for="Account" class="col-sm-2 col-form-label-sm col-form-label">Year & Month :</label>
+                                <label for="Account" class="col-sm-2 col-form-label-sm col-form-label">Year :</label>
                                 <div class="col-sm-2">
                                     <div class="input-group input-group-sm">
                                         <select type="text" name="year" id="year" class="form-control form-select text-center" placeholder="Year...">
@@ -34,10 +34,10 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-sm-2">
+                                <!-- <div class="col-sm-2">
                                     <div class="input-group input-group-sm">
                                         <select type="text" name="month" id="month" class="form-control form-select" placeholder="month...">
-                                            <?php
+                                            <php
                                             $bulan_nama = array(
                                                 '01' => 'January',
                                                 '02' => 'February',
@@ -58,7 +58,7 @@
                                             ?>
                                         </select>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                     </div>
