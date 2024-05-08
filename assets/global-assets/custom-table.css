@@ -1,23 +1,35 @@
-.tbl-xs {
-    font-family: Arial, Helvetica, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-  }
-  
-  .tbl-xs td, .tbl-xs th {
-    border: 0.5px solid #ddd;
-    padding: 2px;
-    text-align: center;
-    font-size: 9pt;
-  }
-  
-  .tbl-xs tr:nth-child(even){background-color: #f2f2f2;}
-  
-  .tbl-xs tr:hover {background-color: #ddd;}
-  
-  .tbl-xs th {
-    padding-top: 8px;
-    padding-bottom: 8px;
-    background-color: #3B6D8C;
-    color: white;
-  }
+.datatable-compact-custom {
+  width: 100%;
+  /* Sesuaikan lebar tabel sesuai kebutuhan */
+  border-collapse: collapse;
+  font-family: Verdana, sans-serif;
+  /* Menggunakan font Verdana */
+  font-size: 8pt;
+  table-layout: fixed;
+  /* Menetapkan lebar kolom secara seragam */
+}
+
+.datatable-compact-custom th,
+.datatable-compact-custom td {
+  border: 1px solid #ccc;
+  /* Warna border bisa disesuaikan */
+  padding: 5px;
+  /* Sesuaikan padding untuk kepadatan */
+  text-align: left;
+}
+
+.datatable-compact-custom thead {
+  background-color: #3B6D8C;
+  color: white;
+  /* Warna background untuk header bisa disesuaikan */
+}
+
+.datatable-compact-custom tbody tr:nth-child(odd) {
+  background-color: #fff;
+  /* Warna baris ganjil */
+}
+
+.datatable-compact-custom tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+  /* Warna baris genap */
+}

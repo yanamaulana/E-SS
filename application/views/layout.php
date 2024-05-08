@@ -21,6 +21,7 @@
     <link href="<?= base_url() ?>assets/Metronic/dist/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
     <link href="<?= base_url() ?>assets/Metronic/dist/assets/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
     <link href="<?= base_url() ?>assets/Metronic/dist/assets/css/custom.css" rel="stylesheet" type="text/css" />
+    <link href="<?= base_url() ?>assets/global-assets/custom-table.css" rel="stylesheet" type="text/css" />
     <script src="<?= base_url() ?>assets/global-assets/jquery/jquery.min.js"></script>
     <script src="<?= base_url() ?>assets/global-assets/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css"></script>
 </head>
@@ -300,6 +301,18 @@
                                         <!--end::Svg Icon-->
                                     </span>
                                     <span class="menu-title">Monitoring Cash Book Requisition</span>
+                                </a>
+                            </div>
+                            <div class="menu-item" data-bs-toggle="tooltip" title="Informasi Karyawan">
+                                <a class="menu-link <?= ($Menu == 'InformasiKaryawan') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan') ?>">
+                                    <span class="menu-icon">
+                                        <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
+                                        <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                            <i class="fas fa-users fs-3"></i>
+                                        </span>
+                                        <!--end::Svg Icon-->
+                                    </span>
+                                    <span class="menu-title">Employe Information</span>
                                 </a>
                             </div>
                             <?php /*
