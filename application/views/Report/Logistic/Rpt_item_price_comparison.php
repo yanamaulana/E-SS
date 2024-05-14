@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title><?= $this->config->item('init_app_name') ?> | Report Item Price Comparison <?= $Year . '-' ?> Vs Last <?= $Year_Minus ?></title>
+    <title><?= $this->config->item('init_app_name') ?> | Report Item Price Comparison <?= $Year ?> Vs Under <?= $Year ?></title>
     <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,6 +52,25 @@ function format_rpt_date($dateString)
     $formattedDate = $dateTime->format('d F Y');
 
     return $formattedDate;
+}
+
+function parseCurrencyRates($str)
+{
+    $pairs = explode(';', $str);
+    $rates = [];
+    foreach ($pairs as $pair) {
+        list($key, $value) = explode('|', $pair);
+        $rates[$key] = $value;
+    }
+    return $rates;
+}
+
+function getCurrencyRate($rates, $currency)
+{
+    if (array_key_exists($currency, $rates)) {
+        return floatval($rates[$currency]);
+    }
+    return null;
 }
 ?>
 <style>
@@ -238,78 +257,164 @@ function format_rpt_date($dateString)
         <table class="table-ttd" id="tbl_exporttable_to_xls">
             <thead>
                 <tr>
-                    <th colspan="10">Year :<?= $Year ?></th>
-                    <th colspan="6">Last Purchase under <?= $Year ?></th>
+                    <th colspan="14">RR 2024</th>
+                    <th colspan="3">RR DIBAWAH <?= $Year ?></th>
+                    <th colspan="5">KESIMPULAN</th>
                 </tr>
                 <tr>
+                    <th>RR NUMBER</th>
+                    <th>RR DATE</th>
                     <th>ITEM CODE</th>
-                    <th>ITEM Name</th>
+                    <th>ITEM NAME</th>
                     <th>BIN</th>
-                    <th>ITEM Type</th>
-                    <th>ITEM Size (LxWxH)</th>
-                    <th>Uom</th>
-                    <th>Unit Price</th>
-                    <th>Curr</th>
-                    <th>Qty</th>
-                    <th>Total Price</th>
-                    <!-- Delimiter -->
-                    <th>RR Date</th>
-                    <th>Last Purchase Price</th>
-                    <th>Last Purchase Curr</th>
-                    <th>Last Purchase Qty</th>
-                    <th>Total Last Purchase Price</th>
-                    <!-- <th>Total Purchase 2023</th> -->
+                    <th>ITEM TYPE</th>
+                    <th>ITEM SIZE (LxWxH)</th>
+                    <th>UOM</th>
+                    <th>UNIT PRICE</th>
+                    <th>CURR</th>
+                    <th>RATE TO IDR</th>
+                    <th>QTY RR</th>
+                    <th>TOTAL PRICE ORIGINAL CURRENCY</th>
+                    <th>TOTAL PRICE IDR</th>
+
+                    <!-- ============================= Delimiter ======================== -->
+
+                    <th>RR DATE - UNDER 2024</th>
+                    <th>UNIT PRICE - UNDER 2024</th>
+                    <th>CURRENCY</th>
+
+                    <!-- ============================= Delimiter ======================== -->
+
+                    <td>KONKLUSI HARGA</td>
+                    <td>KESAMAAN CURRENCY</td>
+                    <td>GAP HARGA</td>
+                    <td>CURR</td>
+                    <td>QTY RR x GAP HARGA</td>
                 </tr>
             </thead>
-            <!-- Select , , ItemCategory_Name, , Item_Color, Color_Name, Item_Size,
-            , , , , , , ,
-            (SUM(Qty) * UnitPrice) as  , WhBin,  -->
             <tbody>
                 <?php foreach ($DataSql as $li) : ?>
+                    <?php
+                    // $Rate = 1;
+                    // if ($li->Currency_ID != 'IDR') {
+                    //     $currencyRates = $li->CurrencyRateList;
+                    //     $rates         = parseCurrencyRates($currencyRates);
+                    //     $curr          = $li->Currency_ID;
+                    //     $Rate          = getCurrencyRate($rates, $curr);
+                    // }
+                    // 
+                    ?>
                     <tr>
+                        <td><?= $li->RR_Number ?></td>
+                        <td><?= $li->RR_Date ?></td>
                         <td><?= $li->Item_Code ?></td>
                         <td><?= $li->Item_Name ?></td>
                         <td><?= $li->Bin_Name ?></td>
                         <td><?= $li->Item_Type ?></td>
                         <td><?= floatval($li->Item_Length) ?> x <?= floatval($li->Item_Width) ?> x <?= floatval($li->Item_Height) ?></td>
                         <td><?= $li->Unit_Name ?></td>
-                        <td><?= floatval($li->UnitPrice)  ?></td>
+                        <td><?= $li->UnitPrice ?></td>
                         <td><?= $li->Currency_ID ?></td>
-                        <td><?= floatval($li->Sum_Qty_RR) ?></td>
-                        <td><?= floatval($li->total_price); ?></td>
+                        <td><?php
+                            $Rate = 1;
+                            if ($li->Currency_ID != 'IDR') {
+                                $TAccJournal = $this->db->query("SELECT TOP 1 curr_rate from TAccJournalDetail where JournalH_Code = '$li->RR_Number' and JournalD_Kredit > 0")->row();
+                                $Rate = floatval($TAccJournal->curr_rate);
+                            }
+                            echo $Rate;
+                            ?></td>
+                        <td><?= $li->Qty ?></td>
+                        <td><?= $li->total_price ?></td>
+                        <td><?= $li->total_price * $Rate ?></td>
                         <!-- Delimiter -->
                         <?php
-                        $Sql_Compare = $this->db->query("SELECT TOP 1 TAccRR_Header.RR_Date, TAccPO_Detail.Qty , TAccPO_Header.Currency_ID, TAccPO_Detail.UnitPrice, (TAccPO_Detail.Qty * TAccPO_Detail.UnitPrice) as Total_Price
-                        from TAccRR_Item
-                        join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
-                        left join TAccPO_Header on TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
-                        left join TAccPO_Detail on TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
-                        where TAccRR_Item.Item_Code = '$li->Item_Code'
-                        and TAccRR_Header.isVoid = 0 
-                        and TAccRR_Header.Approval_Status = 3 
-                        and TAccRR_Header.RR_Status = 3
-                        and TAccPO_Header.Approval_Status = 3
-                        and TAccPO_Header.PO_Status = 3
-                        and YEAR(TAccRR_Header.RR_Date) = '$Year_Minus'
-                        order by  TAccRR_Header.RR_Date desc")->row();
+                        $Sql_Compare = $this->db->query("SELECT 
+                        TOP 1 
+                        TAccRR_Header.RR_Date, 
+                        TAccRR_Header.RR_Number, 
+                        -- TAccPO_Header.CurrencyRateList, 
+                        TAccPO_Detail.Qty, 
+                        TAccPO_Header.Currency_ID,
+                        -- TAccPO_Detail.UnitPrice,
+                        TAccPO_Detail.Disc_percentage,
+                        -- Menghitung harga setelah diskon
+                        (TAccPO_Detail.UnitPrice * (1 - (TAccPO_Detail.Disc_percentage / 100.0))) AS UnitPrice
+                    FROM TAccRR_Item
+                    JOIN TAccRR_Header ON TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
+                    LEFT JOIN TAccPO_Header ON TAccRR_Header.Ref_Number = TAccPO_Header.PO_Number
+                    LEFT JOIN TAccPO_Detail ON TAccPO_Header.PO_Number = TAccPO_Detail.PO_Number AND TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+                    WHERE TAccRR_Item.Item_Code = '$li->Item_Code'
+                        AND TAccRR_Header.isVoid = 0 
+                        AND TAccRR_Header.Approval_Status = 3 
+                        AND TAccRR_Header.RR_Status = 3
+                        AND TAccPO_Header.Approval_Status = 3
+                        AND TAccPO_Header.PO_Status = 3
+                        AND YEAR(TAccRR_Header.RR_Date) = '$Year_Minus'
+                    ORDER BY TAccRR_Header.RR_Date DESC;")->row();
                         ?>
                         <td><?= empty($Sql_Compare->RR_Date) ? '-' : (new DateTime($Sql_Compare->RR_Date))->format('Y-m-d') ?></td>
+                        <!-- <php
+                        $ValueIDR2 = empty($Sql_Compare->UnitPrice) ? 0 : $Sql_Compare->UnitPrice;
+                        $Currency_ID = empty($Sql_Compare->Currency_ID) ? NULL : $Sql_Compare->Currency_ID;
+                        if ($Currency_ID != 'IDR') {
+                            if (!empty($Currency_ID)) {
+                                $currencyRates = $Sql_Compare->CurrencyRateList;
+                                $rates      = parseCurrencyRates($currencyRates);
+                                $curr       = $Sql_Compare->Currency_ID;
+                                $Rate       = getCurrencyRate($rates, $curr);
+                            }
+                        }
+                        ?> -->
                         <td><?= empty($Sql_Compare->UnitPrice) ? 0 : floatval($Sql_Compare->UnitPrice) ?></td>
-                        <td><?= empty($Sql_Compare->Currency_ID) ? '-' : $Sql_Compare->Currency_ID ?></td>
-                        <td><?= empty($Sql_Compare->Qty) ? 0 : floatval($Sql_Compare->Qty) ?></td>
-                        <td><?= empty($Sql_Compare->Total_Price) ? 0 : floatval($Sql_Compare->Total_Price) ?></td>
-                        <!-- <php $SqlCompareSumQty = $this->db->query("SELECT Item_Code, ISNULL(SUM(Qty),0) as Total_Qty_purchase
-                            from TAccPO_Detail
-                            join TAccPO_Header on TAccPO_Detail.PO_Number = TAccPO_Header.PO_Number
-                            where Item_Code = '$li->Item_Code' 
-                            and TAccPO_Header.isNotActive = 0
-                            and TAccPO_Header.Approval_Status = 3
-                            and TAccPO_Header.PO_Status = 3
-                            -- and TAccPO_header.Approval_Status not in (4)
-                            and YEAR(TAccPO_Header.PO_Date) = '$Year_Minus'
-                            -- and Month(TAccPO_Header.PO_Date) not in ('03''04')
-                            group by Item_Code")->row()  ?>
-                        <td><= empty($SqlCompareSumQty->Total_Qty_purchase) ? 'No Data' : floatval($SqlCompareSumQty->Total_Qty_purchase) ?></td> -->
+                        <td><?= empty($Sql_Compare->Currency_ID) ? $li->Currency_ID : $Sql_Compare->Currency_ID ?></td>
+                        <!-- ============================= Delimiter ======================== -->
+
+                        <td><?php
+                            $_UnitPrice = empty($Sql_Compare->UnitPrice) ? 0 : floatval($Sql_Compare->UnitPrice);
+                            $_Currency_ID = empty($Sql_Compare->Currency_ID) ? 0 : $Sql_Compare->Currency_ID;
+                            if ($li->Currency_ID == $_Currency_ID) {
+                                $G5 = $li->UnitPrice;
+                                $L5 = empty($_UnitPrice) ? 0 : floatval($_UnitPrice);
+                            } else if ($li->Currency_ID == 'IDR' && $_Currency_ID != 'IDR') {
+                                $G5 = $li->UnitPrice;
+                                $L5 = ($_UnitPrice * $Rate);
+                            } else if ($li->Currency_ID != 'IDR' && $_Currency_ID != 'IDR') {
+                                $G5 = $li->UnitPrice;
+                                $L5 = ($_UnitPrice / $Rate);
+                            } else {
+                                $G5 = $li->UnitPrice;
+                                $L5 = empty($_UnitPrice) ? 0 : floatval($_UnitPrice);
+                            }
+
+                            if ($L5 == 0) {
+                                $result = "New Item";
+                            } elseif ($G5 > $L5) {
+                                $result = "increases";
+                            } elseif ($G5 == $L5) {
+                                $result = "Equal";
+                            } else {
+                                $result = "Reduction";
+                            }
+
+                            echo $result; ?>
+                        </td>
+                        <td><?= ($li->Currency_ID == $_Currency_ID) ? 'SAMA' : 'BEDA'; ?></td>
+                        <td>
+                            <?php
+                            if ($li->Currency_ID == $_Currency_ID) {
+                                $Gap = floatval($li->UnitPrice) - $_UnitPrice;
+                            } else if ($li->Currency_ID == 'IDR' && $_Currency_ID != 'IDR') {
+                                $Gap = floatval($li->UnitPrice) - ($_UnitPrice * $Rate);
+                            } else if ($li->Currency_ID != 'IDR' && $_Currency_ID != 'IDR') {
+                                $Gap = floatval($li->UnitPrice) - ($_UnitPrice / $Rate);
+                            } else {
+                                $Gap = floatval($li->UnitPrice) - $_UnitPrice;
+                            }
+                            echo $Gap;
+                            ?>
+                        </td>
+                        <td><?= $li->Currency_ID ?></td>
+                        <td><?= $li->Qty * $Gap ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -329,7 +434,7 @@ function format_rpt_date($dateString)
                 bookSST: true,
                 type: 'base64'
             }) :
-            XLSX.writeFile(wb, fn || ('Report Item Price Comparison <?= $Year . '-' ?> Vs Last <?= $Year_Minus ?>.' + (type || 'xlsx')));
+            XLSX.writeFile(wb, fn || ('Report Item Price Comparison <?= $Year ?> Vs Under <?= $Year ?>.' + (type || 'xlsx')));
     }
 </script>
 

@@ -76,40 +76,92 @@ class Logistic extends CI_Controller
         $this->data['Year_Minus'] = floatval($Year) - 1;
         // $this->data['Month'] = $Month;
         $this->data['thisMonth'] = $thisMonth;
-        $this->data['DataSql'] = $this->db->query("Select Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
-                    Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, SUM(Qty) as Sum_Qty_RR, UnitPrice, (SUM(Qty) * UnitPrice) as total_price , WhBin, Bin_Name
-                    from (
-                    select TAccRR_Item.Item_Code, TItem.Item_Name, TItemCategory.ItemCategory_Name,
-                    TItem.CustomField1 AS Item_Type, TItem.Item_Color, TItemColor.Color_Name, TItem.Item_Size, TItem.Item_Length, TItem.Item_Width, TItem.Item_Height,
-                    TAccUnitType.Unit_Name, TAccPO_Header.Currency_ID, TAccRR_Item.Qty, TAccPO_Detail.UnitPrice,
-                    CASE 
-                        WHEN CHARINDEX('|', TAccRR_Item.LstBinQty) > 0 THEN LEFT(TAccRR_Item.LstBinQty, CHARINDEX('|', TAccRR_Item.LstBinQty) - 1)
-                        ELSE LstBinQty
-                    END AS WhBin
-                    from TAccRR_Item
-                    join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
-                    join TItem on TAccRR_Item.Item_Code = TItem.Item_Code
-                    left join TItemCompany on TItem.Item_Code = TItemCompany.item_code 
-                    left join TItemCategory on TITEMCompany.ItemCategory_ID = TItemCategory.ItemCategory_ID
-                    left join TAccUnitType on TAccRR_Item.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
-                    left JOIN TItemDimension ON TItemDimension.Dimension_ID = TAccRR_Item.Dimension_ID	
-                    left JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
-                    left join TAccPO_Detail on TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
-                    left join TAccPO_Header on TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
-                    where TAccRR_Item.Qty > 0 
-                    and YEAR(TAccRR_Header.RR_Date) = '$Year' 
-                    and Month(TAccRR_Header.RR_Date) <> '$thisMonth'
-                    and TAccRR_Header.isVoid = 0 
-                    and TAccRR_Header.Approval_Status = 3 
-                    and TAccRR_Header.RR_Status = 3
-                    and TAccPO_Header.Approval_Status = 3
-					and TAccPO_Header.PO_Status = 3
-                    ) as Qview_Summary_Pembelian_Perbulan
-                    left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
-                    group by Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
-                    Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, UnitPrice , WhBin, Bin_Name
-                    order by Item_Code")->result();
+        $this->data['DataSql'] = $this->db->query("
+        Select Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size, Item_Length, Item_Width, Item_Height, Unit_Name,
+		RR_Number, RR_Date, Qty, Currency_ID, CurrencyRateList, UnitPrice, (Qty * UnitPrice) as total_price , WhBin, Bin_Name
+        FROM (
+            SELECT 
+                TAccRR_Item.Item_Code, 
+                TItem.Item_Name, 
+                TItemCategory.ItemCategory_Name,
+                TItem.CustomField1 AS Item_Type, 
+                TItem.Item_Color, 
+                TItemColor.Color_Name, 
+                TItem.Item_Size, 
+                TItem.Item_Length, 
+                TItem.Item_Width, 
+                TItem.Item_Height,
+                TAccUnitType.Unit_Name, 
+                TAccPO_Header.Currency_ID, 
+                TAccPO_Header.CurrencyRateList,
+                TAccRR_Header.RR_Number, 
+                TAccRR_Header.RR_Date, 
+                TAccRR_Item.Qty, 
+                TAccPO_Detail.UnitPrice,
+                CASE 
+                    WHEN CHARINDEX('|', TAccRR_Item.LstBinQty) > 0 THEN LEFT(TAccRR_Item.LstBinQty, CHARINDEX('|', TAccRR_Item.LstBinQty) - 1)
+                    ELSE TAccRR_Item.LstBinQty
+                END AS WhBin,
+                ROW_NUMBER() OVER (PARTITION BY TAccRR_Item.Item_Code ORDER BY TAccRR_Header.RR_Date DESC) AS rn
+            FROM TAccRR_Item
+            JOIN TAccRR_Header ON TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
+            JOIN TItem ON TAccRR_Item.Item_Code = TItem.Item_Code
+            LEFT JOIN TItemCompany ON TItem.Item_Code = TItemCompany.item_code 
+            LEFT JOIN TItemCategory ON TITEMCompany.ItemCategory_ID = TItemCategory.ItemCategory_ID
+            LEFT JOIN TAccUnitType ON TAccRR_Item.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
+            LEFT JOIN TItemDimension ON TItemDimension.Dimension_ID = TAccRR_Item.Dimension_ID	
+            LEFT JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
+            LEFT JOIN TAccPO_Detail ON TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number AND TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+            LEFT JOIN TAccPO_Header ON TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
+            WHERE TAccRR_Item.Qty > 0 
+            AND YEAR(TAccRR_Header.RR_Date) = '$Year' 
+            AND Month(TAccRR_Header.RR_Date) <> '$thisMonth'
+            AND TAccRR_Header.isVoid = 0 
+            AND TAccRR_Header.Approval_Status = 3 
+            AND TAccRR_Header.RR_Status = 3
+            AND TAccPO_Header.Approval_Status = 3
+            AND TAccPO_Header.PO_Status = 3
+        ) Qview_Summary_Pembelian_Perbulan
+        left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
+        where WhBin not in (79,80,81,82,83,84,117,101,102,103,104,105,46,9,85,90,91,92,93,94,106,116,26,37,86,53,58,63,68,87,88,89,95,96,'')
+        order by Item_Code , RR_Date;
+        ")->result();
 
         $this->load->view('Report/Logistic/Rpt_item_price_comparison', $this->data);
     }
 }
+// ---------------------------- query lama
+// Select Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
+//                     Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, SUM(Qty) as Sum_Qty_RR, UnitPrice, (SUM(Qty) * UnitPrice) as total_price , WhBin, Bin_Name
+//                     from (
+//                     select TAccRR_Item.Item_Code, TItem.Item_Name, TItemCategory.ItemCategory_Name,
+//                     TItem.CustomField1 AS Item_Type, TItem.Item_Color, TItemColor.Color_Name, TItem.Item_Size, TItem.Item_Length, TItem.Item_Width, TItem.Item_Height,
+//                     TAccUnitType.Unit_Name, TAccPO_Header.Currency_ID, TAccRR_Item.Qty, TAccPO_Detail.UnitPrice,
+//                     CASE 
+//                         WHEN CHARINDEX('|', TAccRR_Item.LstBinQty) > 0 THEN LEFT(TAccRR_Item.LstBinQty, CHARINDEX('|', TAccRR_Item.LstBinQty) - 1)
+//                         ELSE LstBinQty
+//                     END AS WhBin
+//                     from TAccRR_Item
+//                     join TAccRR_Header on TAccRR_Item.RR_Number = TAccRR_Header.RR_Number
+//                     join TItem on TAccRR_Item.Item_Code = TItem.Item_Code
+//                     left join TItemCompany on TItem.Item_Code = TItemCompany.item_code 
+//                     left join TItemCategory on TITEMCompany.ItemCategory_ID = TItemCategory.ItemCategory_ID
+//                     left join TAccUnitType on TAccRR_Item.Unit_Type_ID = TAccUnitType.Unit_Type_ID 
+//                     left JOIN TItemDimension ON TItemDimension.Dimension_ID = TAccRR_Item.Dimension_ID	
+//                     left JOIN TItemColor ON TItemColor.Color_ID = TItemDimension.Color_ID
+//                     left join TAccPO_Detail on TAccRR_Header.Ref_Number = TAccPO_Detail.PO_Number and TAccRR_Item.Item_Code = TAccPO_Detail.Item_Code
+//                     left join TAccPO_Header on TAccPO_Detail.PO_Number  = TAccPO_Header.PO_Number
+//                     where TAccRR_Item.Qty > 0 
+//                     and YEAR(TAccRR_Header.RR_Date) = '$Year' 
+//                     and Month(TAccRR_Header.RR_Date) <> '$thisMonth'
+//                     and TAccRR_Header.isVoid = 0 
+//                     and TAccRR_Header.Approval_Status = 3 
+//                     and TAccRR_Header.RR_Status = 3
+//                     and TAccPO_Header.Approval_Status = 3
+// 					and TAccPO_Header.PO_Status = 3
+//                     ) as Qview_Summary_Pembelian_Perbulan
+//                     left join TAccWHBin on Qview_Summary_Pembelian_Perbulan.WhBin = TAccWHBin.Bin_ID
+//                     where WhBin not in (79,80,81,82,83,84,117,101,102,103,104,105,46,9,85,90,91,92,93,94,106,116,26,37,86,53,58,63,68,87,88,89,95,96,'',NULL)
+//                     group by Item_Code, Item_Name, ItemCategory_Name, Item_Type, Item_Color, Color_Name, Item_Size,
+//                     Item_Length, Item_Width, Item_Height, Unit_Name, Currency_ID, UnitPrice , WhBin, Bin_Name
+//                     order by Item_Code
