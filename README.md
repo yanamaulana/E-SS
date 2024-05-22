@@ -1,2 +1,2 @@
-# E-ACS
-Electronic Approval Cbr System
+# E-SS
+Electronic Samick Support System
