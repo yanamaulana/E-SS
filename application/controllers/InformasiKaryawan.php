@@ -37,7 +37,7 @@ class InformasiKaryawan extends CI_Controller
         ];
         $isWhere = null;
         if (!empty($this->input->post('param'))) {
-            $where  = array($this->input->post('var') => $this->input->post('param'));
+            $where  = array($this->input->post('varr') => $this->input->post('param'));
             header('Content-Type: application/json');
             echo $this->M_Datatable_HR->get_tables_where($tables, $search, $where, $isWhere);
         } else {

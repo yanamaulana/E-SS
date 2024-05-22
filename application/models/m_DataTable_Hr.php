@@ -91,7 +91,7 @@ class m_DataTable_Hr extends CI_Model
 
         $setWhere = array();
         foreach ($where as $key => $value) {
-            $setWhere[] = $key . "='" . $value . "'";
+            $setWhere[] = $key . " like '%" . $value . "%'";
         }
 
         $fwhere = implode(' AND ', $setWhere);
@@ -114,10 +114,11 @@ class m_DataTable_Hr extends CI_Model
         $order = " ORDER BY " . $_POST['columns'][$order_field]['data'] . " " . $order_ascdesc;
 
         if (!empty($iswhere)) {
-            $sql_data = $this->HR->query("SELECT * FROM " . $query . " WHERE $iswhere AND " . $fwhere . " AND (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
+            $sql_data = $this->HR->query("SELECT * FROM (SELECT *, ROW_NUMBER() OVER (" . $order . ") AS row_num FROM " . $query . " WHERE $iswhere AND " . $fwhere . " AND (" . $cari . ")) AS temp_table WHERE row_num BETWEEN " . ($start + 1) . " AND " . ($start + $limit));
         } else {
-            $sql_data = $this->HR->query("SELECT * FROM " . $query . " WHERE " . $fwhere . " AND (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
+            $sql_data = $this->HR->query("SELECT * FROM (SELECT *, ROW_NUMBER() OVER (" . $order . ") AS row_num FROM " . $query . " WHERE " . $fwhere . " AND (" . $cari . ")) AS temp_table WHERE row_num BETWEEN " . ($start + 1) . " AND " . ($start + $limit));
         }
+
 
         if (isset($search)) {
             if (!empty($iswhere)) {

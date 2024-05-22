@@ -22,7 +22,7 @@
 
                             <div class="row mb-6">
                                 <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">SO Date :</label>
-                                <div class="col-sm-5">
+                                <div class="col-sm-6">
                                     <div class="input-group">
                                         <select name="var" id="var" class="form-control form-control-sm form-select">
                                             <option value="Emp_No">Employee No</option>
