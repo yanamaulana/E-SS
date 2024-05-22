@@ -1,9 +1,41 @@
 $(document).ready(function () {
+    function hitungUmur(tanggalLahir) {
+        let tanggalLahirDate = new Date(tanggalLahir);
+        let tanggalSekarang = new Date();
+
+        let umur = tanggalSekarang.getFullYear() - tanggalLahirDate.getFullYear();
+        let bulan = tanggalSekarang.getMonth() - tanggalLahirDate.getMonth();
+        let hari = tanggalSekarang.getDate() - tanggalLahirDate.getDate();
+
+        // Jika bulan atau hari kurang dari sekarang, kurangi umur 1 tahun
+        if (bulan < 0 || (bulan === 0 && hari < 0)) {
+            umur--;
+        }
+
+        return umur;
+    }
+
+    function hitungUmurKerja(tanggalLahir) {
+        let tanggalLahirDate = new Date(tanggalLahir);
+        let tanggalSekarang = new Date();
+
+        // Menghitung selisih waktu dalam milidetik
+        let timeDiff = tanggalSekarang - tanggalLahirDate;
+
+        // Menghitung jumlah hari dari selisih waktu
+        let daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+
+        // Menghitung jumlah tahun desimal (365.25 hari per tahun termasuk tahun kabisat)
+        let umur = daysDiff / 365.25;
+
+        return umur.toFixed(1); // Menghasilkan angka desimal dengan dua tempat desimal
+    }
+
     var TableData = $("#DataTable").DataTable({
         destroy: true,
         processing: true,
         serverSide: true,
-        dom: '<"row"<"col-md-6"l><"col-md-6">><"row"<"col-md-8"f><"col-md-4"B>>rtip',
+        dom: '<"row"<"col-md-6"><"col-md-6">><"row"<"col-md-8"l><"col-md-4"B>>rtip',
         select: true,
         lengthMenu: [
             [10, 25, 50, 10000],
@@ -45,10 +77,16 @@ $(document).ready(function () {
         {
             data: "Date_Of_Birth",
             name: "Date_Of_Birth",
+            render: function (data) {
+                return hitungUmur(data)
+            }
         },
         {
             data: "Start_Date",
             name: "Start_Date",
+            render: function (data) {
+                return hitungUmurKerja(data)
+            }
         },
         {
             data: "EMPLOYMENTSTATUS_NAME",

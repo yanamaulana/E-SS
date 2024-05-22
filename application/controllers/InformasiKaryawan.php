@@ -36,7 +36,13 @@ class InformasiKaryawan extends CI_Controller
             'Emp_No', 'First_Name', 'Pos_Name', 'Division_Name', 'costcenter_name', 'Date_Of_Birth', 'Start_Date', 'End_Date', 'EMPLOYMENTSTATUS_NAME', 'Email', 'EMP_IMAGE'
         ];
         $isWhere = null;
-        header('Content-Type: application/json');
-        echo $this->M_Datatable_HR->get_tables($tables, $search, $isWhere);
+        if (!empty($this->input->post('param'))) {
+            $where  = array($this->input->post('var') => $this->input->post('param'));
+            header('Content-Type: application/json');
+            echo $this->M_Datatable_HR->get_tables_where($tables, $search, $where, $isWhere);
+        } else {
+            header('Content-Type: application/json');
+            echo $this->M_Datatable_HR->get_tables($tables, $search, $isWhere);
+        }
     }
 }

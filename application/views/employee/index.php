@@ -19,15 +19,36 @@
                 <div class="py-5">
                     <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade active show" id="kt_tab_pane_4" role="tabpanel">
+
+                            <div class="row mb-6">
+                                <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">SO Date :</label>
+                                <div class="col-sm-5">
+                                    <div class="input-group">
+                                        <select name="var" id="var" class="form-control form-control-sm form-select">
+                                            <option value="Emp_No">Employee No</option>
+                                            <option value="First_Name">Employee Name </option>
+                                            <option value="Pos_Name">Position Name</option>
+                                            <option value="Division_Name">Unit</option>
+                                            <option value="costcenter_name">Section</option>
+                                            <option value="EMPLOYMENTSTATUS_NAME">Status</option>
+                                            <option value="Emai">Email</option>
+                                        </select>
+                                        <span class=" input-group-text btn btn-sm btn-light" title="contain" data-toggle="tooltip"><b>=</b></span>
+                                        <input name="param" id="param" required class="form-control form-control-sm">
+                                        <button class="input-group-text btn btn-sm btn-primary" type="button" id="search" title="Search" data-toggle="tooltip"><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="pb-5 table-responsive">
                                 <table class="display compact table-bordered table-striped table-hover table-sm align-middle gy-5 gs-5" id="DataTable">
                                     <thead>
                                         <tr style="background-color: #3B6D8C;">
                                             <th>#</th>
-                                            <th>NIK</th>
+                                            <th>Employee No</th>
                                             <th>NAME</th>
                                             <th>POSITION</th>
-                                            <th>DEPT</th>
+                                            <th>UNIT</th>
                                             <th>SECTION</th>
                                             <th>AGE</th>
                                             <th>TENURE</th>
