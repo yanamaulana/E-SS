@@ -6,7 +6,7 @@
                     <ul class="nav nav-tabs fs-6 border-0">
                         <li class="nav-item">
                             <a class="nav-link mr-5 active btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_4">
-                                <h5 class="font-weight-bold" id="table-title-main"> Employee Information</h5>
+                                <h5 class="font-weight-bold" id="table-title-main"> Employee Active</h5>
                             </a>
                         </li>
                     </ul>
@@ -24,7 +24,7 @@
                                 <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">SO Date :</label>
                                 <div class="col-sm-6">
                                     <div class="input-group">
-                                        <select name="var" id="var" class="form-control form-control-sm form-select">
+                                        <select name="var" id="var" class="form-select form-select-sm">
                                             <option value="Emp_No">Employee No</option>
                                             <option value="First_Name">Employee Name </option>
                                             <option value="Pos_Name">Position Name</option>

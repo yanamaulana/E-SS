@@ -29,6 +29,17 @@ class InformasiKaryawan extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    public function upload_photo()
+    {
+        $this->data['page_title'] = "Upload Employee Photo";
+        $this->data['page_content'] = "employee/employee_photo";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/employee/employee_photo.js"></script>';
+
+        $this->load->view($this->layout, $this->data);
+    }
+
+    // -------------------------------- DEVIDER Datatable -------------------------------------- //
+
     public function DT_List_Employee()
     {
         $tables = $this->HRQview_Employee_Detail;

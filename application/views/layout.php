@@ -52,6 +52,8 @@
                 $is_admin = $this->session->userdata('sys_sba_isAdm');
                 $sess_dept = $this->session->userdata('sys_sba_department');
                 $sess_jabatan = $this->session->userdata('sys_sba_jabatan');
+                $Menu = $this->uri->segment(1);
+                $SubMenu = $this->uri->segment(2);
                 ?>
                 <div class="aside-menu flex-column-fluid">
                     <div class="hover-scroll-overlay-y my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-activate="{default: false, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_aside_logo, #kt_aside_footer" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="0">
@@ -303,17 +305,42 @@
                                     <span class="menu-title">Monitoring Cash Book Requisition</span>
                                 </a>
                             </div>
-                            <div class="menu-item" data-bs-toggle="tooltip" title="Informasi Karyawan">
-                                <a class="menu-link <?= ($Menu == 'InformasiKaryawan') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan') ?>">
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'InformasiKaryawan') ? 'hover show' : null; ?>">
+                                <span class="menu-link">
                                     <span class="menu-icon">
-                                        <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
-                                        <span class="svg-icon svg-icon-muted svg-icon-2qx">
-                                            <i class="fas fa-users fs-3"></i>
+                                        <span class="svg-icon svg-icon-2">
+                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/files/fil002.svg-->
+                                            <span class="svg-icon svg-icon-muted svg-icon-2x">
+                                                <i class="fas fa-users fs-2"></i>
+                                            </span>
+                                            <!--end::Svg Icon-->
                                         </span>
-                                        <!--end::Svg Icon-->
                                     </span>
                                     <span class="menu-title">Employe Information</span>
-                                </a>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'InformasiKaryawan') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
+                                    <div class="menu-item">
+                                        <a class="menu-link <?= ($SubMenu == 'index') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan/index') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-2x">
+                                                    <i class="fas fa-th-list fs-2"></i>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title">Employee Active</span>
+                                        </a>
+                                    </div>
+                                    <div class="menu-item">
+                                        <a class="menu-link <?= ($SubMenu == 'upload_photo') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan/upload_photo') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-2x">
+                                                    <i class="fas fa-user-circle fs-2"></i>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title">Update Profile Picture</span>
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                             <?php /*
                             <div class="menu-item" data-bs-toggle="tooltip" title="List My Cash Book Requisition">
