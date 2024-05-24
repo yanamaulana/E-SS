@@ -49,6 +49,7 @@
                                             <th>NAME</th>
                                             <th>POSITION</th>
                                             <th>UNIT</th>
+                                            <th>STATUS</th>
                                             <th>SECTION</th>
                                             <th>AGE</th>
                                             <th>TENURE</th>

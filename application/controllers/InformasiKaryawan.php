@@ -38,6 +38,14 @@ class InformasiKaryawan extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    // -------------------------------- POST FORM ----------------------------------------------//
+
+    public function store_profile_picture()
+    {
+        var_dump($_FILES['fp']);
+        die;
+    }
+
     // -------------------------------- DEVIDER Datatable -------------------------------------- //
 
     public function DT_List_Employee()

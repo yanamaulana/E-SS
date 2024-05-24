@@ -28,7 +28,22 @@ $(document).ready(function () {
         // Menghitung jumlah tahun desimal (365.25 hari per tahun termasuk tahun kabisat)
         let umur = daysDiff / 365.25;
 
-        return umur.toFixed(1); // Menghasilkan angka desimal dengan dua tempat desimal
+        return Math.round(umur); // Menghasilkan angka desimal dengan dua tempat desimal
+    }
+
+    function cekStatusKontrak(data) {
+        let status = '';
+        let awalan = data.charAt(0); // Mendapatkan karakter pertama dari variabel data
+
+        if (awalan === '2') {
+            status = 'Kontrak';
+        } else if (awalan === '9') {
+            status = 'HL';
+        } else {
+            status = 'Tetap';
+        }
+
+        return status;
     }
 
     $('#search').on('click', function () {
@@ -78,10 +93,19 @@ $(document).ready(function () {
             {
                 data: "Division_Name",
                 name: "Division_Name",
+
+            },
+            {
+                data: "Emp_No",
+                name: "Emp_No",
+                render: function (data) {
+                    return cekStatusKontrak(data)
+                }
             },
             {
                 data: "costcenter_name",
                 name: "costcenter_name",
+                visible: false,
             },
             {
                 data: "Date_Of_Birth",
@@ -100,10 +124,14 @@ $(document).ready(function () {
             {
                 data: "EMPLOYMENTSTATUS_NAME",
                 name: "EMPLOYMENTSTATUS_NAME",
+                visible: false,
             },
             {
                 data: "Email",
                 name: "Email",
+                render: function (data) {
+                    return `<small>${data}</small>`
+                }
             },
             {
                 data: "EMP_IMAGE",
@@ -115,13 +143,13 @@ $(document).ready(function () {
                 }
             },
             ],
-            order: [[2, "asc"]],
+            order: [[1, "asc"]],
             columnDefs: [
-                { className: "text-center", targets: [0, 10], },
+                { className: "text-center", targets: [0, 7, 8], },
                 { className: "text-left", targets: [] }
             ],
             autoWidth: true,
-            responsive: true,
+            responsive: false,
             rowCallback: function (row, data) {
                 // console.log(row.Is_Close)
                 // if (data.Is_NotActive == 1) {
