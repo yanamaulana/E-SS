@@ -42,8 +42,46 @@ class InformasiKaryawan extends CI_Controller
 
     public function store_profile_picture()
     {
-        var_dump($_FILES['fp']);
-        die;
+        $upload_image = $_FILES['fp']['name'];
+        $file_name_without_ext = pathinfo($upload_image, PATHINFO_FILENAME);
+        $Sql_Emp = $this->HR->get_where($this->HRQview_Employee_Detail, ['Emp_No' => $file_name_without_ext]);
+
+        $source_path = FCPATH . 'assets/Files/photo/' . $upload_image;
+        $destination_path = FCPATH . 'assets/Files/replaced_photo/' . date('Ymds') . '_' . $upload_image;
+        if (file_exists($source_path)) {
+            rename($source_path, $destination_path);
+        } else {
+            return $this->help->Fn_resulting_response([
+                'code' => 505,
+                'msg' => "Terjadi kesalahan teknis hubungi MIS !",
+            ]);
+        }
+
+        if ($Sql_Emp->num_rows() == 0) {
+            return $this->help->Fn_resulting_response([
+                'code' => 505,
+                'msg' => "update photo failed : Nomor induk karyawan → $file_name_without_ext tidak ditemukan !",
+            ]);
+        }
+        if ($upload_image) {
+            $config['allowed_types'] = 'jpg';
+            $config['max_size']      = '5120';
+            $config['upload_path'] = 'assets/Files/photo/';
+
+            $this->load->library('upload', $config);
+            if ($this->upload->do_upload('fp')) {
+                $Data_Emp = $Sql_Emp->row();
+                return $this->help->Fn_resulting_response([
+                    'code' => 200,
+                    'msg' => "Update profile picture $Data_Emp->First_Name ($file_name_without_ext) success !",
+                ]);
+            } else {
+                return $this->help->Fn_resulting_response([
+                    'code' => 505,
+                    'msg' => 'update photo failed : ' . $this->upload->display_errors(),
+                ]);
+            }
+        }
     }
 
     // -------------------------------- DEVIDER Datatable -------------------------------------- //
