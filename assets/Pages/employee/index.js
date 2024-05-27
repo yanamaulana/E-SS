@@ -50,6 +50,12 @@ $(document).ready(function () {
         InitDataTable($('#var').val(), $('#param').val());
     })
 
+    $('#param').on('keypress', function (e) {
+        if (e.which === 13) { // 13 adalah kode ASCII untuk tombol Enter
+            InitDataTable($('#var').val(), $('#param').val());
+        }
+    });
+
     function InitDataTable(variabel, parameter) {
         var TableData = $("#DataTable").DataTable({
             destroy: true,
