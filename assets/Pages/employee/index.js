@@ -129,8 +129,8 @@ $(document).ready(function () {
             {
                 data: "Email",
                 name: "Email",
-                render: function (data) {
-                    return `<small>${data}</small>`
+                render: function (data, type, row, meta) {
+                    return `<small>- ${data}<br>- ${row.MOBILE_PHONE}</small>`
                 }
             },
             {

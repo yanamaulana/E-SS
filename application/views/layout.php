@@ -316,7 +316,7 @@
                                             <!--end::Svg Icon-->
                                         </span>
                                     </span>
-                                    <span class="menu-title">Employe Information</span>
+                                    <span class="menu-title">Employee Information</span>
                                     <span class="menu-arrow"></span>
                                 </span>
                                 <div class="menu-sub menu-sub-accordion <?= ($Menu == 'InformasiKaryawan') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">

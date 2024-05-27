@@ -90,7 +90,7 @@ class InformasiKaryawan extends CI_Controller
     {
         $tables = $this->HRQview_Employee_Detail;
         $search = [
-            'Emp_No', 'First_Name', 'Pos_Name', 'Division_Name', 'costcenter_name', 'Date_Of_Birth', 'Start_Date', 'End_Date', 'EMPLOYMENTSTATUS_NAME', 'Email', 'EMP_IMAGE'
+            'Emp_No', 'First_Name', 'Pos_Name', 'Division_Name', 'costcenter_name', 'Date_Of_Birth', 'Start_Date', 'End_Date', 'EMPLOYMENTSTATUS_NAME', 'Email', 'MOBILE_PHONE', 'EMP_IMAGE'
         ];
         $isWhere = null;
         if (!empty($this->input->post('param'))) {

@@ -25,13 +25,14 @@
                                 <div class="col-sm-6">
                                     <div class="input-group">
                                         <select name="var" id="var" class="form-select form-select-sm">
-                                            <option value="Emp_No">Employee No</option>
+                                            <option value="Emp_No">NIK</option>
                                             <option value="First_Name">Employee Name </option>
                                             <option value="Pos_Name">Position Name</option>
                                             <option value="Division_Name">Unit</option>
                                             <option value="costcenter_name">Section</option>
                                             <option value="EMPLOYMENTSTATUS_NAME">Status</option>
                                             <option value="Emai">Email</option>
+                                            <option value="MOBILE_PHONE">Mobile Phone</option>
                                         </select>
                                         <span class=" input-group-text btn btn-sm btn-light" title="contain" data-toggle="tooltip"><b>=</b></span>
                                         <input name="param" id="param" required class="form-control form-control-sm">
@@ -45,7 +46,7 @@
                                     <thead>
                                         <tr style="background-color: #3B6D8C;">
                                             <th>#</th>
-                                            <th>Employee No</th>
+                                            <th>NIK</th>
                                             <th>NAME</th>
                                             <th>POSITION</th>
                                             <th>UNIT</th>
@@ -54,7 +55,7 @@
                                             <th>AGE</th>
                                             <th>TENURE</th>
                                             <th>STATUS</th>
-                                            <th>EMAIL</th>
+                                            <th>CONTACT</th>
                                             <th>PHOTO</th>
                                         </tr>
                                     </thead>
