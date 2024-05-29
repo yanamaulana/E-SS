@@ -21,7 +21,7 @@
                         <div class="tab-pane fade active show" id="kt_tab_pane_4" role="tabpanel">
 
                             <div class="row mb-6">
-                                <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">SO Date :</label>
+                                <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">Filter :</label>
                                 <div class="col-sm-6">
                                     <div class="input-group">
                                         <select name="var" id="var" class="form-select form-select-sm">
@@ -29,8 +29,8 @@
                                             <option value="First_Name">Employee Name </option>
                                             <option value="Pos_Name">Position Name</option>
                                             <option value="Division_Name">Unit</option>
-                                            <option value="costcenter_name">Section</option>
-                                            <option value="EMPLOYMENTSTATUS_NAME">Status</option>
+                                            <!-- <option value="costcenter_name">Section</option> -->
+                                            <!-- <option value="EMPLOYMENTSTATUS_NAME">Status</option> -->
                                             <option value="Emai">Email</option>
                                             <option value="MOBILE_PHONE">Mobile Phone</option>
                                         </select>
@@ -51,11 +51,10 @@
                                             <th>POSITION</th>
                                             <th>UNIT</th>
                                             <th>STATUS</th>
-                                            <th>SECTION</th>
                                             <th>AGE</th>
                                             <th>TENURE</th>
-                                            <th>STATUS</th>
-                                            <th>CONTACT</th>
+                                            <th>EMAIL</th>
+                                            <th>PHONE</th>
                                             <th>PHOTO</th>
                                         </tr>
                                     </thead>

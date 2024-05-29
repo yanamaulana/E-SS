@@ -109,11 +109,6 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "costcenter_name",
-                name: "costcenter_name",
-                visible: false,
-            },
-            {
                 data: "Date_Of_Birth",
                 name: "Date_Of_Birth",
                 render: function (data) {
@@ -128,16 +123,12 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "EMPLOYMENTSTATUS_NAME",
-                name: "EMPLOYMENTSTATUS_NAME",
-                visible: false,
-            },
-            {
                 data: "Email",
                 name: "Email",
-                render: function (data, type, row, meta) {
-                    return `<small>- ${data}<br>- ${row.MOBILE_PHONE}</small>`
-                }
+            },
+            {
+                data: "MOBILE_PHONE",
+                name: "MOBILE_PHONE",
             },
             {
                 data: "EMP_IMAGE",
@@ -151,7 +142,7 @@ $(document).ready(function () {
             ],
             order: [[1, "asc"]],
             columnDefs: [
-                { className: "text-center", targets: [0, 7, 8], },
+                { className: "text-center", targets: [0, 6, 7, 10], },
                 { className: "text-left", targets: [] }
             ],
             autoWidth: true,
