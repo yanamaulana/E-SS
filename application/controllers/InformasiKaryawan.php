@@ -24,7 +24,7 @@ class InformasiKaryawan extends CI_Controller
     {
         $this->data['page_title'] = "System Employee Information";
         $this->data['page_content'] = "employee/index";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/employee/index.js"></script>';
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/employee/index.js?v=' . time() . '"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
@@ -33,7 +33,7 @@ class InformasiKaryawan extends CI_Controller
     {
         $this->data['page_title'] = "Upload Employee Photo";
         $this->data['page_content'] = "employee/employee_photo";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/employee/employee_photo.js"></script>';
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/employee/employee_photo.js?v=' . time() . '"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
