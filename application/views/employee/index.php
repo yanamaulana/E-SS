@@ -29,7 +29,7 @@
                                             <option value="First_Name">Employee Name </option>
                                             <option value="Pos_Name">Position Name</option>
                                             <option value="Division_Name">Unit</option>
-                                            <!-- <option value="costcenter_name">Section</option> -->
+                                            <option value="costcenter_name">Section</option>
                                             <!-- <option value="EMPLOYMENTSTATUS_NAME">Status</option> -->
                                             <option value="Emai">Email</option>
                                             <option value="MOBILE_PHONE">Mobile Phone</option>
@@ -50,6 +50,7 @@
                                             <th>NAME</th>
                                             <th>POSITION</th>
                                             <th>UNIT</th>
+                                            <th>SECTION</th>
                                             <th>STATUS</th>
                                             <th>AGE</th>
                                             <th>TENURE</th>

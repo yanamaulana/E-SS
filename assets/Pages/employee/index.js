@@ -99,7 +99,10 @@ $(document).ready(function () {
             {
                 data: "Division_Name",
                 name: "Division_Name",
-
+            },
+            {
+                data: "costcenter_name",
+                name: "costcenter_name",
             },
             {
                 data: "Emp_No",
