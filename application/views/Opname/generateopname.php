@@ -124,7 +124,7 @@
                                                     'LAST_UPDATE' => $DateOpname,
                                                     'UPDATED_BY' => $this->session->userdata('sys_sba_userid'),
                                                     'DIMENSION_ID' => $li->Dimension_ID,
-                                                    'created_at' => date('Y-m-d H:i:s')
+                                                    'created_at' => $DateOpname . ' ' . date('H:i:s')
                                                 ]
                                             ); ?>
                                             <td class="text-center"> <?php if ($insert) : ?>
