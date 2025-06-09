@@ -64,8 +64,8 @@ $(document).ready(function () {
             dom: '<"row"<"col-md-6"><"col-md-6">><"row"<"col-md-8"l><"col-md-4"B>>rtip',
             select: true,
             lengthMenu: [
-                [10, 25, 50, 10000],
-                [10, 25, 50, 'All']
+                [50, 10000],
+                [50, 'All']
             ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "InformasiKaryawan/DT_List_Employee",

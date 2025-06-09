@@ -88,18 +88,94 @@ class InformasiKaryawan extends CI_Controller
 
     public function DT_List_Employee()
     {
-        $tables = $this->HRQview_Employee_Detail;
-        $search = [
-            'Emp_No', 'First_Name', 'Pos_Name', 'Division_Name', 'costcenter_name', 'Date_Of_Birth', 'Start_Date', 'End_Date', 'EMPLOYMENTSTATUS_NAME', 'Email', 'MOBILE_PHONE', 'EMP_IMAGE'
-        ];
+        $query = "select * from $this->HRQview_Employee_Detail WHERE Emp_No NOT in ('09466',
+'09460',
+'29319',
+'09188',
+'08218',
+'09433',
+'09438',
+'09499',
+'05202',
+'04628',
+'09008',
+'09085',
+'09243',
+'30194',
+'30358',
+'09073',
+'09465',
+'09510',
+'29475',
+'07826',
+'09422') AND Emp_No In ('09466',
+'09460',
+'29319',
+'09188',
+'08218',
+'09433',
+'09438',
+'09499',
+'05202',
+'04628',
+'09008',
+'09085',
+'09243',
+'30194',
+'30358',
+'09073',
+'09465',
+'09510',
+'29475',
+'07826',
+'09422',
+'04566',
+'07980',
+'08752',
+'09093',
+'08803',
+'09412',
+'09175',
+'09291',
+'29555',
+'29557',
+'09434',
+'09436',
+'30357',
+'09429',
+'09075',
+'04412',
+'09442',
+'00032',
+'04796',
+'09331',
+'09279',
+'05671',
+'09518',
+'03085',
+'07094');";
+        $search = [];
+
         $isWhere = null;
-        if (!empty($this->input->post('param'))) {
-            $where  = array($this->input->post('varr') => $this->input->post('param'));
-            header('Content-Type: application/json');
-            echo $this->M_Datatable_HR->get_tables_where($tables, $search, $where, $isWhere);
-        } else {
-            header('Content-Type: application/json');
-            echo $this->M_Datatable_HR->get_tables($tables, $search, $isWhere);
-        }
+
+        $where  = null;
+
+        header('Content-Type: application/json');
+        echo $this->M_Datatable_HR->get_tables_query($query, $search, $where, $isWhere);
+        // if (!empty($this->input->post('param'))) {
+        // } else {
+        //     header('Content-Type: application/json');
+        //     echo $this->M_Datatable_HR->get_tables_query($query, $where, $search, $isWhere);
+        // }
+
+        // $query  = "SELECT A.*, B.Account_Name AS supplier " .
+        //     "FROM ttrx_hdr_payment_purchase A " .
+        //     "INNER JOIN tmst_account B ON A.id_supplier = B.SysId";
+        // $search = array('A.doc_number', 'A.keterangan', 'B.Account_Name');
+        // $where  = null;
+        // $isWhere = null;
+
+        // header('Content-Type: application/json');
+        // echo $this->M_Datatables->get_tables_query($query, $search, $where, $isWhere);
     }
 }

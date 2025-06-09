@@ -94,11 +94,12 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
 $db['HR'] = array(
 	'dsn'	=> '',
-	'hostname' => '192.168.14.15,14114',
+	'hostname' => '192.168.14.15,1433',
 	'username' => 'sa',
-	'password' => 's@m1ckD4t4',
+	'password' => 'P@ssw0rdsaadm',
 	'database' => 'dbSAMICK_HR',
 	'dbdriver' => 'sqlsrv',
 	'dbprefix' => '',

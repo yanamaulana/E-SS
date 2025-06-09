@@ -202,44 +202,43 @@ class m_DataTable_Hr extends CI_Model
             }
             $data = $sql_data->result_array();
         } else {
-            if (!empty($iswhere)) {
-                $sql = $this->HR->query($query . " WHERE  $iswhere ");
-            } else {
-                $sql = $this->HR->query($query);
-            }
-            $sql_count = $sql->num_rows();
 
-            $cari = implode(" LIKE '%" . $search . "%' OR ", $cari) . " LIKE '%" . $search . "%'";
+            $sql = $this->HR->query($query);
 
-            // Untuk mengambil nama field yg menjadi acuan untuk sorting
-            $order_field = $_POST['order'][0]['column'];
 
-            // Untuk menentukan order by "ASC" atau "DESC"
-            $order_ascdesc = $_POST['order'][0]['dir'];
-            $order = " ORDER BY " . $_POST['columns'][$order_field]['data'] . " " . $order_ascdesc;
+            $sql_count =  $sql->num_rows();
 
-            if (!empty($iswhere)) {
-                $sql_data = $this->HR->query($query . " WHERE $iswhere AND (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
-            } else {
-                $sql_data = $this->HR->query($query . " WHERE (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
-            }
+            // $cari = implode(" LIKE '%" . $search . "%' OR ", $cari) . " LIKE '%" . $search . "%'";
 
-            if (isset($search)) {
-                if (!empty($iswhere)) {
-                    $sql_cari =  $this->HR->query($query . " WHERE $iswhere AND (" . $cari . ")");
-                } else {
-                    $sql_cari =  $this->HR->query($query . " WHERE (" . $cari . ")");
-                }
-                $sql_filter_count = $sql_cari->num_rows();
-            } else {
-                if (!empty($iswhere)) {
-                    $sql_filter = $this->HR->query($query . " WHERE $iswhere");
-                } else {
-                    $sql_filter = $this->HR->query($query);
-                }
-                $sql_filter_count = $sql_filter->num_rows();
-            }
-            $data = $sql_data->result_array();
+            // // Untuk mengambil nama field yg menjadi acuan untuk sorting
+            // $order_field = $_POST['order'][0]['column'];
+
+            // // Untuk menentukan order by "ASC" atau "DESC"
+            // $order_ascdesc = $_POST['order'][0]['dir'];
+            // $order = " ORDER BY " . $_POST['columns'][$order_field]['data'] . " " . $order_ascdesc;
+
+            // if (!empty($iswhere)) {
+            //     $sql_data = $this->HR->query($query . " WHERE $iswhere AND (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
+            // } else {
+            //     $sql_data = $this->HR->query($query . " WHERE (" . $cari . ")" . $order . " LIMIT " . $limit . " OFFSET " . $start);
+            // }
+
+            // if (isset($search)) {
+            //     if (!empty($iswhere)) {
+            //         $sql_cari =  $this->HR->query($query . " WHERE $iswhere AND (" . $cari . ")");
+            //     } else {
+            //         $sql_cari =  $this->HR->query($query . " WHERE (" . $cari . ")");
+            //     }
+            //     $sql_filter_count = $sql_cari->num_rows();
+            // } else {
+            //     if (!empty($iswhere)) {
+            //         $sql_filter = $this->HR->query($query . " WHERE $iswhere");
+            //     } else {
+            //         $sql_filter = $this->HR->query($query);
+            //     }
+            // }
+            $sql_filter_count = $sql->num_rows();
+            $data =  $sql->result_array();
         }
 
         $callback = array(

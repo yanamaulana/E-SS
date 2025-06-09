@@ -554,7 +554,7 @@
                         <td align="center">
                             <?php if ($qSN->num_rows() > 0) : ?>
                                 <?php foreach ($qSN->result_array() as $Qsn) : ?>
-                                    <?= $Qsn['SN_Number'] ?>
+                                    <?= $Qsn['SN_Number'] . "<br>"; ?>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 &nbsp;
