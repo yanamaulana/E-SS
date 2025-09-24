@@ -342,6 +342,33 @@
                                     </div>
                                 </div>
                             </div>
+                            <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'ScriptTool') ? 'hover show' : null; ?>">
+                                <span class="menu-link">
+                                    <span class="menu-icon">
+                                        <span class="svg-icon svg-icon-2">
+                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/files/fil002.svg-->
+                                            <span class="svg-icon svg-icon-muted svg-icon-2x">
+                                                <i class="fas fa-wrench fs-2"></i>
+                                            </span>
+                                            <!--end::Svg Icon-->
+                                        </span>
+                                    </span>
+                                    <span class="menu-title">Tool Script</span>
+                                    <span class="menu-arrow"></span>
+                                </span>
+                                <div class="menu-sub menu-sub-accordion <?= ($Menu == 'ScriptTool') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
+                                    <div class="menu-item">
+                                        <a class="menu-link <?= ($SubMenu == 'update_costcenter') ? 'active' : null ?>" href="<?= base_url('ScriptTool/update_costcenter') ?>">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-2x">
+                                                    <i class="fas fa-file-archive fs-2"></i>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title">Update CostCenter</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                             <?php /*
                             <div class="menu-item" data-bs-toggle="tooltip" title="List My Cash Book Requisition">
                                 <a class="menu-link <?= ($Menu == 'MyCbr') ? 'active' : null ?>" href="<?= base_url('MyCbr') ?>">
