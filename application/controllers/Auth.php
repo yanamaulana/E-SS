@@ -64,14 +64,9 @@ class Auth extends CI_Controller
                 return $this->help->Fn_resulting_response($response);
             }
 
-            $sqlemployee = $this->db->query(
-                "Select 	ThrmEmpCompany.company_id, ThrmCompany.company_name, ThrmEmpPersonalData.emp_id,ThrmEmpCompany.position_id,ThrmPosition.position_nameen as Pos_Name, 'Samick' as Division_Name
-                FROM 	ThrmEmpPersonalData
-                inner join ThrmEmpCompany on ThrmEmpCompany.emp_id = ThrmEmpPersonalData.emp_id
-                inner join ThrmCompany on ThrmEmpCompany.company_id = ThrmCompany.company_id 
-                inner join ThrmPosition on ThrmEmpCompany.position_id = ThrmPosition.position_id
-                where ThrmEmpPersonalData.emp_id = '$login->username'"
-            );
+            $sqlemployee = $this->HR->get_where($this->HRQview_Employee_Detail, [
+                'Emp_No' => $login->username,
+            ]);
 
             $SqlIsBod = $this->db->get_where($this->Tmst_User_NonHR, [
                 'UserID' => $user['User_ID'],
