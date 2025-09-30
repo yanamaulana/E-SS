@@ -30,7 +30,7 @@
 
     .table-ttd {
         border-collapse: collapse;
-        width: 295mm;
+        width: 290mm;
         margin-left: 1mm;
         font-size: 10pt !important;
         font-family: sans-serif;
@@ -60,7 +60,7 @@
         border: 1px solid black;
         padding: 3px;
         padding: 3px;
-        font-size: 10pt !important;
+        font-size: 9pt !important;
     }
 
     /* tr {
@@ -212,7 +212,7 @@ function format_rupiah($angka)
                 <td class="text-center">NO</td>
                 <td class="text-center">DESCRIPTION</td>
                 <td class="text-center">ACCOUNT</td>
-                <td class="text-center" style="border-right: solid black 8px;">AMOUNT</td>
+                <td class="text-center" style="border-right: solid black 5px;">AMOUNT</td>
                 <td class="text-center"></td>
                 <td class="text-center"></td>
             </tr>
@@ -226,7 +226,7 @@ function format_rupiah($angka)
                     <td style="width: 3%;"><?= $i ?></td>
                     <td><?= $li->Description ?></td>
                     <td><?= '[' . $li->Acc_ID . ']' . ' ' . $li->Account_Name ?></td>
-                    <td style="border-right: solid black 8px; width: 15%;">
+                    <td style="border-right: solid black 5px; width: 15%;">
                         <div class="container">
                             <div style="text-align: left;"><?= $li->currency_id ?></div>
                             <div style="text-align: right;"><?= format_rupiah($li->Amount_Detail) ?></div>
@@ -270,7 +270,7 @@ function format_rupiah($angka)
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td style="border-right: solid black 8px;">&nbsp;</td>
+                    <td style="border-right: solid black 5px;">&nbsp;</td>
                     <td style="border-right: none;">
                         <?php
                         if ($i == 1) {
@@ -307,7 +307,7 @@ function format_rupiah($angka)
             <tr>
                 <td colspan="2">TOTAL AMOUNT</td>
                 <td>TOTAL ==> <?= $CbrHeader->Currency_ID ?></td>
-                <td style="border-right: solid black 8px;">
+                <td style="border-right: solid black 5px;">
                     <?php if ($CbrHeader->Currency_ID == 'IDR') : ?>
                         <div class="container">
                             <div style="text-align: left;"><?= $CbrHeader->Currency_ID ?></div>
@@ -343,6 +343,61 @@ function format_rupiah($angka)
                 </td>
 
             </tr>
+        </table>
+        <div style="width: 100%; border: solid black 1px; margin-top: 3px; margin-bottom: 3px; margin-left: 5px;"></div>
+        <table class="table-ttd" style="width: 100%;">
+            <tbody>
+                <tr>
+                    <td rowspan="3" style="writing-mode: vertical-rl;letter-spacing: 0.2em; white-space: nowrap; text-orientation: upright; vertical-align: middle; text-align:center;">PROPOSAL</td>
+                    <td>CREATOR</td>
+                    <td>1.CHECKED</td>
+                    <td>2.CHECKED</td>
+                    <td>3.CHECKED</td>
+                    <td>4.CHECKED</td>
+                    <td>5.CHECKED</td>
+                    <td>1.APPROVED</td>
+                    <td>2.APPROVED</td>
+                    <td rowspan="3"></td>
+                    <td rowspan="3" style="writing-mode: vertical-rl;letter-spacing: 0.2em; white-space: nowrap; text-orientation: upright; vertical-align: middle; text-align:center;">ACC</td>
+                    <td>1.CHECKED</td>
+                    <td>2.CHECKED</td>
+                    <td>3.CHECKED</td>
+                    <td>1.APPROVED</td>
+                    <td>2.APPROVED</td>
+                    <td rowspan="3"></td>
+                    <td>RECEIVED</td>
+                </tr>
+                <tr style="height: 85px;">
+                    <td>&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </body>

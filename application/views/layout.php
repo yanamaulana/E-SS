@@ -301,7 +301,7 @@
                                         </span>
                                         <!--end::Svg Icon-->
                                     </span>
-                                    <span class="menu-title">Monitoring Cash Book Requisition</span>
+                                    <span class="menu-title">Global Cash Book Requisition</span>
                                 </a>
                             </div>
 
