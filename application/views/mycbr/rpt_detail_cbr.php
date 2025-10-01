@@ -344,7 +344,7 @@ function format_rupiah($angka)
 
             </tr>
         </table>
-        <div style="width: 100%; border: solid black 1px; margin-top: 3px; margin-bottom: 3px; margin-left: 5px;"></div>
+        <div style="width: 100%; border: solid black 1px; margin-top: 5px; margin-bottom: 5px; margin-left: 5px;"></div>
         <table class="table-ttd" style="width: 100%;">
             <tbody>
                 <tr>

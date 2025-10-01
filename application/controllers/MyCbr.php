@@ -497,19 +497,26 @@ class MyCbr extends CI_Controller
         $row_ref_document = $this->db->query("select po_number, rr_number from taccvi_header where invoice_number = '$vin'")->row();
         $this->data['row_ref_document'] = $row_ref_document;
 
-        if (strpos($row_ref_document->po_number, '|') !== false) {
-            $splitArrayPO = explode('|', $row_ref_document->po_number);
+        $po_number = $row_ref_document->po_number ?? ''; // Pastikan tidak ada nilai null
+
+        if (strpos($po_number, '|') !== false) {
+            $splitArrayPO = explode('|', $po_number);
             $arr_po_number = "'" . implode("','", $splitArrayPO) . "'";
         } else {
-            $splitArrayPO = explode(',', $row_ref_document->po_number);
+            $splitArrayPO = explode(',', $po_number);
             $arr_po_number = "'" . implode("','", $splitArrayPO) . "'";
         }
 
-        if (strpos($row_ref_document->rr_number, '|') !== false) {
-            $splitArrayRR = explode('|', $row_ref_document->rr_number);
+        // Amankan variabel sebelum digunakan
+        $rr_number = $row_ref_document->rr_number ?? ''; // Jika null, ubah menjadi string kosong
+
+        if (strpos($rr_number, '|') !== false) {
+            // Baris 508
+            $splitArrayRR = explode('|', $rr_number);
             $arr_rr_number = "'" . implode("','", $splitArrayRR) . "'";
         } else {
-            $splitArrayRR = explode(',', $row_ref_document->rr_number);
+            // Baris 512
+            $splitArrayRR = explode(',', $rr_number);
             $arr_rr_number = "'" . implode("','", $splitArrayRR) . "'";
         }
 
