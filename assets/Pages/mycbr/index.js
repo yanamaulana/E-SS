@@ -638,7 +638,8 @@ $(document).ready(function () {
                                                     <thead>
                                                         <tr>
                                                             <th class="text-dark" colspan="2">Cash Book Requisition Number : ${d.CBReq_No}</th>
-                                                            <th class="text-dark text-center"><button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button></th>
+                                                            <th class="text-dark text-center"><button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-danger btn-cbr"><i class="fas fa-print"></i> Cash Book Requisition</button> <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button></th>
+
                                                         </tr>
                                                         <tr class="bg-dark">
                                                             <th class="text-center">Account</th>
@@ -935,6 +936,12 @@ $(document).ready(function () {
         let vin = $(this).val();
 
         window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_purchase_invoice/${vin}`, `RptVin-${vin}`, 'width=800,height=600');
+    })
+
+    $(document).on('click', '.btn-cbr', function () {
+        let Cbr_no = $(this).val();
+
+        window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_rpt_cbr/${Cbr_no}`, `RptCbr-${Cbr_no}`, 'width=854,height=480');
     })
 
 
