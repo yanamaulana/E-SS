@@ -2,7 +2,7 @@
     <div class="col-xl-12">
         <div class="card shadow-sm">
             <div class="card-header">
-                <h3 class="card-title"><?= $page_title; ?> : <?= $this->session->userdata('sys_sba_nama') ?></h3>
+                <h3 class="card-title"><?= $page_title; ?> : Logistik (Hard Code)</h3>
                 <div class="card-toolbar">
                     <a href="<?= base_url() ?>" class="btn btn-sm btn-light-danger">
                         <i class="fas fa-arrow-alt-circle-left"></i> Back
@@ -11,179 +11,73 @@
             </div>
             <div class="card-body">
                 <form id="main-form" class="form-horizontal" enctype="multipart/form-data" action="javascript:void(0)">
-                    <?php if ($approvals->num_rows() < 1) : ?>
-                        <div class="row">
-                            <div class="col-lg-5 col-md-12">
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL STAFF :</label>
-                                    <select id="Staff" name="Staff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
+
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label pr-5">APPROVAL Staff :</label>
+                            <div class="fv-row pt-5">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="Staff" id="Staff_Yes" value="1">
+                                    <label class="form-check-label" for="Staff_Yes">YES</label>
                                 </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL CHIEF :</label>
-                                    <select id="Chief" name="Chief" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="Staff" id="Staff_No" value="0" checked>
+                                    <label class="form-check-label" for="Staff_No">NO</label>
                                 </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL ASST. MANAGER :</label>
-                                    <select id="AsstManager" name="AsstManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL MANAGER :</label>
-                                    <select id="Manager" name="Manager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">SENIOR MANAGER :</label>
-                                    <select id="SeniorManager" name="SeniorManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">GENERAL MANAGER :</label>
-                                    <select id="GeneralManager" name="GeneralManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">DIRECTOR PRD PIANO/GUITAR :</label>
-                                    <select id="Director" name="Director" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option selected disabled>-Choose-</option>
-                                        <option value="0">NO</option>
-                                        <option value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">PRESIDENT DIRECTOR <span class="text-danger">*</span> :</label>
-                                    <select disabled id="PresidentDirector" name="PresidentDirector" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div>
-                                <!-- <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE STAFF <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FinanceStaff" name="FinanceStaff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" selected>NO</option>
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div> -->
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE MANAGER <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FInanceManager" name="FInanceManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE DIRECTOR <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FinanceDirector" name="FinanceDirector" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label pr-5">Staff PERSON :</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control nik" name="Staff_person" id="Staff_person" placeholder="NIK/Username ERP Sunfish" aria-label="Recipient's username" aria-describedby="button-addon2" data-fin="0" data-dir="0">
+
+                                <input type="hidden" name="Staff_valid" id="Staff_valid" class="validation" value="0">
+
+                                <div class="input-group-append">
+                                    <button class="btn btn-danger validate-person" type="button"><i class="fas fa-user"></i> Validation</button>
                                 </div>
                             </div>
                         </div>
-                    <?php else : ?>
-                        <?php $approval = $approvals->row(); ?>
-                        <div class="row">
-                            <div class="col-lg-5 col-md-12">
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL STAFF :</label>
-                                    <select id="Staff" name="Staff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->Staff == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->Staff == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
+                    </div>
+                    <hr class="devider">
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label pr-5">APPROVAL General Manager :</label>
+                            <div class="fv-row pt-5">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="GeneralManager" id="GeneralManager_Yes" value="1">
+                                    <label class="form-check-label" for="GeneralManager_Yes">YES</label>
                                 </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL CHIEF :</label>
-                                    <select id="Chief" name="Chief" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->Chief == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->Chief == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="GeneralManager" id="GeneralManager_No" value="0" checked>
+                                    <label class="form-check-label" for="GeneralManager_No">NO</label>
                                 </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL ASST. MANAGER :</label>
-                                    <select id="AsstManager" name="AsstManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->AsstManager == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->AsstManager == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">APPROVAL MANAGER :</label>
-                                    <select id="Manager" name="Manager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->Manager == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->Manager == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">SENIOR MANAGER :</label>
-                                    <select id="SeniorManager" name="SeniorManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->SeniorManager == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->SeniorManager == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">GENERAL MANAGER :</label>
-                                    <select id="GeneralManager" name="GeneralManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->GeneralManager == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->GeneralManager == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">DIRECTOR PRD PIANO/GUITAR:</label>
-                                    <select id="Director" name="Director" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" <?= ($approval->Director == 0) ? 'selected' : ''  ?>>NO</option>
-                                        <option value="1" <?= ($approval->Director == 1) ? 'selected' : '' ?>>YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">PRESIDENT DIRECTOR <span class="text-danger">*</span> :</label>
-                                    <select disabled id="PresidentDirector" name="PresidentDirector" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div>
-                                <!-- <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE STAFF <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FinanceStaff" name="FinanceStaff" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <option value="0" selected>NO</option>
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div> -->
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE MANAGER <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FInanceManager" name="FInanceManager" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
-                                </div>
-                                <div class="fv-row mb-5">
-                                    <label class="form-label">FINANCE DIRECTOR <span class="text-danger">*</span> :</label>
-                                    <select disabled id="FinanceDirector" name="FinanceDirector" required class="form-select form-select-sm form-control form-control-sm" data-placeholder="-Pilih-">
-                                        <!-- <option value="0" selected>NO</option> -->
-                                        <option selected value="1">YES</option>
-                                    </select>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label pr-5">General Manager PERSON :</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control nik" name="GeneralManager_person" id="GeneralManager_person" placeholder="NIK/Username ERP Sunfish" aria-label="Recipient's username" aria-describedby="button-addon2" value="07826" data-fin="0" data-dir="0">
+
+                                <input type="hidden" name="GeneralManager_valid" id="GeneralManager_valid" class="validation" value="0">
+
+                                <div class="input-group-append">
+                                    <button class="btn btn-danger validate-person" type="button"><i class="fas fa-user"></i> Validation</button>
                                 </div>
                             </div>
                         </div>
-                    <?php endif; ?>
+                    </div>
+                    <hr class="devider">
+
+
+
                 </form>
             </div>
             <div class="card-footer">

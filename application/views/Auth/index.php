@@ -24,16 +24,16 @@
 
 <body id="kt_body" class="bg-body">
     <div class="d-flex flex-column flex-root">
-        <div class="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed" style="background-image: url(<?= base_url() ?>assets/Metronic/dist/assets/media/illustrations/sketchy-1/14.png">
+        <div class="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed" style="background-image: url(<?= base_url() ?>assets/E-SBA_assets/logo-app/bg-login.png); background-size: cover; background-position: center; background-repeat: no-repeat;">
             <div class="d-flex flex-center flex-column flex-column-fluid p-10 pb-lg-20">
                 <a href="<?= base_url() ?>Auth" class="mb-12">
-                    <img alt="Logo" src="<?= base_url() ?>assets/E-SBA_assets/logo-app/logo_samick.jpg" class="h-70px" />
+                    <img alt="Logo" src="<?= base_url() ?>assets/E-SBA_assets/logo-app/logo_samick_transparent_normal.png" class="h-70px" />
                 </a>
                 <div class="w-lg-500px bg-body rounded shadow-sm p-10 p-lg-15 mx-auto">
                     <form id="form-login" method="post" action="<?= base_url('Auth/post_login') ?>" class="form w-100" novalidate="novalidate">
                         <div class="text-center mb-10">
-                            <h2 class="text-dark mb-3">Login to Samick Support System</h2>
-                            <div class="text-gray-600 fw-bold fs-4">By Samick Indonesia</div>
+                            <h2 class="text-dark mb-3">Login to <?= $this->config->item('app_name_short')   ?></h2>
+                            <div class="text-gray-600 fw-bold fs-4">By <?= $this->config->item('company_name') ?></div>
                         </div>
                         <div class="fv-row mb-10">
                             <label class="form-label fs-6 fw-bolder text-dark">Username</label>

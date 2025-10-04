@@ -333,142 +333,9 @@
                                     <span class="menu-title">Setting Step Approval CBR</span>
                                 </a>
                             </div>
-                            <?php if ($is_dir ==  0) : ?>
-                                <div class="menu-item">
-                                    <div class="menu-content pb-2">
-                                        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Repair Tool</span>
-                                    </div>
-                                </div>
-                                <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'ScriptTool') ? 'hover show' : null; ?>">
-                                    <span class="menu-link">
-                                        <span class="menu-icon">
-                                            <span class="svg-icon svg-icon-2">
-                                                <!--begin::Svg Icon | path: assets/media/icons/duotune/files/fil002.svg-->
-                                                <span class="svg-icon svg-icon-muted svg-icon-2x">
-                                                    <i class="fas fa-wrench fs-2"></i>
-                                                </span>
-                                                <!--end::Svg Icon-->
-                                            </span>
-                                        </span>
-                                        <span class="menu-title">Tool Script</span>
-                                        <span class="menu-arrow"></span>
-                                    </span>
-                                    <div class="menu-sub menu-sub-accordion <?= ($Menu == 'ScriptTool') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
-                                        <div class="menu-item">
-                                            <a class="menu-link <?= ($SubMenu == 'update_costcenter') ? 'active' : null ?>" href="<?= base_url('ScriptTool/update_costcenter') ?>">
-                                                <span class="menu-icon">
-                                                    <span class="svg-icon svg-icon-2x">
-                                                        <i class="fas fa-file-archive fs-2"></i>
-                                                    </span>
-                                                </span>
-                                                <span class="menu-title">Update CostCenter</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="menu-item">
-                                    <div class="menu-content pb-2">
-                                        <span class="menu-section text-muted text-uppercase fs-8 ls-1">Report</span>
-                                    </div>
-                                </div>
-                                <div class="menu-item">
-                                    <a class="menu-link <?= ($Menu == 'Report') ? 'active' : null ?>" href="<?= base_url('Report/Navigation') ?>">
-                                        <span class="menu-icon">
-                                            <span class="svg-icon svg-icon-muted svg-icon-2qx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                    <path opacity="0.3" d="M19 22H5C4.4 22 4 21.6 4 21V3C4 2.4 4.4 2 5 2H14L20 8V21C20 21.6 19.6 22 19 22Z" fill="black" />
-                                                    <path d="M15 8H20L14 2V7C14 7.6 14.4 8 15 8Z" fill="black" />
-                                                </svg></span>
-                                        </span>
-                                        <span class="menu-title">Samick Report</span>
-                                    </a>
-                                </div>
-                                <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'InformasiKaryawan') ? 'hover show' : null; ?>">
-                                    <span class="menu-link">
-                                        <span class="menu-icon">
-                                            <span class="svg-icon svg-icon-2">
-                                                <!--begin::Svg Icon | path: assets/media/icons/duotune/files/fil002.svg-->
-                                                <span class="svg-icon svg-icon-muted svg-icon-2x">
-                                                    <i class="fas fa-users fs-2"></i>
-                                                </span>
-                                                <!--end::Svg Icon-->
-                                            </span>
-                                        </span>
-                                        <span class="menu-title">Employee Information</span>
-                                        <span class="menu-arrow"></span>
-                                    </span>
-                                    <div class="menu-sub menu-sub-accordion <?= ($Menu == 'InformasiKaryawan') ? 'show"' : '" style="display: none; overflow: hidden;"'; ?> kt-hidden-height=" 117">
-                                        <div class="menu-item">
-                                            <a class="menu-link <?= ($SubMenu == 'index') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan/index') ?>">
-                                                <span class="menu-icon">
-                                                    <span class="svg-icon svg-icon-2x">
-                                                        <i class="fas fa-th-list fs-2"></i>
-                                                    </span>
-                                                </span>
-                                                <span class="menu-title">Employee Active</span>
-                                            </a>
-                                        </div>
-                                        <div class="menu-item">
-                                            <a class="menu-link <?= ($SubMenu == 'upload_photo') ? 'active' : null ?>" href="<?= base_url('InformasiKaryawan/upload_photo') ?>">
-                                                <span class="menu-icon">
-                                                    <span class="svg-icon svg-icon-2x">
-                                                        <i class="fas fa-user-circle fs-2"></i>
-                                                    </span>
-                                                </span>
-                                                <span class="menu-title">Update Profile Picture</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <?php $month = floatval(date('m')); ?>
-                                <?php if ($month > 11 && $this->session->userdata('sys_sba_isDir') != 1) :  ?>
-                                    <div class="menu-item">
-                                        <div class="menu-content pb-2">
-                                            <span class="menu-section text-muted text-uppercase fs-8 ls-1">Inventory</span>
-                                        </div>
-                                    </div>
-                                    <div class="menu-item">
-                                        <a class="menu-link <?= ($Menu == 'Opname') ? 'active' : null ?>" href="<?= base_url('Opname') ?>">
-                                            <span class="menu-icon">
-                                                <!--begin::Svg Icon | path: assets/media/icons/duotune/layouts/lay007.svg-->
-                                                <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                        <path opacity="0.3" d="M14 10V20C14 20.6 13.6 21 13 21H10C9.4 21 9 20.6 9 20V10C9 9.4 9.4 9 10 9H13C13.6 9 14 9.4 14 10ZM20 9H17C16.4 9 16 9.4 16 10V20C16 20.6 16.4 21 17 21H20C20.6 21 21 20.6 21 20V10C21 9.4 20.6 9 20 9Z" fill="black" />
-                                                        <path d="M7 10V20C7 20.6 6.6 21 6 21H3C2.4 21 2 20.6 2 20V10C2 9.4 2.4 9 3 9H6C6.6 9 7 9.4 7 10ZM21 6V3C21 2.4 20.6 2 20 2H3C2.4 2 2 2.4 2 3V6C2 6.6 2.4 7 3 7H20C20.6 7 21 6.6 21 6Z" fill="black" />
-                                                    </svg></span>
-                                                <!--end::Svg Icon-->
-                                            </span>
-                                            <span class="menu-title">Stock Opname</span>
-                                        </a>
-                                    </div>
-                                <?php endif; ?>
-                            <?php endif; ?>
-
-                            <!-- <div class="menu-item">
-                                <a class="menu-link <= ($Menu == 'ReportPemakaianCuti') ? 'active' : null ?>" href="<= base_url('ReportPemakaianCuti') ?>">
-                                    <span class="menu-icon">
-                                        <span class="svg-icon svg-icon-2">
-                                            <span class="svg-icon svg-icon-muted svg-icon-2qx"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                                    <path opacity="0.3" d="M22.1 11.5V12.6C22.1 13.2 21.7 13.6 21.2 13.7L19.9 13.9C19.7 14.7 19.4 15.5 18.9 16.2L19.7 17.2999C20 17.6999 20 18.3999 19.6 18.7999L18.8 19.6C18.4 20 17.8 20 17.3 19.7L16.2 18.9C15.5 19.3 14.7 19.7 13.9 19.9L13.7 21.2C13.6 21.7 13.1 22.1 12.6 22.1H11.5C10.9 22.1 10.5 21.7 10.4 21.2L10.2 19.9C9.4 19.7 8.6 19.4 7.9 18.9L6.8 19.7C6.4 20 5.7 20 5.3 19.6L4.5 18.7999C4.1 18.3999 4.1 17.7999 4.4 17.2999L5.2 16.2C4.8 15.5 4.4 14.7 4.2 13.9L2.9 13.7C2.4 13.6 2 13.1 2 12.6V11.5C2 10.9 2.4 10.5 2.9 10.4L4.2 10.2C4.4 9.39995 4.7 8.60002 5.2 7.90002L4.4 6.79993C4.1 6.39993 4.1 5.69993 4.5 5.29993L5.3 4.5C5.7 4.1 6.3 4.10002 6.8 4.40002L7.9 5.19995C8.6 4.79995 9.4 4.39995 10.2 4.19995L10.4 2.90002C10.5 2.40002 11 2 11.5 2H12.6C13.2 2 13.6 2.40002 13.7 2.90002L13.9 4.19995C14.7 4.39995 15.5 4.69995 16.2 5.19995L17.3 4.40002C17.7 4.10002 18.4 4.1 18.8 4.5L19.6 5.29993C20 5.69993 20 6.29993 19.7 6.79993L18.9 7.90002C19.3 8.60002 19.7 9.39995 19.9 10.2L21.2 10.4C21.7 10.5 22.1 11 22.1 11.5ZM12.1 8.59998C10.2 8.59998 8.6 10.2 8.6 12.1C8.6 14 10.2 15.6 12.1 15.6C14 15.6 15.6 14 15.6 12.1C15.6 10.2 14 8.59998 12.1 8.59998Z" fill="black" />
-                                                    <path d="M17.1 12.1C17.1 14.9 14.9 17.1 12.1 17.1C9.30001 17.1 7.10001 14.9 7.10001 12.1C7.10001 9.29998 9.30001 7.09998 12.1 7.09998C14.9 7.09998 17.1 9.29998 17.1 12.1ZM12.1 10.1C11 10.1 10.1 11 10.1 12.1C10.1 13.2 11 14.1 12.1 14.1C13.2 14.1 14.1 13.2 14.1 12.1C14.1 11 13.2 10.1 12.1 10.1Z" fill="black" />
-                                                </svg></span>
-                                        </span>
-                                    </span>
-                                    <span class="menu-title">Report Pemakaian Cuti</span>
-                                </a>
-                            </div> -->
                         </div>
                     </div>
                 </div>
-                <!-- <div class="aside-footer flex-column-auto pt-5 pb-7 px-5" id="kt_aside_footer">
-                    <a href="<= base_url() ?>assets/Metronic/dist/documentation/getting-started.html" class="btn btn-custom btn-primary w-100" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="200+ in-house components and 3rd-party plugins">
-                        <span class="btn-label">Docs &amp; Components</span>
-                        <span class="svg-icon btn-icon svg-icon-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path opacity="0.3" d="M19 22H5C4.4 22 4 21.6 4 21V3C4 2.4 4.4 2 5 2H14L20 8V21C20 21.6 19.6 22 19 22ZM15 17C15 16.4 14.6 16 14 16H8C7.4 16 7 16.4 7 17C7 17.6 7.4 18 8 18H14C14.6 18 15 17.6 15 17ZM17 12C17 11.4 16.6 11 16 11H8C7.4 11 7 11.4 7 12C7 12.6 7.4 13 8 13H16C16.6 13 17 12.6 17 12ZM17 7C17 6.4 16.6 6 16 6H8C7.4 6 7 6.4 7 7C7 7.6 7.4 8 8 8H16C16.6 8 17 7.6 17 7Z" fill="black" />
-                                <path d="M15 8H20L14 2V7C14 7.6 14.4 8 15 8Z" fill="black" />
-                            </svg>
-                        </span>
-                    </a>
-                </div> -->
             </div>
             <div class="wrapper d-flex flex-column flex-row-fluid" id="kt_wrapper">
                 <div id="kt_header" class="header align-items-stretch">
@@ -567,21 +434,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- <div class="separator my-2"></div> -->
-                                            <!-- <div class="menu-item px-5" data-kt-menu-trigger="hover" data-kt-menu-placement="left-start"> -->
-                                            <!-- <a href="#" class="menu-link px-5">
-                                                    <span class="menu-title">Pengaturan Akun</span>
-                                                    <span class="menu-arrow"></span>
-                                                </a> -->
-                                            <!-- <div class="menu-sub menu-sub-dropdown w-175px py-4"> -->
-                                            <!-- <div class="menu-item px-3">
-                                                        <a href="<= base_url('Master/Change_Password') ?>" class="menu-link px-5">Password</a>
-                                                    </div> -->
-                                            <!-- <div class="menu-item px-3">-->
-                                            <!-- <a href="<= base_url('Dashboard/myprofile') ?>" class="menu-link px-5">Profile Saya</a> -->
-                                            <!-- </div> -->
-                                            <!-- </div> -->
-                                            <!-- </div> -->
                                             <div class="menu-item px-5">
                                                 <div class="menu-content px-5">
                                                     <label class="form-check form-switch form-check-custom form-check-solid pulse pulse-success" for="kt_user_menu_dark_mode_toggle">
