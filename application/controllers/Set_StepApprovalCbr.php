@@ -188,52 +188,32 @@ class Set_StepApprovalCbr extends CI_Controller
                 ->set_output(json_encode($response));
         }
 
-        $Doc_Legitimate_Pos_On = null;
+        $Doc_Legitimate_Pos_On = 'PresidentDirector';
         $error_message = null;
 
-        // 1. Kasus $FinanceDirector = 0 & $PresidentDirector = 1
-        if ($FinanceDirector == 0 && $PresidentDirector == 1) {
-            $Doc_Legitimate_Pos_On = 'PresidentDirector';
-
-            // 2. Kasus Sebaliknya ($FinanceDirector = 1 & $PresidentDirector = 0)
-        } elseif ($FinanceDirector == 1 && $PresidentDirector == 0) {
-            $Doc_Legitimate_Pos_On = 'FinanceDirector';
-
-            // 3. Kasus Sama-sama 1 (Mengutamakan FinanceDirector)
-        } elseif ($FinanceDirector == 1 && $PresidentDirector == 1) {
-            $Doc_Legitimate_Pos_On = 'FinanceDirector';
-
-            // 4. Kasus Keduanya 0
-        } elseif ($FinanceDirector == 0 && $PresidentDirector == 0) {
-            $error_message = "Persetujuan Akhir (President Director atau Finance Director) harus dipilih salah satu atau keduanya.";
-
-            // Kasus tidak terduga (jika ada nilai selain 0 atau 1)
-        } else {
-            $error_message = "Nilai Director tidak dipilih.";
-        }
-
-        // --- Penanganan Error ---
+        // if ($FinanceDirector == 0 && $PresidentDirector == 1) {
+        //     $Doc_Legitimate_Pos_On = 'PresidentDirector';
+        // } elseif ($FinanceDirector == 1 && $PresidentDirector == 0) {
+        //     $Doc_Legitimate_Pos_On = 'FinanceDirector';
+        // } elseif ($FinanceDirector == 1 && $PresidentDirector == 1) {
+        //     $Doc_Legitimate_Pos_On = 'FinanceDirector';
+        // } elseif ($FinanceDirector == 0 && $PresidentDirector == 0) {
+        //     $error_message = "Persetujuan Akhir (President Director atau Finance Director) harus dipilih salah satu atau keduanya.";
+        // } else {
+        //     $error_message = "Nilai Director tidak dipilih.";
+        // }
 
         if ($error_message !== null) {
-            // Kembalikan pesan error sesuai format JSON AJAX CodeIgniter
             $response = [
                 "code" => 400, // Bad Request
                 "msg" => "Validasi Gagal.",
                 "details" => [$error_message]
             ];
-
-            // Menggunakan output CodeIgniter untuk mengirim respons JSON
             return $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(400)
                 ->set_output(json_encode($response));
         }
-
-        // Jika lolos, $Doc_Legitimate_Pos_On sudah siap untuk dimasukkan ke database
-        // Contoh: $data_insert['Doc_Legitimate_Pos_On'] = $Doc_Legitimate_Pos_On;
-
-
-        // Asumsi $Doc_Legitimate_Pos_On sudah dihitung dan didefinisikan
 
         $data_insert = array(
             'Setting_Approval_Code' => $this->input->post('Setting_Approval_Code'), // Tetap dari post, karena tidak ada variabel lokal untuk ini
