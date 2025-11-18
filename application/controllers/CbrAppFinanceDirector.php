@@ -182,7 +182,7 @@ class CbrAppFinanceDirector extends CI_Controller
                 AND ((IsAppvAdditional = 0) or (IsAppvAdditional = 1 and Status_AppvAdditional = 1))
                 AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1))
                 AND ((IsAppvDirector = 0) or (IsAppvDirector = 1 and Status_AppvDirector = 1))
-                AND (Status_AppvPresidentDirector = 1)) 
+            ) 
         OR ( IsAppvDirector = 1
                 AND Status_AppvDirector = 0
                 AND Ttrx_Cbr_Approval.AppvDirector_By = '$username'

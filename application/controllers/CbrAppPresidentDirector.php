@@ -159,7 +159,9 @@ class CbrAppPresidentDirector extends CI_Controller
         AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
         AND ((IsAppvAdditional = 0)     or (IsAppvAdditional = 1 and Status_AppvAdditional = 1))
         AND ((IsAppvDirector = 0)       or (IsAppvDirector = 1 and Status_AppvDirector = 1))
-        AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) ";
+        AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) 
+        AND ((IsAppvFinanceDirector = 0) or (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector = 1)) 
+        ";
 
         $totalData = $this->db->query($sql)->num_rows();
         if (!empty($requestData['search']['value'])) {
