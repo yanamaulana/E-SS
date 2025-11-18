@@ -170,7 +170,7 @@ class CbrAppFinanceDirector extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND ( IsAppvFinanceDirector = 1
+        AND (( IsAppvFinanceDirector = 1
                 AND Status_AppvFinanceDirector = 0
                 AND Ttrx_Cbr_Approval.AppvFinanceDirector_By = '$username'
                 AND ((IsAppvStaff = 0) or (IsAppvStaff = 1 and Status_AppvStaff = 1))
@@ -193,7 +193,8 @@ class CbrAppFinanceDirector extends CI_Controller
                 AND ((IsAppvSeniorManager = 0) or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
                 AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
                 AND ((IsAppvAdditional = 0) or (IsAppvAdditional = 1 and Status_AppvAdditional = 1)) 
-                AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) ) ";
+                AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) 
+            )) ";
 
         $totalData = $this->db->query($sql)->num_rows();
         if (!empty($requestData['search']['value'])) {
