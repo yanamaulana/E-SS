@@ -452,7 +452,8 @@ class MyCbr extends CI_Controller
         AND CBReq_Status = 3
         AND TAccCashBookReq_Header.Type = 'D'
         AND TAccCashBookReq_Header.Company_ID = 2 
-        AND (Ttrx_Cbr_Approval.Status_AppvManager = 2 
+        AND (Ttrx_Cbr_Approval.Status_AppvAsstManager = 2 
+            OR Ttrx_Cbr_Approval.Status_AppvManager = 2 
             OR Ttrx_Cbr_Approval.Status_AppvSeniorManager = 2  
             OR Ttrx_Cbr_Approval.Status_AppvGeneralManager = 2
             OR Ttrx_Cbr_Approval.Status_AppvAdditional = 2 
