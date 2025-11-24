@@ -156,44 +156,63 @@ class CbrAppAsstManager extends CI_Controller
         $until  = $this->input->post('until');
         $username = $this->session->userdata('sys_sba_username');
 
-        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,UserDivision
+        $sql = "SELECT distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,UserDivision
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
         LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3
-        AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND (   
-                AppvAsstManager_By = '$username' AND IsAppvAsstManager = 1 AND Status_AppvAsstManager = 0
-                AND ((IsAppvStaff = 0) or (IsAppvStaff = 1 and Status_AppvStaff = 1))
-                AND ((IsAppvChief = 0) or (IsAppvChief = 1 and Status_AppvChief = 1))
-            ) 
-            OR
-            (
-                AppvAdditional_By = '$username' AND IsAppvAdditional = 1 AND Status_AppvAdditional = 0
-                AND ((IsAppvStaff = 0) or (IsAppvStaff = 1 and Status_AppvStaff = 1))
-                AND ((IsAppvChief = 0) or (IsAppvChief = 1 and Status_AppvChief = 1))
-            ) ";
+        WHERE 
+            TAccCashBookReq_Header.Type = 'D'
+            AND TAccCashBookReq_Header.Company_ID = 2 
+            AND isNull(isSPJ, 0) = 0
+            AND Approval_Status = 3
+            AND CBReq_Status = 3
+            AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
+            
+            AND (
+                (   
+                    AppvAsstManager_By = '$username' AND IsAppvAsstManager = 1 AND Status_AppvAsstManager = 0
+                    AND (IsAppvStaff = 0 OR (IsAppvStaff = 1 AND Status_AppvStaff = 1))
+                    AND (IsAppvChief = 0 OR (IsAppvChief = 1 AND Status_AppvChief = 1))
+                ) 
+                OR
+                (
+                    AppvAdditional_By = '$username' AND IsAppvAdditional = 1 AND Status_AppvAdditional = 0
+                    AND (IsAppvStaff = 0 OR (IsAppvStaff = 1 AND Status_AppvStaff = 1))
+                    AND (IsAppvChief = 0 OR (IsAppvChief = 1 AND Status_AppvChief = 1))
+                )
+            )
+        ";
 
         $totalData = $this->db->query($sql)->num_rows();
-        if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+        $search_value = $requestData['search']['value'];
+
+        // --- 2. Tambahkan Logika Pencarian (Jika ada) ---
+        $sql_filter = $sql; // Mulai dengan SQL dasar
+        if (!empty($search_value)) {
+            // Tambahkan AND dan buka kurung kurawal untuk seluruh klausa OR pencarian
+            $sql_filter .= " AND (";
+            $sql_filter .= " TAccCashBookReq_Header.CBReq_No LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR First_Name LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR Document_Number LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR Document_Date LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR Descript LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR CBReq_Status LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR Amount LIKE '%" . $search_value . "%'";
+            $sql_filter .= ") "; // Tutup kurung kurawal pencarian
         }
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();
-        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
-        $query = $this->db->query($sql);
+        // --- 4. Tambahkan Pagination dan Ordering ---
+        $order = $requestData['columns'][$requestData['order'][0]['column']]['data'];
+        $dir = $requestData['order'][0]['dir'];
+        $sql_filter .= " ORDER BY $order $dir 
+                      OFFSET " . $requestData['start'] . " ROWS 
+                      FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
+
+        $query = $this->db->query($sql_filter);
+
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
