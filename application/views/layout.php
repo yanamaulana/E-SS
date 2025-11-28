@@ -220,6 +220,8 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
+
+
                             <?php if ($sess_jabatan != 'Director' && $sess_jabatan != 'Finance Director' && $sess_jabatan != 'President Director') : ?>
                                 <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
                                     <a class="menu-link <?= ($Menu == 'CbrMonitoring') ? 'active' : null ?>" href="<?= base_url('CbrMonitoring') ?>">
@@ -234,7 +236,8 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
-                            <?php if ($sess_jabatan == 'Director' || $sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $is_admin == true || ($sess_jabatan == 'Manager' && $sess_dept == 'General Affair') || $sess_dept == 'Accounting') : ?>
+
+                            <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $is_admin == true || ($sess_jabatan == 'Manager' && $sess_dept == 'General Affair') || $sess_dept == 'Accounting') : ?>
                                 <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
                                     <a class="menu-link <?= ($Menu == 'MonitoringCbr') ? 'active' : null ?>" href="<?= base_url('MonitoringCbr') ?>">
                                         <span class="menu-icon">
@@ -248,6 +251,8 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
+
+
                             <?php if ($sess_jabatan != 'Director' && $sess_jabatan != 'Finance Director' && $sess_jabatan != 'President Director') : ?>
                                 <div class="menu-item">
                                     <div class="menu-content pt-4 pb-2">
