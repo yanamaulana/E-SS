@@ -29,7 +29,7 @@ class Approval_Assignment extends CI_Controller
         $this->data['page_content'] = "setting/approval_assignment";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/setting/approval_assignment.js?v=' . time() . '""></script>';
 
-        $this->data['Approvals'] = $this->db->get($this->QviewSettingStepApproval)->result();
+        $this->data['Approvals'] = $this->db->get_where($this->QviewSettingStepApproval, ['Is_Active' => 1])->result();
 
         $this->load->view($this->layout, $this->data);
     }

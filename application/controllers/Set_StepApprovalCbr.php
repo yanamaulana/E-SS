@@ -359,6 +359,7 @@ class Set_StepApprovalCbr extends CI_Controller
         } else {
             $error_message = "Nilai Director tidak dipilih.";
         }
+        $Doc_Legitimate_Pos_On = 'PresidentDirector';
 
         if ($error_message !== null) {
             $response = [
