@@ -237,7 +237,7 @@
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $is_admin == true || ($sess_jabatan == 'Manager' && $sess_dept == 'General Affair') || $sess_dept == 'Accounting') : ?>
+                            <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $is_admin == true || $sess_dept == 'Accounting') : ?>
                                 <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
                                     <a class="menu-link <?= ($Menu == 'MonitoringCbr') ? 'active' : null ?>" href="<?= base_url('MonitoringCbr') ?>">
                                         <span class="menu-icon">
