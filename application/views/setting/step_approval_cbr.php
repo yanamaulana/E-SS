@@ -248,36 +248,6 @@
                     <hr class="devider">
                     <div class="row">
                         <div class="col-lg-3 col-md-6">
-                            <label class="form-label pr-5">APPROVAL President Director :</label>
-                            <div class="fv-row pt-5">
-                                <div class="form-check form-check-inline bg-success px-5 py-2">
-                                    <input class="form-check-input" type="radio" name="PresidentDirector" id="PresidentDirector_Yes" value="1" checked>
-                                    <label class="form-check-label" style="font-weight: bold;" for="PresidentDirector_Yes">YES</label>
-                                </div>
-                                <div class="form-check form-check-inline bg-danger px-5 py-2">
-                                    <input class="form-check-input" type="radio" name="PresidentDirector" id="PresidentDirector_No" value="0">
-                                    <label class="form-check-label" style="font-weight: bold;" for="PresidentDirector_No">NO</label>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <label class="form-label pr-5">President Director PERSON :</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control nik" name="PresidentDirector_person" id="PresidentDirector_person" placeholder="NIK/Username ERP Sunfish" aria-label="Recipient's username" aria-describedby="button-addon2" data-fin="0" data-dir="1" data-pos="Board Of Directors" value="90108" readonly>
-
-                                <input type="hidden" name="PresidentDirector_valid" id="PresidentDirector_valid" class="validation" value="1">
-
-                                <div class="input-group-append">
-                                    <button class="btn btn-danger validate-person" type="button"><i class="fas fa-user"></i>Person Validation</button>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="text-success"><b>Eric Kim (President Director)</b></p>
-                    </div>
-                    <hr class="devider">
-                    <div class="row">
-                        <div class="col-lg-3 col-md-6">
                             <label class="form-label pr-5">APPROVAL Finance Director :</label>
                             <div class="fv-row pt-5">
                                 <div class="form-check form-check-inline bg-success px-5 py-2">
@@ -306,6 +276,37 @@
                         <p class="text-success"><b>Ha Dong Hyun (Finance Director)</b></p>
                     </div>
                     <hr class="devider">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label pr-5">APPROVAL President Director :</label>
+                            <div class="fv-row pt-5">
+                                <div class="form-check form-check-inline bg-success px-5 py-2">
+                                    <input class="form-check-input" type="radio" name="PresidentDirector" id="PresidentDirector_Yes" value="1" checked>
+                                    <label class="form-check-label" style="font-weight: bold;" for="PresidentDirector_Yes">YES</label>
+                                </div>
+                                <div class="form-check form-check-inline bg-danger px-5 py-2">
+                                    <input class="form-check-input" type="radio" name="PresidentDirector" id="PresidentDirector_No" value="0">
+                                    <label class="form-check-label" style="font-weight: bold;" for="PresidentDirector_No">NO</label>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label pr-5">President Director PERSON :</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control nik" name="PresidentDirector_person" id="PresidentDirector_person" placeholder="NIK/Username ERP Sunfish" aria-label="Recipient's username" aria-describedby="button-addon2" data-fin="0" data-dir="1" data-pos="Board Of Directors" value="90108" readonly>
+
+                                <input type="hidden" name="PresidentDirector_valid" id="PresidentDirector_valid" class="validation" value="1">
+
+                                <div class="input-group-append">
+                                    <button class="btn btn-danger validate-person" type="button"><i class="fas fa-user"></i>Person Validation</button>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-success"><b>Eric Kim (President Director)</b></p>
+                    </div>
+                    <hr class="devider">
+
 
 
 

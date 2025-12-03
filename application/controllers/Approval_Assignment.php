@@ -40,7 +40,7 @@ class Approval_Assignment extends CI_Controller
         $this->data['page_content'] = "setting/user_approval_assignment";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/setting/user_approval_assignment.js?v=' . time() . '""></script>';
 
-        $this->data['Approvals'] = $this->db->get($this->QviewSettingStepApproval)->result();
+        $this->data['Approvals'] = $this->db->get_where($this->QviewSettingStepApproval, ['Is_Active' =>  1])->result();
 
         $this->data['mystep'] = $this->db->get_where($this->Ttrx_Assignment_Approval_User, ['UserName_Employee' => $this->session->userdata('sys_sba_username')])->row();
 
