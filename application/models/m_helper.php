@@ -253,6 +253,7 @@ class m_helper extends CI_Model
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
+        AND (H.isClose IS NULL OR H.isClose = 0)
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
         AND (
                 (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector <> 0 and AppvFinanceDirector_By = '$username') OR

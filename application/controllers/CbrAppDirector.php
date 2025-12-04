@@ -162,7 +162,7 @@ class CbrAppDirector extends CI_Controller
                     H.Acc_ID, H.Descript, H.Amount, H.baseamount, H.curr_rate, 
                     H.Approval_Status, H.CBReq_Status, H.Paid_Status, H.Creation_DateTime, 
                     H.Created_By, P.First_Name AS Created_By_Name, H.Last_Update, H.Update_By, 
-                    H.Currency_Id, H.Approve_Date, GL.UserDivision
+                    H.Currency_Id, H.Approve_Date, UserDivision
                 FROM TAccCashBookReq_Header H
                 INNER JOIN TUserGroupL GL ON H.Created_By = GL.User_ID
                 INNER JOIN TUserPersonal P ON H.Created_By = P.User_ID
@@ -173,6 +173,7 @@ class CbrAppDirector extends CI_Controller
                 AND H.Approval_Status = 3
                 AND H.CBReq_Status = 3
                 AND A.CBReq_No IS NOT NULL
+                AND (H.isClose IS NULL OR H.isClose = 0)
                 AND 
                 (
                     (

@@ -107,7 +107,7 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "IsAppvAdditional", name: "IsAppvAdditional", orderable: false, visible: false, render: function (data, type, row, meta) {
+                    data: "IsAppvAdditional", name: "IsAppvAdditional", orderable: false, visible: true, render: function (data, type, row, meta) {
                         return renderApprovalStatus(data, row.Status_AppvAdditional);
                     }
                 },
