@@ -136,17 +136,30 @@ class CbrAppDirector extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND IsAppvDirector = 1
-        AND Status_AppvDirector = 0
-        AND Ttrx_Cbr_Approval.AppvDirector_By = '$username'
-        AND ((IsAppvStaff = 0)          or (IsAppvStaff = 1 and Status_AppvStaff = 1))
-        AND ((IsAppvChief = 0)          or (IsAppvChief = 1 and Status_AppvChief = 1))
-        AND ((IsAppvAsstManager = 0)    or (IsAppvAsstManager = 1 and Status_AppvAsstManager = 1))
-        AND ((IsAppvManager = 0)        or (IsAppvManager = 1 and Status_AppvManager = 1))
-        AND ((IsAppvSeniorManager = 0)  or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
-        AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
-        AND ((IsAppvAdditional = 0)     or (IsAppvAdditional = 1 and Status_AppvAdditional = 1)) 
-        AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) ";
+        AND 
+        (
+            Ttrx_Cbr_Approval.AppvDirector_By = '$username' AND IsAppvDirector = 1 AND Status_AppvDirector = 0
+            AND ((IsAppvStaff = 0)          or (IsAppvStaff = 1 and Status_AppvStaff = 1))
+            AND ((IsAppvChief = 0)          or (IsAppvChief = 1 and Status_AppvChief = 1))
+            AND ((IsAppvAsstManager = 0)    or (IsAppvAsstManager = 1 and Status_AppvAsstManager = 1))
+            AND ((IsAppvManager = 0)        or (IsAppvManager = 1 and Status_AppvManager = 1))
+            AND ((IsAppvSeniorManager = 0)  or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
+            AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
+            AND ((IsAppvAdditional = 0)     or (IsAppvAdditional = 1 and Status_AppvAdditional = 1)) 
+            AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1))
+        )             
+        OR 
+        (
+            AppvAdditional_By = '$username' AND IsAppvAdditional = 1 AND Status_AppvAdditional = 0 
+            AND ((IsAppvStaff = 0)         or (IsAppvStaff = 1 and Status_AppvStaff = 1))
+            AND ((IsAppvChief = 0)         or (IsAppvChief = 1 and Status_AppvChief = 1))
+            AND ((IsAppvAsstManager = 0)   or (IsAppvAsstManager = 1 and Status_AppvAsstManager = 1))
+            AND ((IsAppvManager) = 0       or (IsAppvManager = 1 and Status_AppvManager = 1))
+            AND ((IsAppvSeniorManager) = 0 or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
+            AND ((IsAppvGeneralManager) = 0 or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
+        )
+        
+         ";
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
 
         $totalData = $this->db->query($sql)->num_rows();
