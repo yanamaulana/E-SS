@@ -28,7 +28,7 @@ class Set_StepApprovalCbr extends CI_Controller
         $this->data['page_title'] = "Setting Approval Step Cash Book Requisition";
         $this->data['page_content'] = "setting/step_approval_cbr";
 
-        $this->data['dir_data'] = $this->db->get_where('Tmst_User_NonHR', ['is_active' => 1])->result();
+        $this->data['dir_data'] = $this->db->get_where('Tmst_User_NonHR', ['is_active' => 1, 'Division_Name' => 'Board Of Directors'])->result();
 
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/setting/step_approval_cbr.js?v=' . time() . '""></script>';
         // $this->data['approvals'] = $this->db->get_where($this->TmstTrxSettingSteppApprovalCbr, ['UserName_User' => $this->session->userdata('sys_sba_username')]);
