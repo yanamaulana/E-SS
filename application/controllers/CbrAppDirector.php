@@ -35,12 +35,26 @@ class CbrAppDirector extends CI_Controller
 
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
-            $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Status_AppvDirector' => 1,
-                'AppvDirector_Name' => $this->session->userdata('sys_sba_nama'),
-                'AppvDirector_By' => $this->session->userdata('sys_sba_username'),
-                'AppvDirector_At' => $this->DateTime,
-            ]);
+
+            $RowApproval = $this->db->get_where($this->Ttrx_Cbr_Approval, ['CBReq_No' => $CBReq_No])->row();
+
+            if ($RowApproval->AppvDirector_By == $this->session->userdata('sys_sba_username')) {
+                $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
+                    'Status_AppvDirector' => 1,
+                    'AppvDirector_Name' => $this->session->userdata('sys_sba_nama'),
+                    'AppvDirector_By' => $this->session->userdata('sys_sba_username'),
+                    'AppvDirector_At' => $this->DateTime,
+                ]);
+            }
+
+            if ($RowApproval->AppvAdditional_By == $this->session->userdata('sys_sba_username')) {
+                $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
+                    'Status_AppvAdditional' => 1,
+                    'AppvAdditional_Name' => $this->session->userdata('sys_sba_nama'),
+                    // 'AppvAdditional_By' => $this->session->userdata('sys_sba_username'),
+                    'AppvAdditional_At' => $this->DateTime,
+                ]);
+            }
         }
 
         $error_msg = $this->db->error()["message"];
