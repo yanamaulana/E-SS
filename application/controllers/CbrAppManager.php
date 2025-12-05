@@ -137,6 +137,7 @@ class CbrAppManager extends CI_Controller
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
+        AND (isClose IS NULL OR isClose = 0)
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
         AND (
                 AppvManager_By = '$username' AND IsAppvManager = 1 AND Status_AppvManager = 0

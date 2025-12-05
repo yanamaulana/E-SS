@@ -176,6 +176,7 @@ class CbrAppGeneralManager extends CI_Controller
                 AND ISNULL(H.isSPJ,0) = 0
                 AND H.Approval_Status = 3
                 AND H.CBReq_Status = 3
+                AND (isClose IS NULL OR isClose = 0)
                 AND A.CBReq_No IS NOT NULL
                 AND (
                     (

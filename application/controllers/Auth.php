@@ -97,6 +97,12 @@ class Auth extends CI_Controller
 
             $Cbr_Depts = $this->get_arr_dept($employee['Division_Name'], $login->username);
 
+            $jabatan = $employee['Pos_Name'];
+            if ($user['User_Name'] == '30194') {
+                // exception untuk norwendhy destavian
+                $jabatan = 'Senior Manager';
+            }
+
             $session_data = array(
                 'sys_sba_isDir'                => $is_dir,
                 'sys_sba_isAdm'                => $is_admin,
@@ -105,7 +111,7 @@ class Auth extends CI_Controller
                 'sys_sba_username'             => $user['User_Name'],
                 'sys_sba_NIK'                  => $user['User_Name'],
                 'sys_sba_nama'                 => $user['First_Name'],
-                'sys_sba_jabatan'              => $employee['Pos_Name'],
+                'sys_sba_jabatan'              => $jabatan,
                 'sys_sba_email'                => $user['Email_Address'],
                 'sys_sba_department'           => $employee['Division_Name'],
             );

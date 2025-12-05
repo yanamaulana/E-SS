@@ -108,7 +108,7 @@ $(document).ready(function () {
                 },
                 {
                     data: "IsAppvAdditional", name: "IsAppvAdditional", orderable: false, visible: true, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvAdditional);
+                        return renderApprovalStatus(data, row.Status_AppvAdditional) + ' <br/> ' + row.AppvAdditional_Name;
                     }
                 },
                 {
@@ -118,17 +118,17 @@ $(document).ready(function () {
                 },
                 {
                     data: "IsAppvDirector", name: "IsAppvDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvDirector);
+                        return renderApprovalStatus(data, row.Status_AppvDirector) + ' <br/> ' + row.AppvDirector_Name;
                     }
                 },
                 {
                     data: "IsAppvFinanceDirector", name: "IsAppvFinanceDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvFinanceDirector);
+                        return renderApprovalStatus(data, row.Status_AppvFinanceDirector) + ' <br/> ' + row.AppvFinanceDirector_Name;
                     }
                 },
                 {
                     data: "IsAppvPresidentDirector", name: "IsAppvPresidentDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvPresidentDirector);
+                        return renderApprovalStatus(data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_Name;
                     }
                 }
             ],
