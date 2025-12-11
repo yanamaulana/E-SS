@@ -253,106 +253,33 @@ class CbrAppFinanceDirector extends CI_Controller
 
     public function check_attachment_existence()
     {
-        // $cbr_numbers = [
-        //     'CBR2012511-0007637',
-        //     'CBR2012511-0007749',
-        //     'CBR2012511-0007809',
-        //     'CBR2012511-0007813',
-        //     'CBR2012511-0007912',
-        //     'CBR2012511-0007913',
-        //     'CBR2012511-0007962',
-        //     'CBR2012511-0007963',
-        //     'CBR2012511-0007964',
-        //     'CBR2012511-0007991',
-        //     'CBR2012511-0008045',
-        //     'CBR2012512-0008104',
-        //     'CBR2012512-0008148',
-        //     'CBR2012512-0008149',
-        //     'CBR2012512-0008169',
-        //     'CBR2012512-0008170',
-        //     'CBR2012512-0008171',
-        //     'CBR2012512-0008172',
-        //     'CBR2012512-0008173',
-        //     'CBR2012512-0008174',
-        //     'CBR2012512-0008175',
-        //     'CBR2012512-0008183',
-        //     'CBR2012512-0008184',
-        //     'CBR2012512-0008185',
-        //     'CBR2012512-0008186',
-        //     'CBR2012512-0008187',
-        //     'CBR2012512-0008188',
-        //     'CBR2012512-0008189',
-        //     'CBR2012512-0008190',
-        //     'CBR2012512-0008224',
-        //     'CBR2012512-0008230',
-        //     'CBR2012512-0008233',
-        //     'CBR2072511-0007948',
-        //     'CBR2072511-0008024',
-        //     'CBR2072511-0008075',
-        //     'CBR2072511-0008077',
-        //     'CBR2072511-0008081',
-        //     'CBR2092511-0007664',
-        //     'CBR2092511-0007667',
-        //     'CBR2092511-0007750',
-        //     'CBR2092511-0007795',
-        //     'CBR2092511-0007796',
-        //     'CBR2092511-0007797',
-        //     'CBR2092511-0007798',
-        //     'CBR2092511-0007799',
-        //     'CBR2092511-0007800',
-        //     'CBR2092511-0007914',
-        //     'CBR2092511-0007966',
-        //     'CBR2092511-0007967',
-        //     'CBR2092511-0007968',
-        //     'CBR2092511-0007969',
-        //     'CBR2092511-0007971',
-        //     'CBR2092511-0007972',
-        //     'CBR2092511-0007973',
-        //     'CBR2092511-0007974',
-        //     'CBR2092511-0007975',
-        //     'CBR2092511-0007976',
-        //     'CBR2092511-0008030',
-        //     'CBR2092511-0008036',
-        //     'CBR2092511-0008037',
-        //     'CBR2092511-0008038',
-        //     'CBR2092511-0008039',
-        //     'CBR2092511-0008040',
-        //     'CBR2092511-0008041',
-        //     'CBR2092511-0008042',
-        //     'CBR2092511-0008043',
-        //     'CBR2092512-0008166',
-        //     'CBR2092512-0008176',
-        //     'CBR2092512-0008201',
-        //     'CBR2092512-0008202',
-        //     'CBR2092512-0008203',
-        //     'CBR2092512-0008204',
-        //     'CBR2092512-0008205',
-        //     'CBR2092512-0008207',
-        //     'CBR2092512-0008212',
-        //     'CBR2092512-0008223',
-        //     'CBR2092512-0008231',
-        //     'CBR2092512-0008232',
-        //     'CBR2092512-0008234',
-        //     'CBR2092512-0008238',
-        //     'CBR2092512-0008240',
-        //     'CBR2092512-0008327',
-        //     'CBR2092512-0008329'
-        // ];
-
+        // Inisialisasi daftar CBR (Tidak digunakan untuk filter IN, tapi dipertahankan sebagai placeholder)
         $cbr_numbers = [];
 
-        // 1. Ambil data Attachment dari Database dengan JOIN dan FILTER TANGGAL
+        // User ID yang sedang dicari (Hardcoded dari query Anda)
+        $target_user_id = '90112';
+
+        // 1. Ambil data Attachment dari Database dengan JOIN ke Approval
 
         $this->db->select('Ttrx_Dtl_Attachment_Cbr.SysId, CbrNo, Attachment_FileName, Year_Upload, AttachmentType, ERPQview_User_Employee.First_Name AS Created_By_Name');
         $this->db->from('dbsai_erp_uat.dbo.Ttrx_Dtl_Attachment_Cbr');
 
-        // Menambahkan JOIN ke master user
+        // JOIN ke master user
         $this->db->join('ERPQview_User_Employee', 'Ttrx_Dtl_Attachment_Cbr.Created_By = ERPQview_User_Employee.User_Name', 'inner');
 
-        // 🔥 KOREKSI FILTER TANGGAL:
+        // 🔥 KOREKSI 1: Menambahkan JOIN ke tabel Approval
+        $this->db->join('Ttrx_Cbr_Approval tca', 'Ttrx_Dtl_Attachment_Cbr.CbrNo = tca.CBReq_No', 'inner');
+
+        // 🔥 KOREKSI 2: Filter Tanggal
         $this->db->where('YEAR(Ttrx_Dtl_Attachment_Cbr.Created_at)', 2025);
         $this->db->where('MONTH(Ttrx_Dtl_Attachment_Cbr.Created_at) <', 12);
-        // Saya menambahkan alias tabel (Ttrx_Dtl_Attachment_Cbr.) untuk menghindari ambiguitas jika ada Created_at di tabel lain.
+
+        // 🔥 KOREKSI 3: Filter Status Approval (Menggunakan kurung kurawal untuk logika OR)
+        $approval_condition = "((tca.IsAppvFinanceDirector = 1 AND tca.Status_AppvFinanceDirector = 0 AND tca.AppvFinanceDirector_By = '$target_user_id') 
+                           OR 
+                           (tca.IsAppvDirector = 1 AND tca.Status_AppvDirector = 0 AND tca.AppvDirector_By = '$target_user_id'))";
+
+        $this->db->where($approval_condition);
 
         $query = $this->db->get();
         $attachments = $query->result();
@@ -370,13 +297,15 @@ class CbrAppFinanceDirector extends CI_Controller
                 $attachment_type_clean . '/' .
                 $row->Attachment_FileName;
 
+            // <a target='_blank' href="<?= base_url() >assets/Files/AttachmentCbr/<?= $li->Year_Upload >/<= $li->AttachmentType_Code > /<= $li->Attachment_FileName; >"><?= $li->Attachment_FileName; ></a>
+
             $is_exist = file_exists($file_path);
 
             $row->is_exist = $is_exist;
             $processed_attachments[] = $row;
         }
 
-        // 3. OUTPUT TABEL HTML (Diperbarui untuk kolom Nama Pembuat)
+        // 3. OUTPUT TABEL HTML
         echo '<style>
             table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -386,7 +315,7 @@ class CbrAppFinanceDirector extends CI_Controller
           </style>';
 
         echo '<h2>Laporan Pengecekan Keberadaan File Attachment (ESBA)</h2>';
-        echo '<h4>Filter: Tahun 2025, Bulan 1 hingga 11</h4>'; // Informasi filter
+        echo "<h4>Filter: Dibuat Tahun 2025 (Jan-Nov) DAN Menunggu Approval dari User ID: $target_user_id</h4>";
         echo '<table>';
 
         // Header Tabel
@@ -405,7 +334,7 @@ class CbrAppFinanceDirector extends CI_Controller
         echo '<tbody>';
         $counter = 1;
         if (empty($processed_attachments)) {
-            echo '<tr><td colspan="6" style="text-align: center;">Tidak ada data attachment ditemukan berdasarkan filter tanggal.</td></tr>';
+            echo '<tr><td colspan="6" style="text-align: center;">Tidak ada data attachment ditemukan berdasarkan filter yang diberikan.</td></tr>';
         } else {
             foreach ($processed_attachments as $data) {
                 $status_class = $data->is_exist ? 'status-ok' : 'status-fail';
