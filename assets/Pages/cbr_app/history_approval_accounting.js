@@ -92,7 +92,7 @@ $(document).ready(function () {
                 { data: "IsAppvChief", name: "IsAppvChief", visible: false },
                 {
                     data: "IsAppvAsstManager", name: "IsAppvAsstManager", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvManager) + ' <br/> ' + row.AppvAsstManager_Name;
+                        return renderApprovalStatus(data, row.Status_AppvAsstManager) + ' <br/> ' + row.AppvAsstManager_Name;
                     },
                 },
                 {
