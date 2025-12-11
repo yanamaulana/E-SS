@@ -190,6 +190,7 @@ class MyCbr extends CI_Controller
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND (Paid_Status = 'NP' or Paid_Status = 'HP')
+        AND (isClose = 0 OR isClose IS NULL)
         AND Ttrx_Cbr_Approval.CBReq_No IS NULL
         AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
         // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
@@ -291,7 +292,6 @@ class MyCbr extends CI_Controller
         And $column_range <= {d '$until'}
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND isNull(isSPJ,0) = 0
-        AND (isClose = 0 OR isClose IS NULL)
         AND Approval_Status  = 3
         AND CBReq_Status = 3
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
@@ -450,6 +450,7 @@ class MyCbr extends CI_Controller
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
+        AND (isClose = 0 OR isClose IS NULL)
         AND TAccCashBookReq_Header.Type = 'D'
         AND TAccCashBookReq_Header.Company_ID = 2 
         AND (Ttrx_Cbr_Approval.Status_AppvAsstManager = 2 
