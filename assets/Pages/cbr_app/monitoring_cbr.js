@@ -21,10 +21,10 @@ $(document).ready(function () {
             paging: true,
             dom: '<"row mb-3"<"col-sm-12"B>><"row"<"col-sm-11"f><"col-sm-1"l>>rtip',
             select: false,
-            // "lengthMenu": [
-            //     [10, 30, 90, 1000],
-            //     [10, 30, 90, 1000]
-            // ],
+            "lengthMenu": [
+                [10, 25, 50, 100, 9999],
+                [10, 25, 50, 100, 9999]
+            ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "MonitoringCbr/DT_Monitoring_global",
                 dataType: "json",
@@ -138,9 +138,13 @@ $(document).ready(function () {
                     name: "Paid_Status",
                     render: function (data) {
                         if (data == 'NP') {
-                            return `<span class="text-dark badge badge-warning">Not Paid</span>`
-                        } else {
+                            return `<span class="text-dark badge badge-danger">Not Paid</span>`
+                        } else if (data == 'HP'){
+                            return `<span class="text-dark badge badge-warning">Half Paid</span>`
+                        } else if (data == 'FP'){
                             return `<span class="text-dark badge badge-success">Full Paid</span>`
+                        } else {
+                            return ''
                         }
                     }
                 },

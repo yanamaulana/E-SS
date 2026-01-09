@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
+<?php 
+ini_set('memory_limit', '512M');
+?>
 <head>
     <title><?= $page_title ?></title>
     <meta name="base_url" content="<?= base_url() ?>">

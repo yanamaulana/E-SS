@@ -112,9 +112,9 @@ $(document).ready(function () {
             name: "Paid_Status",
             render: function (data) {
                 if (data == 'NP') {
-                    return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                    return `<span class="text-dark badge badge-danger">Not Paid</span>`;
                 } else if (data == 'HP') {
-                    return `<span class="text-dark badge badge-primary">Half Paid</span>`;
+                    return `<span class="text-dark badge badge-warning">Half Paid</span>`;
                 } else {
                     return `<span class="text-dark badge badge-success">Full Paid</span>`;
                 }
@@ -320,9 +320,9 @@ $(document).ready(function () {
                 {
                     data: "Paid_Status", name: "Paid_Status", render: function (data) {
                         if (data == 'NP') {
-                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                            return `<span class="text-dark badge badge-danger">Not Paid</span>`;
                         } else if (data == 'HP') {
-                            return `<span class="text-dark badge badge-info">Half Paid</span>`;
+                            return `<span class="text-dark badge badge-warning">Half Paid</span>`;
                         } else {
                             return `<span class="text-dark badge badge-success">Full Paid</span>`;
                         }
@@ -953,9 +953,9 @@ $(document).ready(function () {
             {
                 data: "Paid_Status", name: "Paid_Status", render: function (data) {
                     if (data == 'NP') {
-                        return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                        return `<span class="text-dark badge badge-danger">Not Paid</span>`;
                     } else if (data == 'HP') {
-                        return `<span class="text-dark badge badge-info">Half Paid</span>`;
+                        return `<span class="text-dark badge badge-warning">Half Paid</span>`;
                     } else {
                         return `<span class="text-dark badge badge-success">Full Paid</span>`;
                     }

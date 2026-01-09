@@ -71,19 +71,22 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "Paid_Status", name: "Paid_Status", render: function (data) {
+                    data: "Paid_Status", name: "Paid_Status",
+                    render: function (data) {
                         if (data == 'NP') {
-                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
-                        } else if (data == 'HP') {
-                            return `<span class="text-dark badge badge-info">Half Paid</span>`;
+                            return `<span class="text-dark badge badge-danger">Not Paid</span>`
+                        } else if (data == 'HP'){
+                            return `<span class="text-dark badge badge-warning">Half Paid</span>`
+                        } else if (data == 'FP'){
+                            return `<span class="text-dark badge badge-success">Full Paid</span>`
                         } else {
-                            return `<span class="text-dark badge badge-success">Full Paid</span>`;
+                            return ''
                         }
                     }
                 },
                 { data: "Creation_DateTime", name: "Creation_DateTime", visible: false },
                 { data: "Created_By", name: "Created_By", visible: false },
-                { data: "UserDivision", name: "UserDivision", orderable: false },
+                { data: "UserDivision", name: "UserDivision", orderable: true },
                 { data: "First_Name", name: "First_Name", orderable: false },
                 { data: "Last_Update", name: "Last_Update", visible: false },
                 { data: "Acc_ID", name: "Acc_ID", visible: false },
@@ -116,7 +119,7 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "IsAppvFinancePerson", name: "IsAppvFinancePerson", orderable: false, visible: false, render: function (data, type, row, meta) {
+                    data: "IsAppvFinancePerson", name: "IsAppvFinancePerson", orderable: false, visible: true, render: function (data, type, row, meta) {
                         return renderApprovalStatus(data, row.Status_AppvFinancePerson);
                     }
                 },

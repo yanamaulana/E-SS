@@ -30,6 +30,7 @@ class Opname extends CI_Controller
 
     public function GenerateDataOpname()
     {
+        ini_set('memory_limit', '512M');
         $SelLocation = $this->input->get('SelLocation');
         $DatePeriod = $this->input->get('DatePeriod');
         $selCatType = $this->input->get('selCatType');
