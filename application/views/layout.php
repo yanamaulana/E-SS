@@ -52,6 +52,7 @@
                 $is_admin = $this->session->userdata('sys_sba_isAdm');
                 $sess_dept = $this->session->userdata('sys_sba_department');
                 $sess_jabatan = $this->session->userdata('sys_sba_jabatan');
+                $PayemntCheckPermission = $this->session->userdata('sys_sba_PayemntCheckPermission');
                 $Menu = $this->uri->segment(1);
                 $SubMenu = $this->uri->segment(2);
                 ?>
@@ -237,7 +238,23 @@
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $sess_dept == 'Accounting' || $is_admin == true ) : ?>
+                            <?php if ($PayemntCheckPermission == true || $is_admin == true) : ?>
+                                <!-- $is_admin == true || -->
+                                <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
+                                    <a class="menu-link <?= ($Menu == 'CbrPaymentStatus') ? 'active' : null ?>" href="<?= base_url('CbrPaymentStatus') ?>">
+                                        <span class="menu-icon">
+                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
+                                            <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                <i class="fas fa-credit-card fs-3"></i>
+                                            </span>
+                                            <!--end::Svg Icon-->
+                                        </span>
+                                        <span class="menu-title">CBR Payment</span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $sess_dept == 'Accounting' || $is_admin == true) : ?>
                                 <!-- $is_admin == true || -->
                                 <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
                                     <a class="menu-link <?= ($Menu == 'MonitoringCbr') ? 'active' : null ?>" href="<?= base_url('MonitoringCbr') ?>">
@@ -254,6 +271,8 @@
                             <?php endif; ?>
 
 
+
+
                             <?php if ($sess_jabatan != 'Director' && $sess_jabatan != 'Finance Director' && $sess_jabatan != 'President Director') : ?>
                                 <div class="menu-item">
                                     <div class="menu-content pt-4 pb-2">
@@ -261,7 +280,7 @@
                                     </div>
                                 </div>
                                 <?php if ($is_admin == true || ($sess_jabatan == 'Manager' && $sess_dept == 'General Affair') || $sess_dept == 'Accounting'): ?>
-                                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'Set_StepApprovalCbr' || $Menu == 'Approval_Assignment') ? 'hover show' : null; ?>">
+                                    <div data-kt-menu-trigger="click" class="menu-item menu-accordion <?= ($Menu == 'Set_StepApprovalCbr' || $Menu == 'CheckPayment' || $Menu == 'Approval_Assignment') ? 'hover show' : null; ?>">
                                         <span class="menu-link" data-bs-toggle="tooltip" title="Cash Book Requisition Approval Settings">
                                             <span class="menu-icon">
                                                 <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
@@ -301,6 +320,20 @@
                                                         </span>
                                                     </span>
                                                     <span class="menu-title">Step Approval Assignment</span>
+                                                </a>
+                                            </div>
+                                            <div class="menu-item" data-bs-toggle="tooltip" title="Setting Permission Payment Check">
+                                                <a class="menu-link <?= ($Menu == 'CheckPayment') ? 'active' : null ?>" href="<?= base_url('CheckPayment') ?>">
+                                                    <span class="menu-icon">
+                                                        <span class="svg-icon svg-icon-2">
+                                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/communication/com006.svg-->
+                                                            <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                                <i class="fas fa-users fs-3"></i>
+                                                            </span>
+                                                            <!--end::Svg Icon-->
+                                                        </span>
+                                                    </span>
+                                                    <span class="menu-title">Check Payment User Permissions</span>
                                                 </a>
                                             </div>
                                         </div>

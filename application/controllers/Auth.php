@@ -88,6 +88,17 @@ class Auth extends CI_Controller
                 return $this->help->Fn_resulting_response($response);
             }
 
+            $ValidatePayemntCheckPermission = $this->db->get_where('Tmst_User_Check_Payment_Permission', [
+                'UserName' => $user['User_ID'],
+            ]);
+            if ($ValidatePayemntCheckPermission->num_rows() > 0) {
+                $PayemntCheckPermission = true;
+            } else {
+                $PayemntCheckPermission = true;
+            }
+
+
+
             $is_admin = false;
             if ($employee['Division_Name'] == $this->mis) {
                 $is_admin = true;
@@ -114,6 +125,7 @@ class Auth extends CI_Controller
                 'sys_sba_jabatan'              => $jabatan,
                 'sys_sba_email'                => $user['Email_Address'],
                 'sys_sba_department'           => $employee['Division_Name'],
+                'sys_sba_PayemntCheckPermission' => $PayemntCheckPermission,
             );
             $this->session->set_userdata($session_data);
             $response = [

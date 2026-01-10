@@ -94,28 +94,26 @@ $(document).ready(function () {
             visible: false
         },
         {
-            data: "CBReq_Status",
-            name: "CBReq_Status",
+            data: "Status_AppvPresidentDirector",
+            name: "Status_AppvPresidentDirector",
             render: function (data) {
-                if (data == 3) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Close" class="badge badge-success btn-icon"><i class="text-white fas fa-file-archive"></i></a>`
+                if (data == 0) {
+                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Waiting Approval" class="text-dark badge badge-warning btn-icon">Waiting</a>`
+                } else if (data == 1) {
+                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Approved</a>`
                 } else if (data == 2) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-info btn-icon"><i class="text-white fas fa-folder-open"></i></a></button>`
-                } else {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-warning btn-icon"><i class="text-white fas fa-file"></i></a></button>`
+                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon"> Rejected</a>`
                 }
             }
         },
         {
-            data: "Paid_Status",
-            name: "Paid_Status",
+            data: "Payment_Status",
+            name: "Payment_Status",
             render: function (data) {
-                if (data == 'NP') {
-                    return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                } else if (data == 'HP'){
-                    return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                } else if (data == 'FP'){
-                    return `<span class="text-dark badge badge-success">Full Paid</span>`
+                if (data == 0) {
+                    return `<span class="text-white badge badge-danger">Not Paid</span>`
+                } else if (data == 1) {
+                    return `<span class="text-white badge badge-success">Paid</span>`
                 } else {
                     return ''
                 }

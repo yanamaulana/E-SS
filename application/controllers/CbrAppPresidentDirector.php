@@ -122,8 +122,8 @@ class CbrAppPresidentDirector extends CI_Controller
             8 => 'baseamount',
             9 => 'curr_rate',
             10 => 'Approval_Status',
-            11 => 'CBReq_Status',
-            12 => 'Paid_Status',
+            11 => 'Status_AppvPresidentDirector',
+            12 => 'Payment_Status',
             13 => 'Creation_DateTime',
             14 => 'Created_By',
             15 => 'First_Name',
@@ -137,7 +137,7 @@ class CbrAppPresidentDirector extends CI_Controller
         $dir    = $requestData['order']['0']['dir'];
         $username = $this->session->userdata('sys_sba_username');
 
-        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision
+        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision, Status_AppvPresidentDirector, Payment_Status,Payment_Status_Time_Change,Payment_Status_Change_By
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
@@ -202,6 +202,8 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['Currency_Id'] = $row['Currency_Id'];
             $nestedData['Approve_Date'] = $row['Approve_Date'];
             $nestedData['UserDivision'] = $row['UserDivision'];
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
+            $nestedData['Payment_Status'] = $row['Payment_Status'];
 
             $data[] = $nestedData;
         }
