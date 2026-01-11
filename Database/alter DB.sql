@@ -1,6 +1,7 @@
 ALTER TABLE dbsai_erp_uat.dbo.Ttrx_Cbr_Approval ADD Payment_Status int DEFAULT 0 NOT NULL;
 ALTER TABLE dbsai_erp_uat.dbo.Ttrx_Cbr_Approval ADD Payment_Status_Time_Change datetime NULL;
 ALTER TABLE dbsai_erp_uat.dbo.Ttrx_Cbr_Approval ADD Payment_Status_Change_By varchar(100) NULL;
+ALTER TABLE dbsai_erp_uat.dbo.Ttrx_Cbr_Approval ADD Reject_Payment_Reason varchar(255) NULL;
 
 
 CREATE TABLE tmst_user_check_payment_permission (
@@ -19,3 +20,6 @@ CREATE TABLE thist_user_check_payment_permission (
     deleted_at DATETIME DEFAULT GETDATE(),
     deleted_by NVARCHAR(100)
 );
+
+ALTER TABLE dbsai_erp_uat.dbo.tmst_user_check_payment_permission ADD CONSTRAINT tmst_user_check_payment_permission_unique UNIQUE (UserName);
+

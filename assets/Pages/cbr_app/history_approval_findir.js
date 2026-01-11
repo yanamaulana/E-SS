@@ -71,13 +71,13 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "Paid_Status", name: "Paid_Status", 
+                    data: "Paid_Status", name: "Paid_Status",
                     render: function (data) {
                         if (data == 'NP') {
                             return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                        } else if (data == 'HP'){
+                        } else if (data == 'HP') {
                             return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                        } else if (data == 'FP'){
+                        } else if (data == 'FP') {
                             return `<span class="text-dark badge badge-success">Full Paid</span>`
                         } else {
                             return ''

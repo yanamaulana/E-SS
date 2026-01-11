@@ -26,7 +26,7 @@ $(document).ready(function () {
             [15, 30, 90, 100]
         ],
         ajax: {
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_To_Approve",
+            url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/DT_List_To_Approve",
             dataType: "json",
             type: "POST",
         },
@@ -94,15 +94,15 @@ $(document).ready(function () {
             visible: false
         },
         {
-            data: "Status_AppvPresidentDirector",
-            name: "Status_AppvPresidentDirector",
+            data: "Legitimate",
+            name: "Legitimate",
             render: function (data) {
                 if (data == 0) {
                     return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Waiting Approval" class="text-dark badge badge-warning btn-icon">Waiting</a>`
                 } else if (data == 1) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Approved</a>`
+                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Finsih Approved</a>`
                 } else if (data == 2) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon"> Rejected</a>`
+                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon">Rejected</a>`
                 }
             }
         },
@@ -111,7 +111,7 @@ $(document).ready(function () {
             name: "Payment_Status",
             render: function (data) {
                 if (data == 0) {
-                    return `<span class="text-dark badge badge-warning">Pending Payment</span>`
+                    return `<span class="text-white badge badge-warning">Pending Payment</span>`
                 } else if (data == 1) {
                     return `<span class="text-white badge badge-success">Paid</span>`
                 } else {
@@ -188,7 +188,7 @@ $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
         },
         "buttons": [{
-            text: `<i class="fas fa-check"></i> Approve`,
+            text: `<i class="fas fa-check"></i> Approve Payment`,
             className: "btn btn-success",
             action: function (e, dt, node, config) {
                 Swal.fire({
@@ -211,7 +211,7 @@ $(document).ready(function () {
             className: "btn btn-default btn-icon disabled",
         },
         {
-            text: `<i class="fas fa-times text-white fs-3"></i> Reject`,
+            text: `<i class="fas fa-times text-white fs-3"></i> Reject Payment`,
             className: "btn btn-danger",
             action: function (e, dt, node, config) {
                 Swal.fire({
@@ -256,7 +256,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/approve_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/approve_submission",
             data: $('#form-submission').serialize(),
             beforeSend: function () {
                 Swal.fire({
@@ -312,7 +312,7 @@ $(document).ready(function () {
         $.ajax({
             dataType: "json",
             type: "POST",
-            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/reject_submission",
+            url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/reject_submission",
             data: formData,
             beforeSend: function () {
                 Swal.fire({

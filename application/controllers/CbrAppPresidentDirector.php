@@ -21,7 +21,7 @@ class CbrAppPresidentDirector extends CI_Controller
     public function index()
     {
         $this->data['page_title'] = "President Director Approval-Cash Book Requisition";
-        $this->data['page_content'] = "cbr_app/approval";
+        $this->data['page_content'] = "cbr_app/approval_president_director";
 
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/presdir.js?v=' . time() . '"></script>
                                        <script src="' . base_url() . 'assets/Pages/cbr_app/history_approval_presdir.js?v=' . time() . '"></script>';

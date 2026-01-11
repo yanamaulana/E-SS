@@ -89,15 +89,13 @@ class Auth extends CI_Controller
             }
 
             $ValidatePayemntCheckPermission = $this->db->get_where('Tmst_User_Check_Payment_Permission', [
-                'UserName' => $user['User_ID'],
+                'UserName' => $login->username,
             ]);
             if ($ValidatePayemntCheckPermission->num_rows() > 0) {
                 $PayemntCheckPermission = true;
             } else {
-                $PayemntCheckPermission = true;
+                $PayemntCheckPermission = false;
             }
-
-
 
             $is_admin = false;
             if ($employee['Division_Name'] == $this->mis) {

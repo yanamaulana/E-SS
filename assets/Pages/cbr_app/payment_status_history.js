@@ -26,7 +26,7 @@ $(document).ready(function () {
                 [10, 30, 90, 1000]
             ],
             ajax: {
-                url: $('meta[name="base_url"]').attr('content') + "HistoryApproval/DT_List_History_Approval",
+                url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/DT_List_History_Approval",
                 dataType: "json",
                 type: "POST",
                 data: {

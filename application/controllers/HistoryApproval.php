@@ -27,7 +27,7 @@ class HistoryApproval extends CI_Controller
             0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
-            3 => 'Document_Date',
+            3 => 'TAccCashBookReq_Header.Document_Date',
             4 => 'TAccCashBookReq_Header.Currency_Id',
             5 => 'Amount',
             6 => 'Document_Number',
@@ -36,16 +36,18 @@ class HistoryApproval extends CI_Controller
             9 => 'curr_rate',
             10 => 'Approval_Status',
             11 => 'CBReq_Status',
-            12 => 'Paid_Status',
-            13 => 'Creation_DateTime',
-            14 => 'Created_By',
-            15 => 'UserDivision',
-            16 => 'First_Name',
-            17 => 'Last_Update',
-            18 => 'Acc_ID',
-            18 => 'Approve_Date',
-            19 => 'IsAppvStaff ',
-            20 => 'IsAppvChief',
+            12 => 'Legitimate',
+            13 => 'Paid_Status',
+            14 => 'Payment_Status',
+            15 => 'Creation_DateTime',
+            16 => 'Created_By',
+            17 => 'UserDivision',
+            18 => 'First_Name',
+            19 => 'Last_Update',
+            20 => 'Acc_ID',
+            21 => 'Approve_Date',
+            22 => 'IsAppvStaff ',
+            23 => 'IsAppvChief',
 
         );
         $order  = $columns[$requestData['order']['0']['column']];
@@ -163,6 +165,7 @@ class HistoryApproval extends CI_Controller
             $nestedData['Rec_Created_At'] = $row['Rec_Created_At'];
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
+            $nestedData['Payment_Status'] = $row['Payment_Status'];
 
             $data[] = $nestedData;
         }

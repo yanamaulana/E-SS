@@ -7,12 +7,12 @@
                     <ul class="nav nav-tabs fs-6 border-0">
                         <li class="nav-item">
                             <a class="nav-link mr-5 active btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_4">
-                                <h5 class="font-weight-bold" id="table-title-main">Requires President Director Approval.</h5>
+                                <h5 class="font-weight-bold" id="table-title-main">Pending Payment.</h5>
                             </a>
                         </li>
                         <li class="nav-item mr-5">
                             <a class="nav-link btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_5">
-                                <h5 class="font-weight-bold" id="table-title-history">Monitoring & History President Director Approval.</h5>
+                                <h5 class="font-weight-bold" id="table-title-history">History Payment</h5>
                             </a>
                         </li>
                     </ul>
@@ -46,12 +46,12 @@
                                                 <th class="text-center text-white">baseamount</th>
                                                 <th class="text-center text-white">curr_rate</th>
                                                 <th class="text-center text-white">Approval_Status</th>
-                                                <th class="text-center text-white">Approval Status</th>
+                                                <th class="text-center text-white">Status</th>
                                                 <th class="text-center text-white">Paid Status</th>
                                                 <th class="text-center text-white">Creation_DateTime</th>
                                                 <th class="text-center text-white">Created_By</th>
                                                 <th class="text-center text-white">Dept</th>
-                                                <th class="text-center text-white">Last_Update</th>
+                                                <th class="text-center text-white">Requester</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
                                                 <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
@@ -67,6 +67,14 @@
                             <div class="row">
                                 <form action="#" method="post" id="filter-data">
                                     <div class="row">
+                                        <div class="col-xl-2 py-2 col-md-2">
+                                            <div class="input-group">
+                                                <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
+                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
+                                                    <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                                </select>
+                                            </div>
+                                        </div>
                                         <div class="col-xl-4 py-2 col-md-6">
                                             <div class="input-group">
                                                 <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
@@ -99,10 +107,13 @@
                                             <th class="text-center text-white">curr_rate</th>
                                             <th class="text-center text-white">Approval_Status</th>
                                             <th class="text-center text-white">Status</th>
+                                            <th class="text-center text-white">Approval Status</th>
+                                            <th class="text-center text-white">paid_status erp</th>
                                             <th class="text-center text-white">Paid Status</th>
                                             <th class="text-center text-white">Creation_DateTime</th>
                                             <th class="text-center text-white">Created_By</th>
-                                            <th class="text-center text-white">Dept</th>
+                                            <th class="text-center text-white">Department</th>
+                                            <th class="text-center text-white">Created By</th>
                                             <th class="text-center text-white">Last_Update</th>
                                             <th class="text-center text-white">Acc_ID</th>
                                             <th class="text-center text-white">Approved Date</th>
@@ -113,11 +124,11 @@
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; SR.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; G.MANAGER</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; DIR G/P</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. STAFF</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. MANAGER</th>
+                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ADDITIONAL</th>
+                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ACCOUNTING</th>
+                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. DIRECTOR</th>
+                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>
 
                                         </tr>
                                     </thead>
