@@ -240,8 +240,22 @@ $(document).ready(function () {
                     }
                 });
             }
-        }],
-    }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
+        },
+        {
+            text: `Export To :`,
+            className: "btn btn-default disabled",
+        }, {
+            text: `<i class="far fa-copy fs-2"></i>`,
+            extend: 'copy',
+            className: "btn btn-light-warning",
+        }, {
+            text: `<i class="far fa-file-excel fs-2"></i>`,
+            extend: 'excelHtml5',
+            title: $('#table-title-main').text() + '~' + moment().format("YYYY-MM-DD"),
+            className: "btn btn-light-success",
+        }
+        ],
+    }).buttons().container().appendTo('#TableData_wrapper .col-md-12:eq(0)');
 
     function Fn_Approve_Submission() {
         if ($('input[name="CBReq_No[]"]:checked').length == 0) {
