@@ -136,18 +136,18 @@ class HistoryApproval extends CI_Controller
             $nestedData['Status_AppvFinancePerson'] = $row['Status_AppvFinancePerson'];
             $nestedData['AppvFinancePerson_By'] = $row['AppvFinancePerson_By'];
             $nestedData['AppvFinancePerson_Name'] = $row['AppvFinancePerson_Name'] ?? '';
-            $nestedData['AppvFinancePerson_At'] = $row['AppvFinancePerson_At'];
+            $nestedData['AppvFinancePerson_At'] = !empty($row['AppvFinancePerson_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-';
 
             $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
             $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
             $nestedData['AppvDirector_By'] = $row['AppvDirector_By'];
             $nestedData['AppvDirector_Name'] = $row['AppvDirector_Name'] ?? '';
-            $nestedData['AppvDirector_At'] = $row['AppvDirector_At'];
+            $nestedData['AppvDirector_At'] = !empty($row['AppvDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-';
             $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'];
             $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
             $nestedData['AppvPresidentDirector_By'] = $row['AppvPresidentDirector_By'];
             $nestedData['AppvPresidentDirector_Name'] = $row['AppvPresidentDirector_Name'] ?? '';
-            $nestedData['AppvPresidentDirector_At'] = $row['AppvPresidentDirector_At'];
+            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
             // $nestedData['IsAppvFinanceStaff'] = $row['IsAppvFinanceStaff'];
             // $nestedData['Status_AppvFinanceStaff'] = $row['Status_AppvFinanceStaff'];
             // $nestedData['AppvFinanceStaff_By'] = $row['AppvFinanceStaff_By'];
@@ -160,7 +160,7 @@ class HistoryApproval extends CI_Controller
             $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
             $nestedData['AppvFinanceDirector_By'] = $row['AppvFinanceDirector_By'];
             $nestedData['AppvFinanceDirector_Name'] = $row['AppvFinanceDirector_Name'] ?? '';
-            $nestedData['AppvFinanceDirector_At'] = $row['AppvFinanceDirector_At'];
+            $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
             $nestedData['UserName_User'] = $row['UserName_User'];
             $nestedData['Rec_Created_At'] = $row['Rec_Created_At'];
             $nestedData['UserDivision'] = $row['UserDivision'];

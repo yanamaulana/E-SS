@@ -116,22 +116,22 @@ $(document).ready(function () {
                 },
                 {
                     data: "IsAppvFinancePerson", name: "IsAppvFinancePerson", orderable: false, visible: true, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvFinancePerson);
+                        return renderApprovalStatus(data, row.Status_AppvFinancePerson) + ' <br/> ' + row.AppvFinancePerson_At;
                     }
                 },
                 {
                     data: "IsAppvDirector", name: "IsAppvDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvDirector);
+                        return renderApprovalStatus(data, row.Status_AppvDirector) + ' <br/> ' + row.AppvDirector_At;
                     }
                 },
                 {
                     data: "IsAppvFinanceDirector", name: "IsAppvFinanceDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvFinanceDirector);
+                        return renderApprovalStatus(data, row.Status_AppvFinanceDirector) + ' <br/> ' + row.AppvFinanceDirector_At;
                     }
                 },
                 {
                     data: "IsAppvPresidentDirector", name: "IsAppvPresidentDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvPresidentDirector);
+                        return renderApprovalStatus(data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
                     }
                 }
             ],
@@ -143,7 +143,7 @@ $(document).ready(function () {
                 targets: 7
             }, {
                 className: "text-center dt-nowrap",
-                targets: [0, 3, 4, 5, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+                targets: [0, 3, 4, 5, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
             }, {
                 className: "details-control pr-4 dt-nowrap",
                 targets: [1]
