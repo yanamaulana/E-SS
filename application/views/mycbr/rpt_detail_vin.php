@@ -230,7 +230,7 @@
                         <td class="text-left">:</td>
                         <td class="text-left">
                             <b><?= $qheader->Currency_ID ?? '-' ?></b>
-                            <?= number_format($qheader->Invoice_Amount ?? 0, 4, '.', ',') ?>
+                            <?= number_format($qheader->Invoice_Amount + $qheader->List_TaxAmount ?? 0, 4, '.', ',') ?>
                         </td>
                     </tr>
                     <tr>

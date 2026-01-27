@@ -774,7 +774,7 @@ class MyCbr extends CI_Controller
                                                             WHERE a.invoice_number = '$vin'")->row();
         } else {
             if ($qcategory->ItemCategoryType == 'AST-M') {
-                $this->data['qheader'] = $this->db->query("SELECTTACCVI_Header.*, taccassetmaintenance_header.maintenance_date as etd,
+                $this->data['qheader'] = $this->db->query("SELECT TACCVI_Header.*, taccassetmaintenance_header.maintenance_date as etd,
                                                             Taccount.Account_ID, Taccount.Account_Name,Taccount.Account_Address1,
                                                             TAccount.Account_City_ID1,TAccount.Account_State_ID1 ,TCountry.Country_Name,
                                                             Taccount.Account_ZipCode1,Taccount.Account_Phone1,Taccount.Account_Fax1,Taccount.TaxFileNumber,
