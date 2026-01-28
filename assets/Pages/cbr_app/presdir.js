@@ -57,7 +57,7 @@ $(document).ready(function () {
         { data: "Type", name: "Type", visible: false },
         { data: "Document_Date", name: "Document_Date", render: function (data) { return data.substring(0, data.indexOf(' ')); } },
         { data: "Currency_Id", name: "Currency_Id" },
-        { data: "Amount", name: "Amount", render: function (data) { return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 }); } },
+        { data: "Amount", name: "Amount", render: function (data) { return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } },
         { data: "Document_Number", name: "Document_Number" },
         { data: "Descript", name: "Descript" },
         { data: "baseamount", name: "baseamount", visible: false },
@@ -90,13 +90,13 @@ $(document).ready(function () {
         ],
         columnDefs: [{
             className: "text-center",
-            targets: [0, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+            targets: [0, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 17],
         }, {
             className: "details-control pr-4 dt-nowrap",
             targets: [1]
         }, {
-            className: "dt-nowrap",
-            targets: [6]
+            className: "dt-nowrap text-end",
+            targets: [5]
         }],
         autoWidth: false,
         responsive: false,
