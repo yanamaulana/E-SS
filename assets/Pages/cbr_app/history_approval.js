@@ -51,7 +51,7 @@ $(document).ready(function () {
                 { data: "Currency_Id", name: "Currency_Id" },
                 {
                     data: "Amount", name: "Amount", render: function (data) {
-                        return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                        return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     }
                 },
                 { data: "Document_Number", name: "Document_Number" },
@@ -75,9 +75,9 @@ $(document).ready(function () {
                     render: function (data) {
                         if (data == 'NP') {
                             return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                        } else if (data == 'HP'){
+                        } else if (data == 'HP') {
                             return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                        } else if (data == 'FP'){
+                        } else if (data == 'FP') {
                             return `<span class="text-dark badge badge-success">Full Paid</span>`
                         } else {
                             return ''
@@ -147,10 +147,13 @@ $(document).ready(function () {
                 targets: 7
             }, {
                 className: "text-center dt-nowrap",
-                targets: [0, 3, 4, 5, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+                targets: [0, 3, 4, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
             }, {
                 className: "details-control pr-4 dt-nowrap",
                 targets: [1]
+            }, {
+                className: "dt-nowrap text-end",
+                targets: [5]
             }],
             // orderCellsTop: true,
             // fixedColumns: true,

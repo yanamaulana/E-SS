@@ -65,8 +65,8 @@ $(document).ready(function () {
             name: "Amount",
             render: function (data) {
                 return parseFloat(data).toLocaleString('en-US', {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
                 });
             }
         },
@@ -112,9 +112,9 @@ $(document).ready(function () {
             render: function (data) {
                 if (data == 'NP') {
                     return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                } else if (data == 'HP'){
+                } else if (data == 'HP') {
                     return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                } else if (data == 'FP'){
+                } else if (data == 'FP') {
                     return `<span class="text-dark badge badge-success">Full Paid</span>`
                 } else {
                     return ''
@@ -163,6 +163,9 @@ $(document).ready(function () {
         }, {
             className: "dt-nowrap",
             targets: [6]
+        }, {
+            className: "dt-nowrap text-end",
+            targets: [5]
         }],
         autoWidth: false,
         responsive: false,
