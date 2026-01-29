@@ -414,7 +414,7 @@ class MonitoringCbr extends CI_Controller
             $sqlCreatedBy = "AND TAccCashBookReq_Header.Created_By = '$created_by' ";
         }
 
-        $sql = "Select distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
+        $sql = "Select distinct TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.isClose, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
         CASE WHEN Ttrx_Cbr_Approval.CBReq_No IS NOT NULL OR Ttrx_Cbr_Approval.CBReq_No != '' THEN 1 ELSE 0 END AS Has_Submitted_Approval,
          Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_Name, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_Name, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_Name, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_Name, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_Name, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_Name, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, 
          Ttrx_Cbr_Approval.IsAppvAdditional,Ttrx_Cbr_Approval.Status_AppvAdditional,Ttrx_Cbr_Approval.AppvAdditional_By,Ttrx_Cbr_Approval.AppvAdditional_Name,Ttrx_Cbr_Approval.AppvAdditional_At,
@@ -456,6 +456,7 @@ class MonitoringCbr extends CI_Controller
         foreach ($query->result_array() as $row) {
             $nestedData = array();
             $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['isClose'] = $row['isClose'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];
