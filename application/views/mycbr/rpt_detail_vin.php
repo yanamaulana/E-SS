@@ -614,18 +614,22 @@
             </table>
         </div>
         <div class="row">
-            <table class="tablee" style="margin-left: 2mm; width:295mm; margin-bottom:10px; margin-top: 10px;">
+            <table class="table-ttd" style="margin-left: 2mm; width:295mm; margin-bottom:10px; margin-top: 10px;">
                 <tbody>
                     <tr style="font-weight: bolder;">
                         <td align="center">PR NUMBER</td>
                         <td align="center">Item Code</td>
+                        <td align="center">Price</td>
                         <!-- <td align="center">Item Name</td> -->
                         <td align="center">Qty Return</td>
+                        <td class="text-right">Return Amount</td>
+
                         <td align="center">RR Number</td>
                         <td align="center">Qty RR</td>
+                        <td class="text-right">Amount RR</td>
+
                         <td align="center">Qty Final</td>
-                        <td align="center">Price</td>
-                        <td align="center">Return Amount</td>
+                        <td class="text-right">Amount Final</td>
                     </tr>
 
                     <?php foreach ($QGet_PurchaseReturn->result() as $pr) : ?>
@@ -635,21 +639,6 @@
                             </td>
                             <td align="center">
                                 <?= $pr->item_Code; ?>
-                            </td>
-                            <!-- <td align="center">
-                                <= $pr->item_type; ?>
-                            </td> -->
-                            <td align="center">
-                                <?= round(floatval($pr->Qty), 2); ?>
-                            </td>
-                            <td align="center">
-                                <?= $pr->RR_Number; ?>
-                            </td>
-                            <td align="center">
-                                <?= round(floatval($pr->RR_Qty), 2); ?>
-                            </td>
-                            <td align="center">
-                                <?= round(floatval($pr->RR_Qty) - floatval($pr->Qty), 2); ?>
                             </td>
                             <td class="text-right">
                                 <?php
@@ -674,9 +663,43 @@
                                 echo $currency_id_rr . ' ' . number_format($unit_price, 2, '.', ',');
                                 ?>
                             </td>
+                            <td align="center">
+                                <?= round(floatval($pr->Qty), 2); ?>
+                            </td>
                             <td class="text-right">
-                                <?=
-                                number_format($unit_price * floatval($pr->Qty), 2, '.', ',');
+                                <?php
+                                $Amount_PR = $unit_price * floatval($pr->Qty);
+                                echo number_format($Amount_PR, 2, '.', ',');
+                                ?>
+                            </td>
+
+
+                            <td align="center">
+                                <?= $pr->RR_Number; ?>
+                            </td>
+                            <td align="center">
+                                <?= round(floatval($pr->RR_Qty), 2); ?>
+                            </td>
+                            <td class="text-right">
+                                <?php
+                                $Amount_RR = $unit_price * floatval($pr->RR_Qty);
+                                echo number_format($Amount_RR, 2, '.', ',');
+                                ?>
+                            </td>
+
+
+                            <td align="center">
+                                <?= round(floatval($pr->RR_Qty) - floatval($pr->Qty), 2); ?>
+                            </td>
+                            <td class="text-right">
+                                <?php
+                                $Amount_Final = $Amount_RR - $Amount_PR;
+                                echo number_format(
+                                    $Amount_Final,
+                                    2,
+                                    '.',
+                                    ','
+                                );
                                 ?>
                             </td>
                         <?php endforeach; ?>
