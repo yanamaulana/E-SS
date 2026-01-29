@@ -59,7 +59,16 @@ $(document).ready(function () {
                 { data: "baseamount", name: "baseamount", visible: false },
                 { data: "curr_rate", name: "curr_rate", visible: false },
                 { data: "Approval_Status", name: "Approval_Status", visible: false },
-                { data: "CBReq_Status", name: "CBReq_Status", visible: false },
+                {
+                    data: "isClose", name: "isClose",
+                    render: function (data) {
+                        if (data == 0 || data == '' || data == null) {
+                            return `<span class="text-dark badge badge-success">Open</span>`;
+                        } else {
+                            return `<span class="text-dark badge badge-danger">VOID</span>`;
+                        }
+                    }
+                },
                 {
                     data: "Status_AppvPresidentDirector", name: "Status_AppvPresidentDirector", visible: true, render: function (data) {
                         if (data == 0) {
@@ -159,18 +168,20 @@ $(document).ready(function () {
             // autoWidth: true,
             responsive: false,
             "rowCallback": function (row, data) {
-                if (data.Status_AppvManager == '2' ||
-                    data.Status_AppvSeniorManager == '2' ||
-                    data.Status_AppvGeneralManager == '2' ||
-                    data.Status_AppvAdditional == '2' ||
-                    data.Status_AppvFinancePerson == '2' ||
-                    data.Status_AppvDirector == '2' || data.Status_AppvPresidentDirector == '2' || data.Status_AppvFinanceDirector == '2') {
-                    $('td', row).css('background-color', '#F8D7DA');
+                if (data.isClose == '1') {
+                    $('td', row).css('background-color', '#e97781');
+                } else {
+                    if (data.Status_AppvManager == '2' ||
+                        data.Status_AppvSeniorManager == '2' ||
+                        data.Status_AppvGeneralManager == '2' ||
+                        data.Status_AppvAdditional == '2' ||
+                        data.Status_AppvFinancePerson == '2' ||
+                        data.Status_AppvDirector == '2' ||
+                        data.Status_AppvPresidentDirector == '2' ||
+                        data.Status_AppvFinanceDirector == '2') {
+                        $('td', row).css('background-color', '#F8D7DA');
+                    }
                 }
-
-                // if (data.Legitimate == '1') {
-                //     $('td', row).css('background-color', '#D4EDDA');
-                // }
             },
             preDrawCallback: function () {
                 $("TableDataHistory tbody td").addClass("blurry");

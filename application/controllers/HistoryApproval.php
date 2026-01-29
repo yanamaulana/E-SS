@@ -78,6 +78,7 @@ class HistoryApproval extends CI_Controller
         foreach ($query->result_array() as $row) {
             $nestedData = array();
             $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['isClose'] = $row['isClose'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];

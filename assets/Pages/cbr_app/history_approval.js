@@ -60,13 +60,12 @@ $(document).ready(function () {
                 { data: "curr_rate", name: "curr_rate", visible: false },
                 { data: "Approval_Status", name: "Approval_Status", visible: false },
                 {
-                    data: "CBReq_Status", name: "CBReq_Status", render: function (data) {
-                        if (data == 3) {
-                            return `<a href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Close" class="badge badge-success btn-icon"><i class="text-white fas fa-file-archive"></i></a>`;
-                        } else if (data == 2) {
-                            return `<a href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-info btn-icon"><i class="text-white fas fa-folder-open"></i></a>`;
+                    data: "isClose", name: "isClose",
+                    render: function (data) {
+                        if (data == 0 || data == '' || data == null) {
+                            return `<span class="text-dark badge badge-success">Open</span>`;
                         } else {
-                            return `<a href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-warning btn-icon"><i class="text-white fas fa-file"></i></a>`;
+                            return `<span class="text-dark badge badge-danger">VOID</span>`;
                         }
                     }
                 },
@@ -163,19 +162,23 @@ $(document).ready(function () {
             // autoWidth: true,
             responsive: false,
             "rowCallback": function (row, data) {
-                if (data.Status_AppvManager == '2' ||
-                    data.Status_AppvSeniorManager == '2' ||
-                    data.Status_AppvGeneralManager == '2' ||
-                    data.Status_AppvAdditional == '2' ||
-                    data.Status_AppvFinancePerson == '2' ||
-                    data.Status_AppvDirector == '2' ||
-                    data.Status_AppvPresidentDirector == '2' ||
-                    data.Status_AppvFinanceDirector == '2') {
-                    $('td', row).css('background-color', '#F8D7DA');
-                }
+                if (data.isClose == '1') {
+                    $('td', row).css('background-color', '#e97781');
+                } else {
+                    if (data.Status_AppvManager == '2' ||
+                        data.Status_AppvSeniorManager == '2' ||
+                        data.Status_AppvGeneralManager == '2' ||
+                        data.Status_AppvAdditional == '2' ||
+                        data.Status_AppvFinancePerson == '2' ||
+                        data.Status_AppvDirector == '2' ||
+                        data.Status_AppvPresidentDirector == '2' ||
+                        data.Status_AppvFinanceDirector == '2') {
+                        $('td', row).css('background-color', '#F8D7DA');
+                    }
 
-                if (data.Legitimate == '1') {
-                    $('td', row).css('background-color', '#D4EDDA');
+                    if (data.Legitimate == '1') {
+                        $('td', row).css('background-color', '#D4EDDA');
+                    }
                 }
             },
             preDrawCallback: function () {
