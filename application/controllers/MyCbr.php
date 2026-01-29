@@ -869,6 +869,15 @@ class MyCbr extends CI_Controller
                                                     where taccpo_header.po_number in ('$row_ref_document->po_number')								
                                                     order by taccpo_header.so_numcustomer, taccrr_header.rr_number")->result();
 
+
+        $this->data['Q_PurchaseReturn'] = $this->db->query("SELECT PR_Number,PR_Date,Approval_Status,PR_Status,SN_Status,RR_Number,PO_Number
+                                                FROM TACCPR_Header
+                                                WHERE RR_Number in (select Ref_Number from TACCVI_Detail where Invoice_Number = '$vin')
+                                                AND Approval_Status = 3
+                                                AND PR_Status = '3'
+                                                ORDER BY PR_Number DESC");
+
+
         $this->load->view('mycbr/rpt_detail_vin', $this->data);
     }
 

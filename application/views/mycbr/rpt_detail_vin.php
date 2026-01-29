@@ -557,6 +557,140 @@
             </tbody>
         </table>
     </div>
+
+    <?php if ($Q_PurchaseReturn->num_rows() > 0) : ?>
+        <?php
+        $QGet_PurchaseReturn = $this->db->query("SELECT taccrr_header.RR_DATE, 
+				TAccPR_Header.PR_Number, 
+				taccpr_header.RR_Number, 
+				PR_Date, 
+				PR_Status, 
+				taccpr_header.Account_ID, 
+				TAccRR_Item.Qty - TAccPR_Item.Qty as sisa, 
+				TAccPR_Item.item_Code, 
+                TAccRR_Item.Qty as RR_Qty,
+				TAccPR_Item.Qty,
+				TAccPR_Item.parent_path,
+				TAccPR_Item.parent_item,
+				TAccPR_Item.config_ratio,
+				TAccPR_Item.config_level,
+				rr_date,
+				titem.item_name, 
+				titem.item_size as brand, 
+				titem.customfield1 as item_type, 
+				tgscolor.color_name, 
+				TAccPR_Item.Dimension_ID, 
+				ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
+				titem.item_length, 
+				titem.item_width, 
+				titem.item_height  
+		From TAccPR_Header
+			Inner Join TAccPR_Item On TAccPR_Item.PR_Number = TAccPR_Header.PR_Number
+			inner join taccrr_item on taccrr_item.item_code = taccpr_item.item_code AND taccrr_item.Dimension_ID = taccpr_item.Dimension_ID 
+			inner join taccrr_header on taccrr_item.rr_number = taccrr_header.rr_number and taccrr_header.rr_number = taccpr_header.rr_number 
+			Left Join TItemDimension itd ON itd.Dimension_ID = taccpr_item.Dimension_ID 
+			LEFT JOIN titem ON titem.item_code = taccpr_item.item_code
+			LEFT JOIN tgscolor ON tgscolor.color_code = titem.item_color
+		Where	taccpr_header.RR_Number in (select Ref_Number from TACCVI_Detail where Invoice_Number = '$vin')
+			AND taccpr_header.pr_number not in (select ref_number from TAccSN_Header where isvoid =1)	
+			AND	TAccPR_Header.ItemCategoryType = 'RM'
+		order by seq_id ");
+        ?>
+
+        <div class="row">
+            <table class="tablee" style="margin-left: 2mm; width:295mm; margin-top:20px;">
+                <tbody>
+                    <tr class="formtext" style="border-top: solid black 1px;">
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr class="formtext">
+                        <td>
+                            <strong>PURCHASE RETURN INFORMATION</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <table class="tablee" style="margin-left: 2mm; width:295mm; margin-bottom:10px; margin-top: 10px;">
+                <tbody>
+                    <tr style="font-weight: bolder;">
+                        <td align="center">PR NUMBER</td>
+                        <td align="center">Item Code</td>
+                        <!-- <td align="center">Item Name</td> -->
+                        <td align="center">Qty Return</td>
+                        <td align="center">RR Number</td>
+                        <td align="center">Qty RR</td>
+                        <td align="center">Qty Final</td>
+                        <td align="center">Price</td>
+                        <td align="center">Return Amount</td>
+                    </tr>
+
+                    <?php foreach ($QGet_PurchaseReturn->result() as $pr) : ?>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td align="center">
+                                <?= $pr->PR_Number; ?>
+                            </td>
+                            <td align="center">
+                                <?= $pr->item_Code; ?>
+                            </td>
+                            <!-- <td align="center">
+                                <= $pr->item_type; ?>
+                            </td> -->
+                            <td align="center">
+                                <?= round(floatval($pr->Qty), 2); ?>
+                            </td>
+                            <td align="center">
+                                <?= $pr->RR_Number; ?>
+                            </td>
+                            <td align="center">
+                                <?= round(floatval($pr->RR_Qty), 2); ?>
+                            </td>
+                            <td align="center">
+                                <?= round(floatval($pr->RR_Qty) - floatval($pr->Qty), 2); ?>
+                            </td>
+                            <td class="text-right">
+                                <?php
+                                $qgetprice = $this->db->query("SELECT taccvi_header.currency_id, 
+                                              COALESCE(taccvi_detail.unitprice, 0) as unit_price,
+                                              COALESCE(taccvi_detail.disc_percentage, 0) as disc_percentage,
+                                              0 as disc_value
+                                              FROM taccvi_detail
+                                              INNER JOIN taccvi_header ON taccvi_detail.invoice_number=taccvi_header.invoice_number
+                                              INNER JOIN taccrr_item ON taccrr_item.rr_number=taccvi_detail.ref_number
+                                              AND taccrr_item.item_code = taccvi_detail.item_code
+                                              WHERE taccrr_item.rr_number = '$pr->RR_Number'
+                                              AND taccrr_item.item_code = '$pr->item_Code'
+                                              AND taccvi_detail.Invoice_Number = '$vin'");
+                                if ($qgetprice->num_rows() > 0) {
+                                    $row = $qgetprice->row_array();
+                                    $currency_id_rr = $row['currency_id'];
+                                    $unit_price = floatval($row['unit_price']);
+                                    $disc_percentage = $row['disc_percentage'];
+                                    $disc_value = $row['disc_value'];
+                                }
+                                echo $currency_id_rr . ' ' . number_format($unit_price, 2, '.', ',');
+                                ?>
+                            </td>
+                            <td class="text-right">
+                                <?=
+                                number_format($unit_price * floatval($pr->Qty), 2, '.', ',');
+                                ?>
+                            </td>
+                        <?php endforeach; ?>
+
+
+
+                </tbody>
+
+            </table>
+        </div>
+
+    <?php endif; ?>
+    <div class="row">
+        <table class="tablee" ?>
 </body>
 
 <?php
