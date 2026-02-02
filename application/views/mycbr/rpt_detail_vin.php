@@ -712,8 +712,6 @@
         </div>
 
     <?php endif; ?>
-    <div class="row">
-        <table class="tablee" ?>
 </body>
 
 <?php
