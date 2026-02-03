@@ -560,41 +560,58 @@
 
     <?php if ($Q_PurchaseReturn->num_rows() > 0) : ?>
         <?php
-        $QGet_PurchaseReturn = $this->db->query("SELECT taccrr_header.RR_DATE, 
-				TAccPR_Header.PR_Number, 
-				taccpr_header.RR_Number, 
-				PR_Date, 
-				PR_Status, 
-				taccpr_header.Account_ID, 
-				TAccRR_Item.Qty - TAccPR_Item.Qty as sisa, 
-				TAccPR_Item.item_Code, 
-                TAccRR_Item.Qty as RR_Qty,
-				TAccPR_Item.Qty,
-				TAccPR_Item.parent_path,
-				TAccPR_Item.parent_item,
-				TAccPR_Item.config_ratio,
-				TAccPR_Item.config_level,
-				rr_date,
-				titem.item_name, 
-				titem.item_size as brand, 
-				titem.customfield1 as item_type, 
-				tgscolor.color_name, 
-				TAccPR_Item.Dimension_ID, 
-				ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
-				titem.item_length, 
-				titem.item_width, 
-				titem.item_height  
-		From TAccPR_Header
-			Inner Join TAccPR_Item On TAccPR_Item.PR_Number = TAccPR_Header.PR_Number
-			inner join taccrr_item on taccrr_item.item_code = taccpr_item.item_code AND taccrr_item.Dimension_ID = taccpr_item.Dimension_ID 
-			inner join taccrr_header on taccrr_item.rr_number = taccrr_header.rr_number and taccrr_header.rr_number = taccpr_header.rr_number 
-			Left Join TItemDimension itd ON itd.Dimension_ID = taccpr_item.Dimension_ID 
-			LEFT JOIN titem ON titem.item_code = taccpr_item.item_code
-			LEFT JOIN tgscolor ON tgscolor.color_code = titem.item_color
-		Where	taccpr_header.RR_Number in (select Ref_Number from TACCVI_Detail where Invoice_Number = '$vin')
-			AND taccpr_header.pr_number not in (select ref_number from TAccSN_Header where isvoid =1)	
-			AND	TAccPR_Header.ItemCategoryType = 'RM'
-		order by seq_id ");
+        $QGet_PurchaseReturn = $this->db->query("SELECT 
+                                                taccrr_header.RR_DATE, 
+                                                TAccPR_Header.PR_Number, 
+                                                taccpr_header.RR_Number, 
+                                                PR_Date, 
+                                                PR_Status, 
+                                                taccpr_header.Account_ID, 
+                                                (TAccRR_Item.Qty - TAccPR_Item.Qty) AS sisa, 
+                                                TAccPR_Item.item_Code, 
+                                                TAccRR_Item.Qty AS RR_Qty,
+                                                TAccPR_Item.Qty AS Qty,
+                                                TAccPR_Item.parent_path,
+                                                TAccPR_Item.parent_item,
+                                                TAccPR_Item.config_ratio,
+                                                TAccPR_Item.config_level,
+                                                titem.item_name, 
+                                                titem.item_size AS brand, 
+                                                titem.customfield1 AS item_type, 
+                                                tgscolor.color_name, 
+                                                TAccPR_Item.Dimension_ID, 
+                                                ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
+                                                titem.item_length, 
+                                                titem.item_width, 
+                                                titem.item_height  
+                                            FROM TAccPR_Header
+                                            INNER JOIN TAccPR_Item ON TAccPR_Item.PR_Number = TAccPR_Header.PR_Number
+                                            INNER JOIN TAccRR_Item ON TAccRR_Item.item_code = TAccPR_Item.item_code 
+                                                AND TAccRR_Item.Dimension_ID = TAccPR_Item.Dimension_ID 
+                                            INNER JOIN TAccRR_Header ON TAccRR_Item.RR_Number = TAccRR_Header.RR_Number 
+                                                AND TAccRR_Header.RR_Number = TAccPR_Header.RR_Number 
+                                            LEFT JOIN TItemDimension itd ON itd.Dimension_ID = TAccPR_Item.Dimension_ID 
+                                            LEFT JOIN TItem ON TItem.item_code = TAccPR_Item.item_code
+                                            LEFT JOIN TGSColor ON TGSColor.color_code = TItem.item_color
+                                            WHERE 
+                                                TAccPR_Header.RR_Number IN (
+                                                    SELECT Ref_Number 
+                                                    FROM TAccVI_Detail 
+                                                    WHERE Invoice_Number = '$vin'
+                                                )
+                                                AND NOT EXISTS (
+                                                    SELECT 1 
+                                                    FROM TAccSN_Header sn 
+                                                    WHERE sn.Ref_Number = TAccPR_Header.PR_Number 
+                                                    AND sn.isvoid = 1
+                                                    AND NOT EXISTS (
+                                                        SELECT 1 
+                                                        FROM TAccSN_Header sn2 
+                                                        WHERE sn2.Ref_Number = sn.Ref_Number 
+                                                        AND sn2.isvoid = 0
+                                                    )
+                                                )
+                                            ORDER BY TAccPR_Item.seq_id");
         ?>
 
         <div class="row">
