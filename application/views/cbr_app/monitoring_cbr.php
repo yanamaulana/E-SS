@@ -58,7 +58,7 @@
                                     <th class="text-center text-white">curr_rate</th>
                                     <th class="text-center text-white">Approval_Status</th>
                                     <th class="text-center text-white">Status</th>
-                                    <th class="text-center text-white">Paid Status</th>
+                                    <th class="text-center text-white">BDJ Status</th>
                                     <th class="text-center text-white">Creation_DateTime</th>
                                     <th class="text-center text-white">Dept</th>
                                     <th class="text-center text-white">Created_By</th>
