@@ -13,6 +13,10 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
+    // 1. Variabel Global Penampung ID
+    var selected_cbr = [];
+    var selected_details = {};
+
     var TableData = $("#TableData").DataTable({
         destroy: true,
         processing: true,
@@ -36,9 +40,17 @@ $(document).ready(function () {
             name: "CheckBox",
             orderable: false,
             render: function (data, type, row, meta) {
+                var isChecked = selected_cbr.includes(row.CBReq_No) ? 'checked' : '';
+                // 🔥 TAMBAHKAN data-curr dan data-amount DI SINI
                 return `<div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="${row.CBReq_No}" id="${row.CBReq_No}" name="CBReq_No[]">
-                  </div>`
+            <input class="form-check-input row-checkbox" type="checkbox" 
+                value="${row.CBReq_No}" 
+                id="${row.CBReq_No}" 
+                name="CBReq_No[]" 
+                ${isChecked}
+                data-curr="${row.Currency_Id}" 
+                data-amount="${row.Amount}">
+          </div>`
             }
         },
         {
@@ -183,6 +195,19 @@ $(document).ready(function () {
                 $("#TableData tbody td").removeClass("blurry");
             });
             $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Loop semua checkbox di halaman aktif, sinkronkan dengan array selected_cbr
+            $('input[name="CBReq_No[]"]').each(function () {
+                var id = $(this).val();
+                if (selected_cbr.includes(id)) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });
+
+            // Update status tombol "Check All" di header
+            updateCheckAllStatus();
         },
         "buttons": [{
             text: `<i class="fas fa-external-link-alt"></i> Send Submission`,
@@ -837,6 +862,115 @@ $(document).ready(function () {
     })
 
 
+    // 3. Listener Checkbox Individu
+    $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function () {
+        var id = $(this).val();
+        var isChecked = $(this).is(':checked');
+
+        // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG (Lebih Stabil)
+        var curr = $(this).data('curr');
+        var amount = parseFloat($(this).data('amount'));
+
+        if (isChecked) {
+            if (!selected_cbr.includes(id)) {
+                selected_cbr.push(id);
+                // Simpan detail
+                selected_details[id] = {
+                    curr: curr,
+                    amount: amount
+                };
+            }
+        } else {
+            selected_cbr = selected_cbr.filter(item => item !== id);
+            // Hapus detail
+            delete selected_details[id];
+        }
+
+        updateCheckAllStatus();
+        renderSummaryHTML(); // Hitung ulang total
+    });
+
+    // 4. Listener Tombol "Check All" di Header (Pastikan ID checkbox header Anda adalah #CheckAll)
+    $('#CheckAll').on('click', function () {
+        var isChecked = $(this).is(':checked');
+        check_uncheck_checkbox(isChecked);
+    });
+
+    function check_uncheck_checkbox(isChecked) {
+        $('input[name="CBReq_No[]"]').each(function () {
+            var id = $(this).val();
+
+            // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            // Update visual
+            $(this).prop('checked', isChecked);
+
+            // Update Logic Array
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = {
+                        curr: curr,
+                        amount: amount
+                    };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(item => item !== id);
+                delete selected_details[id];
+            }
+        });
+        renderSummaryHTML();
+    }
+
+    function renderSummaryHTML() {
+        if (selected_cbr.length === 0) {
+            $('#summary-container').addClass('d-none');
+            $('#summary-text').html('');
+            return;
+        }
+
+        // Kalkulasi Total per Currency
+        var sums = {};
+        for (var key in selected_details) {
+            var item = selected_details[key];
+            var curr = item.curr;
+            var amount = item.amount;
+
+            if (!sums[curr]) sums[curr] = 0;
+            sums[curr] += amount;
+        }
+
+        // Generate HTML Output
+        var htmlParts = [];
+        for (var curr in sums) {
+            // Format angka (ribuan separator)
+            var formattedAmount = sums[curr].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            htmlParts.push(`<span class="badge badge-light-primary fs-6 me-2 mb-1 border border-primary text-primary">${curr} : ${formattedAmount}</span>`);
+        }
+
+        $('#summary-text').html(htmlParts.join(' '));
+        $('#summary-container').removeClass('d-none');
+    }
+
+    function updateCheckAllStatus() {
+        var allCheckedInPage = true;
+        var checkboxes = $('input[name="CBReq_No[]"]');
+
+        if (checkboxes.length === 0) {
+            allCheckedInPage = false;
+        } else {
+            checkboxes.each(function () {
+                if (!$(this).prop('checked')) {
+                    allCheckedInPage = false;
+                }
+            });
+        }
+        $('#CheckAll').prop('checked', allCheckedInPage);
+    }
+
+
     function Fn_Send_Submission() {
         if ($('input[name="CBReq_No[]"]:checked').length == 0) {
             return Swal.fire({
@@ -851,7 +985,7 @@ $(document).ready(function () {
             dataType: "json",
             type: "POST",
             url: $('meta[name="base_url"]').attr('content') + "MyCbr/approve_submission",
-            data: $('#form-submission').serialize(),
+            data: { "CBReq_No": selected_cbr }, // Kirim array ID
             beforeSend: function () {
                 Swal.fire({
                     title: 'Loading....',
