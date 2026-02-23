@@ -42,7 +42,7 @@ $(document).ready(function () {
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
-                { data: "Type", name: "Type", visible: false },
+                // { data: "Type", name: "Type", visible: false },
                 {
                     data: "Document_Date", name: "Document_Date", render: function (data) {
                         return data ? data.substring(0, data.indexOf(' ')) : '-'; // Tambah cek NULL
@@ -54,11 +54,11 @@ $(document).ready(function () {
                         return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     }
                 },
-                { data: "Document_Number", name: "Document_Number" },
+                // { data: "Document_Number", name: "Document_Number" },
                 { data: "Descript", name: "Descript" },
-                { data: "baseamount", name: "baseamount", visible: false },
-                { data: "curr_rate", name: "curr_rate", visible: false },
-                { data: "Approval_Status", name: "Approval_Status", visible: false },
+                // { data: "baseamount", name: "baseamount", visible: false },
+                // { data: "curr_rate", name: "curr_rate", visible: false },
+                // { data: "Approval_Status", name: "Approval_Status", visible: false },
                 {
                     data: "isClose", name: "isClose",
                     render: function (data) {
@@ -80,7 +80,7 @@ $(document).ready(function () {
                         }
                     }
                 },
-                { data: "Paid_Status", name: "Paid_Status", visible: false },
+                // { data: "Paid_Status", name: "Paid_Status", visible: false },
                 {
                     data: "Payment_Status", name: "Payment_Status",
                     render: function (data) {
@@ -93,34 +93,38 @@ $(document).ready(function () {
                         }
                     }
                 },
-                { data: "Creation_DateTime", name: "Creation_DateTime", visible: false },
-                { data: "Created_By", name: "Created_By", visible: false },
+                // { data: "Creation_DateTime", name: "Creation_DateTime", visible: false },
+                // { data: "Created_By", name: "Created_By", visible: false },
                 { data: "UserDivision", name: "UserDivision", orderable: true },
                 { data: "First_Name", name: "First_Name", orderable: false },
-                { data: "Last_Update", name: "Last_Update", visible: false },
-                { data: "Acc_ID", name: "Acc_ID", visible: false },
-                { data: "Approve_Date", name: "Approve_Date", visible: false },
-                { data: "IsAppvStaff", name: "IsAppvStaff", visible: false },
-                { data: "IsAppvChief", name: "IsAppvChief", visible: false },
-                { data: "IsAppvAsstManager", name: "IsAppvAsstManager", visible: false },
+                // { data: "Last_Update", name: "Last_Update", visible: false },
+                // { data: "Acc_ID", name: "Acc_ID", visible: false },
+                // { data: "Approve_Date", name: "Approve_Date", visible: false },
+                // { data: "IsAppvStaff", name: "IsAppvStaff", visible: false },
+                // { data: "IsAppvChief", name: "IsAppvChief", visible: false },
+                {
+                    data: "IsAppvAsstManager", name: "IsAppvAsstManager", orderable: false, visible: false, render: function (data, type, row, meta) {
+                        return renderApprovalStatus(data, row.Status_AppvAsstManager) + ' <br/> ' + row.AppvAsstManager_At;
+                    }
+                },
                 {
                     data: "IsAppvManager", name: "IsAppvManager", orderable: false, visible: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvManager);
+                        return renderApprovalStatus(data, row.Status_AppvManager) + ' <br/> ' + row.AppvManager_At;
                     }
                 },
                 {
                     data: "IsAppvSeniorManager", name: "IsAppvSeniorManager", orderable: false, visible: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvSeniorManager);
+                        return renderApprovalStatus(data, row.Status_AppvSeniorManager) + ' <br/> ' + row.AppvSeniorManager_At;
                     }
                 },
                 {
                     data: "IsAppvGeneralManager", name: "IsAppvGeneralManager", orderable: false, visible: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvGeneralManager);
+                        return renderApprovalStatus(data, row.Status_AppvGeneralManager) + ' <br/> ' + row.AppvGeneralManager_At;
                     }
                 },
                 {
                     data: "IsAppvAdditional", name: "IsAppvAdditional", orderable: false, visible: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(data, row.Status_AppvAdditional);
+                        return renderApprovalStatus(data, row.Status_AppvAdditional) + ' <br/> ' + row.AppvAdditional_At;
                     }
                 },
                 {
@@ -142,7 +146,8 @@ $(document).ready(function () {
                     data: "IsAppvPresidentDirector", name: "IsAppvPresidentDirector", orderable: false, render: function (data, type, row, meta) {
                         return renderApprovalStatus(data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
                     }
-                }
+                },
+                { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" },
             ],
             order: [
                 [3, "DESC"]
@@ -152,13 +157,13 @@ $(document).ready(function () {
                 targets: 7
             }, {
                 className: "text-center dt-nowrap",
-                targets: [0, 3, 4, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+                targets: [0, 1, 2, 3, 6, 7, 8, 9, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
             }, {
                 className: "details-control pr-4 dt-nowrap",
                 targets: [1]
             }, {
                 className: "dt-nowrap text-end",
-                targets: [5]
+                targets: [4]
             }],
             // orderCellsTop: true,
             // fixedColumns: true,

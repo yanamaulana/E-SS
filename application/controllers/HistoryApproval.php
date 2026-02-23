@@ -110,28 +110,28 @@ class HistoryApproval extends CI_Controller
             $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
             $nestedData['AppvAsstManager_By'] = $row['AppvAsstManager_By'];
             $nestedData['AppvAsstManager_Name'] = $row['AppvAsstManager_Name'] ?? '';
-            $nestedData['AppvAsstManager_At'] = $row['AppvAsstManager_At'];
+            $nestedData['AppvAsstManager_At'] = !empty($row['AppvAsstManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-';
             $nestedData['IsAppvManager'] = $row['IsAppvManager'];
             $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
             $nestedData['AppvManager_By'] = $row['AppvManager_By'];
             $nestedData['AppvManager_Name'] = $row['AppvManager_Name'] ?? '';
-            $nestedData['AppvManager_At'] = $row['AppvManager_At'];
+            $nestedData['AppvManager_At'] = !empty($row['AppvManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-';
             $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
             $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
             $nestedData['AppvSeniorManager_By'] = $row['AppvSeniorManager_By'];
             $nestedData['AppvSeniorManager_Name'] = $row['AppvSeniorManager_Name'] ?? '';
-            $nestedData['AppvSeniorManager_At'] = $row['AppvSeniorManager_At'];
+            $nestedData['AppvSeniorManager_At'] = !empty($row['AppvSeniorManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-';
             $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
             $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
             $nestedData['AppvGeneralManager_By'] = $row['AppvGeneralManager_By'];
             $nestedData['AppvGeneralManager_Name'] = $row['AppvGeneralManager_Name'] ?? '';
-            $nestedData['AppvGeneralManager_At'] = $row['AppvGeneralManager_At'];
+            $nestedData['AppvGeneralManager_At'] = !empty($row['AppvGeneralManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-';
 
             $nestedData['IsAppvAdditional'] = $row['IsAppvAdditional'];
             $nestedData['Status_AppvAdditional'] = $row['Status_AppvAdditional'];
             $nestedData['AppvAdditional_By'] = $row['AppvAdditional_By'];
             $nestedData['AppvAdditional_Name'] = $row['AppvAdditional_Name'] ?? '';
-            $nestedData['AppvAdditional_At'] = $row['AppvAdditional_At'];
+            $nestedData['AppvAdditional_At'] = !empty($row['AppvAdditional_At']) ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-';
 
             $nestedData['IsAppvFinancePerson'] = $row['IsAppvFinancePerson'];
             $nestedData['Status_AppvFinancePerson'] = $row['Status_AppvFinancePerson'];
@@ -167,7 +167,7 @@ class HistoryApproval extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
-            $nestedData['Payment_Status_Time_Change'] = $row['Payment_Status_Time_Change'];
+            $nestedData['Payment_Status_Time_Change'] = !empty($row['Payment_Status_Time_Change']) ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-';
 
             $data[] = $nestedData;
         }
