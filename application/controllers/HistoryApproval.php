@@ -167,6 +167,7 @@ class HistoryApproval extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Status_Time_Change'] = $row['Payment_Status_Time_Change'];
 
             $data[] = $nestedData;
         }

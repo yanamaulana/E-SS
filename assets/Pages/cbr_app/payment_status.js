@@ -22,8 +22,8 @@ $(document).ready(function () {
         orderCellsTop: true,
         select: false,
         "lengthMenu": [
-            [15, 30, 90, 100],
-            [15, 30, 90, 100]
+            [15, 30, 90, 99999],
+            [15, 30, 90, 99999]
         ],
         ajax: {
             url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/DT_List_To_Approve",
