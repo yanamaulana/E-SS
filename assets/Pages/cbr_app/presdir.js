@@ -26,8 +26,8 @@ $(document).ready(function () {
         orderCellsTop: true,
         select: false,
         "lengthMenu": [
-            [15, 30, 90, 100],
-            [15, 30, 90, 100]
+            [15, 30, 90, 1000],
+            [15, 30, 90, 1000]
         ],
         ajax: {
             url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_To_Approve",
