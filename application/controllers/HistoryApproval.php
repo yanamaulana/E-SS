@@ -62,9 +62,9 @@ class HistoryApproval extends CI_Controller
         $totalData = $this->db->query($sql)->num_rows();
         if (!empty($requestData['search']['value'])) {
             $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR UserDivision LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%') ";
-            // $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             // $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
             // $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
             // $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
