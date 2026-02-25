@@ -405,6 +405,9 @@ $(document).ready(function () {
                         icon: 'success',
                         title: response.msg
                     });
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#CheckAll').removeAttr('checked');
                     $('#TableData').DataTable().ajax.reload(null, false);
                     $("#TableDataHistory").DataTable().ajax.reload(null, false);
@@ -458,6 +461,9 @@ $(document).ready(function () {
                 Swal.close()
                 if (response.code == 200) {
                     $('#CheckAll').removeAttr('checked');
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    renderSummaryHTML();   // HILANGKAN SUMMARY
                     Toast.fire({
                         icon: 'success',
                         title: response.msg

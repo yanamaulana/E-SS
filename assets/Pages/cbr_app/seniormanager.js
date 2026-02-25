@@ -408,6 +408,9 @@ $(document).ready(function () {
                         icon: 'success',
                         title: response.msg
                     });
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#CheckAll').removeAttr('checked');
                     $('#TableData').DataTable().ajax.reload(null, false);
                     $("#TableDataHistory").DataTable().ajax.reload(null, false);
@@ -465,6 +468,9 @@ $(document).ready(function () {
                         icon: 'success',
                         title: response.msg
                     });
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#TableData').DataTable().ajax.reload(null, false);
                     $("#TableDataHistory").DataTable().ajax.reload(null, false);
                 } else {

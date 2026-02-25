@@ -1002,6 +1002,9 @@ $(document).ready(function () {
                         icon: 'success',
                         title: response.msg
                     });
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#CheckAll').removeAttr('checked');
                     $('#TableData').DataTable().ajax.reload(null, false);
                     $("#TableDataHistory").DataTable().clear().destroy(), Fn_Initialized_DataTable(), DataTable.tables({ visible: true, api: true }).columns.adjust();
