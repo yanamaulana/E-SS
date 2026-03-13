@@ -62,6 +62,57 @@
                                     </table>
                                 </form>
                             </div>
+
+                            <div class="modal fade" tabindex="-1" id="modal-excel-action">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Mass Action By Upload Excel</h5>
+                                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                                                <span class="svg-icon svg-icon-2x">
+                                                    <i class="fas fa-times fs-4"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <div class="alert alert-warning d-flex align-items-center p-5 mb-5">
+                                                <span class="svg-icon svg-icon-2hx svg-icon-warning me-4">
+                                                    <i class="fas fa-info-circle fs-1 text-warning"></i>
+                                                </span>
+                                                <div class="d-flex flex-column">
+                                                    <h4 class="mb-1">Format Template</h4>
+                                                    <span>Silakan gunakan template Excel yang telah disediakan agar format sesuai dengan sistem.
+                                                        <br />
+                                                        <strong>Jangan merubah tipe data, kolom action harus diisi dengan : 1 Untuk Approve & 2 Untuk Reject.</strong>
+                                                        <br />
+                                                        <a href="<?= base_url('assets/templates/Template_Mass_Action.xlsx') ?>" class="fw-bolder fs-6 text-primary border-bottom border-primary" download>
+                                                            <i class="fas fa-file-excel text-primary me-1"></i> Download Template .xlsx
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <form id="form-upload-excel" enctype="multipart/form-data">
+                                                <div class="mb-3">
+                                                    <label for="file_excel" class="required form-label fw-bold">Pilih File Excel</label>
+                                                    <input class="form-control" type="file" id="file_excel" name="file_excel" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
+                                                    <div class="text-muted fs-7 mt-2">Hanya diperbolehkan mengunggah file dengan ekstensi <strong>.xlsx</strong>.</div>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light-danger" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-success" id="btn-process-excel">
+                                                <i class="fas fa-upload me-1"></i> Upload & Process
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
                         </div>
                         <div class="tab-pane fade" id="kt_tab_pane_5" role="tabpanel">
                             <div class="row">

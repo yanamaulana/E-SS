@@ -71,6 +71,7 @@
                                                 <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
+                                                <th class="text-center text-white">Payment Date</th>
                                                 <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
                                             </tr>
                                         </thead>

@@ -100,6 +100,102 @@ class CbrPaymentStatus extends CI_Controller
         }
     }
 
+    public function Proses_Excel()
+    {
+        // 1. Pastikan request berasal dari AJAX
+        if (!$this->input->is_ajax_request()) {
+            exit('No direct script access allowed');
+        }
+
+        // 2. Validasi apakah ada file yang diunggah
+        if (!isset($_FILES['file_excel']['name']) || empty($_FILES['file_excel']['name'])) {
+            echo json_encode(['code' => 500, 'msg' => 'Pilih file Excel terlebih dahulu!']);
+            return;
+        }
+
+        $file_tmp = $_FILES['file_excel']['tmp_name'];
+        $file_ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
+
+        // 3. Validasi Ekstensi File
+        $allowed_ext = ['xls', 'xlsx'];
+        if (!in_array(strtolower($file_ext), $allowed_ext)) {
+            echo json_encode(['code' => 500, 'msg' => 'Format file tidak didukung! Gunakan .xls atau .xlsx']);
+            return;
+        }
+
+        try {
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file_tmp);
+            $reader->setReadDataOnly(true); // Membaca data saja agar lebih cepat
+            $spreadsheet = $reader->load($file_tmp);
+
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $selected_cbr = [];
+
+            foreach ($sheetData as $rowIndex => $row) {
+                if ($rowIndex == 1) continue; // Skip baris pertama (header)
+
+                $cbr_no = trim($row['A'] ?? '');
+                $action = trim($row['B'] ?? '');
+
+                if (!empty($cbr_no) && $action !== '') {
+                    $selected_cbr[] = [
+                        'CBR_NUMBER' => $cbr_no,
+                        'ACTION'     => (int)$action // Pastikan tipe datanya integer
+                    ];
+                }
+            }
+
+            if (empty($selected_cbr)) {
+                echo json_encode(['code' => 500, 'msg' => 'Data Excel kosong atau format tidak sesuai.']);
+                return;
+            }
+            $username = $this->session->userdata('sys_sba_username');
+            $this->db->trans_start();
+
+            foreach ($selected_cbr as $data) {
+
+                $action_flag = $data['ACTION']; // Angka 1 (Approve) atau 2 (Reject) dari Excel
+
+                if ($action_flag == 1) {
+                    $status_update = 1; // 1 untuk Approved
+                } else if ($action_flag == 2) {
+                    $status_update = 2; // 2 untuk Rejected
+                } else {
+                    continue; // Skip jika angka action tidak valid (bukan 1 atau 2)
+                }
+                $this->db->where('CBReq_No', $data['CBR_NUMBER']);
+                $this->db->update('Ttrx_Cbr_Approval', [
+                    'Payment_Status' => $status_update,
+                    'Payment_Status_Time_Change' => $this->DateTime,
+                    'Payment_Status_Change_By' => $username
+                ]);
+            }
+            $this->db->trans_complete();
+            if ($this->db->trans_status() === FALSE) {
+                echo json_encode([
+                    'code' => 500,
+                    'msg' => 'Gagal memproses data. Terjadi kesalahan pada database dan transaksi telah dibatalkan.'
+                ]);
+            }
+            $total_processed = count($selected_cbr);
+            echo json_encode([
+                'code' => 200,
+                'msg' => "Berhasil memproses $total_processed dokumen CBR dari Excel!"
+            ]);
+        } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+            echo json_encode([
+                'code' => 500,
+                'msg' => 'Gagal membaca file Excel: ' . $e->getMessage()
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'code' => 500,
+                'msg' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ]);
+        }
+    }
+
 
     public function DT_List_To_Approve()
     {

@@ -240,14 +240,19 @@ $(document).ready(function () {
                     }
                 });
             }
+        }, {
+            text: `Mass Act :`,
+            className: "btn btn-default disabled",
+        }, {
+            text: `<i class="fas fa-fax"></i> Excel Action`,
+            className: "btn btn-info",
+            action: function (e, dt, node, config) {
+                Fn_Show_Modal_Excel_Action();
+            }
         },
         {
             text: `Export To :`,
             className: "btn btn-default disabled",
-        }, {
-            text: `<i class="far fa-copy fs-2"></i>`,
-            extend: 'copy',
-            className: "btn btn-light-warning",
         }, {
             text: `<i class="far fa-file-excel fs-2"></i>`,
             extend: 'excelHtml5',
@@ -365,6 +370,60 @@ $(document).ready(function () {
             }
         });
     }
+
+    function Fn_Show_Modal_Excel_Action() {
+        $('#modal-excel-action').modal('show');
+    }
+
+    $('#btn-process-excel').on('click', function () {
+        var fileInput = $('#file_excel')[0].files[0];
+
+        if (!fileInput) {
+            Swal.fire('Oops...', 'Pilih file Excel terlebih dahulu!', 'warning');
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file_excel', fileInput);
+
+        $.ajax({
+            url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/Proses_Excel",
+            type: "POST",
+            data: formData,
+            contentType: false, // Wajib false untuk upload file via AJAX
+            processData: false, // Wajib false untuk upload file via AJAX
+            beforeSend: function () {
+                Swal.fire({
+                    title: 'Uploading & Processing...',
+                    html: '<div class="spinner-border text-primary"></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+            },
+            success: function (response) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Upload Success...',
+                    text: response.msg,
+                    footer: '<a href="javascript:void(0)">Notification System</a>'
+                });
+                $('#TableData').DataTable().ajax.reload(null, false);
+                $("#TableDataHistory").DataTable().ajax.reload(null, false);
+                $('#modal-excel-action').modal('hide');
+                $('#form-upload-excel')[0].reset();
+            },
+            error: function (xhr, status, error) {
+                var statusCode = xhr.status;
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    html: `Kode HTTP: ${statusCode}<br\>Pesan: ${errorMessage}`,
+                });
+            }
+        });
+    });
 })
 
 function check_uncheck_checkbox(isChecked) {

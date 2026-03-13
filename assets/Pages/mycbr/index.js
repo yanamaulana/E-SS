@@ -160,6 +160,11 @@ $(document).ready(function () {
             data: "Approve_Date",
             name: "Approve_Date",
             visible: false
+        },
+        {
+            data: "Payment_Plan_Date",
+            name: "Payment_Plan_Date",
+            visible: true
         }
         ],
         order: [
@@ -167,7 +172,7 @@ $(document).ready(function () {
         ],
         columnDefs: [{
             className: "text-center",
-            targets: [0, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13],
+            targets: [0, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 19],
         }, {
             className: "details-control pr-4 dt-nowrap",
             targets: [1]
@@ -232,25 +237,25 @@ $(document).ready(function () {
             text: `-`,
             className: "btn btn-default btn-icon disabled",
         },
-            // {
-            //     text: `<i class="fas fa-times text-white fs-3"></i> Reject (Not Send)`,
-            //     className: "btn btn-danger",
-            //     action: function (e, dt, node, config) {
-            //         Swal.fire({
-            //             title: 'System Message !',
-            //             text: `Are you sure to reject all checked submission ?`,
-            //             icon: 'warning',
-            //             showCancelButton: true,
-            //             confirmButtonColor: '#3085d6',
-            //             cancelButtonColor: '#d33',
-            //             confirmButtonText: 'Yes'
-            //         }).then((result) => {
-            //             if (result.isConfirmed) {
-            //                 Fn_Reject_Submission();
-            //             }
-            //         })
-            //     }
-            // },
+        {
+            text: `<i class="fas fa-times text-white fs-3"></i> Reject (Not Send)`,
+            className: "btn btn-danger",
+            action: function (e, dt, node, config) {
+                Swal.fire({
+                    title: 'System Message !',
+                    text: `Are you sure to reject all checked submission ?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Fn_Reject_Submission();
+                    }
+                })
+            }
+        }
             // {
             // 	text: `Export to :`,
             // 	className: "btn disabled text-dark bg-white",
