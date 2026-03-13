@@ -1,4 +1,5 @@
 $(document).ready(function () {
+
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -255,33 +256,66 @@ $(document).ready(function () {
                     }
                 })
             }
-        }
-            // {
-            // 	text: `Export to :`,
-            // 	className: "btn disabled text-dark bg-white",
-            // }, {
-            // 	text: `<i class="far fa-copy fs-2"></i>`,
-            // 	extend: 'copy',
-            // 	className: "btn btn-light-warning",
-            // }, {
-            // 	text: `<i class="far fa-file-excel fs-2"></i>`,
-            // 	extend: 'excelHtml5',
-            // 	title: $('#table-title').text() + '~' + moment().format("YYYY-MM-DD"),
-            // 	className: "btn btn-light-success",
-            // }, {
-            // 	text: `<i class="far fa-file-pdf fs-2"></i>`,
-            // 	extend: 'pdfHtml5',
-            // 	title: $('#table-title').text() + '~' + moment().format("YYYY-MM-DD"),
-            // 	className: "btn btn-light-danger",
-            // 	orientation: "landscape"
-            // }, {
-            // 	text: `<i class="fas fa-print fs-2"></i>`,
-            // 	extend: 'print',
-            // 	className: "btn btn-light-dark",
-            // }
+        },
+        {
+            text: `-`,
+            className: "btn btn-default btn-icon disabled",
+        },
+        {
+            text: `<i class="fas fa-calendar-alt"></i> Set Payment Date`,
+            className: "btn btn-info",
+            action: function (e, dt, node, config) {
+                if (selected_cbr.length === 0) {
+                    return Swal.fire('Oops!', 'Please select CBR first!', 'warning');
+                }
+                // Tampilkan jumlah yang dipilih di modal
+                $('#bulk-count').text(selected_cbr.length);
+                $('#modal-bulk-payment-plan').modal('show');
+            }
+        },
         ],
     }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
 
+    $('#btn-save-bulk-date').on('click', function () {
+        var newDate = $('#bulk_payment_date').val();
+
+        if (!newDate) {
+            return Swal.fire('Error', 'Please select a date!', 'error');
+        }
+
+        $.ajax({
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/bulk_update_payment_date",
+            type: "POST",
+            dataType: "json",
+            data: {
+                cbr_list: selected_cbr,
+                new_date: newDate
+            },
+            beforeSend: function () {
+                Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.code == 200) {
+                    Toast.fire({ icon: 'success', title: res.msg });
+                    $('#modal-bulk-payment-plan').modal('hide');
+
+                    // Reset seleksi
+                    selected_cbr = [];
+                    selected_details = {};
+                    renderSummaryHTML();
+                    $('#bulk_payment_date').val('');
+                    $('#TableData').DataTable().ajax.reload(null, false);
+                } else {
+                    Swal.fire('Failed', res.msg, 'error');
+                }
+            }
+        });
+    });
+
+
+    var selected_cbr_history = [];
+    var selected_details_history = {};
 
     function Fn_Initialized_DataTable() {
         $("#TableDataHistory").DataTable({
@@ -309,12 +343,27 @@ $(document).ready(function () {
             },
             columns: [
                 {
-                    data: "CBReq_No", name: "CBReq_No", orderable: false, render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+                    data: 'CBReq_No',
+                    name: "CheckBox",
+                    orderable: false,
+                    render: function (data, type, row, meta) {
+                        var isChecked = selected_cbr_history.includes(row.CBReq_No) ? 'checked' : '';
+                        return `<div class="form-check">
+                                    <input class="form-check-input row-checkbox" type="checkbox" 
+                                        value="${row.CBReq_No}" 
+                                        id="${row.CBReq_No}" 
+                                        name="CBReq_No_History[]" 
+                                        ${isChecked}
+                                        data-curr="${row.Currency_Id}" 
+                                        data-amount="${row.Amount}">
+                                </div>`
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
                 { data: "Type", name: "Type", visible: false },
+                {
+                    data: "Payment_Plan_Date", name: "Payment_Plan_Date"
+                },
                 {
                     data: "Document_Date", name: "Document_Date", render: function (data) {
                         return data ? data.substring(0, data.indexOf(' ')) : '-'; // Tambah cek NULL
@@ -419,7 +468,7 @@ $(document).ready(function () {
                 {
                     className: "text-center dt-nowrap",
                     // Hati-hati dengan indeks. Ini disesuaikan dengan daftar kolom di atas.
-                    targets: [0, 3, 4, 5, 6, 11, 12, 15, 22, 23, 24, 25, 26, 27, 28, 29],
+                    targets: [0, 3, 4, 5, 6, 11, 12, 15, 22, 23, 24, 25, 26, 27, 28, 29, 30],
                 }, {
                     className: "details-control pr-4 dt-nowrap",
                     targets: [1]
@@ -437,8 +486,19 @@ $(document).ready(function () {
                 searchPlaceholder: "Search..."
             },
             drawCallback: function () {
-                $("#TableDataHistory tbody td").removeClass("blurry"); // Poin 1: Tambahkan #
+                $("#TableDataHistory tbody td").removeClass("blurry");
                 $('[data-bs-toggle="tooltip"]').tooltip();
+
+                // 🔥 Sinkronkan tampilan centang berdasarkan array global
+                $('input[name="CBReq_No_History[]"]').each(function () {
+                    var id = $(this).val();
+                    if (selected_cbr_history.includes(id)) {
+                        $(this).prop('checked', true);
+                    } else {
+                        $(this).prop('checked', false);
+                    }
+                });
+
                 DataTable.tables({ visible: true, api: true }).columns.adjust();
             },
             "rowCallback": function (row, data) {
@@ -493,9 +553,90 @@ $(document).ready(function () {
             },
             { text: `Export to :`, className: "btn disabled text-dark bg-white" },
             { text: `<i class="far fa-copy fs-2"></i>`, extend: 'copy', className: "btn btn-light-warning" },
-            { text: `<i class="far fa-file-excel fs-2"></i>`, extend: 'excelHtml5', title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"), className: "btn btn-light-success" }
+            { text: `<i class="far fa-file-excel fs-2"></i>`, extend: 'excelHtml5', title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"), className: "btn btn-light-success" },
+            { text: `-`, className: "btn disabled text-dark bg-white" },
+            {
+                text: `<i class="fas fa-calendar-alt"></i> Bulk Payment Plan`,
+                className: "btn btn-info",
+                action: function (e, dt, node, config) {
+                    if (selected_cbr_history.length === 0) {
+                        return Swal.fire('Oops!', 'Please select CBR from History first!', 'warning');
+                    }
+
+                    // Isi jumlah item yang dipilih ke modal history
+                    $('#bulk-count-history').text(selected_cbr_history.length);
+                    $('#modal-bulk-payment-plan-history').modal('show');
+                }
+            },
             ],
-        }).buttons().container().appendTo('#TableDataHistory_wrapper .col-md-6:eq(0)'); // Poin 5: Tambahkan #
+        }).buttons().container().appendTo('#TableDataHistory_wrapper .col-md-6:eq(0)');
+
+        // Pasang listener untuk checkbox di TableDataHistory
+        $('#TableDataHistory tbody').on('click', 'input[name="CBReq_No_History[]"]', function () {
+            var id = $(this).val();
+            var isChecked = $(this).is(':checked');
+
+            // Ambil data dari atribut data- yang ada di render
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            if (isChecked) {
+                if (!selected_cbr_history.includes(id)) {
+                    selected_cbr_history.push(id);
+                    selected_details_history[id] = { curr: curr, amount: amount };
+                }
+            } else {
+                selected_cbr_history = selected_cbr_history.filter(item => item !== id);
+                delete selected_details_history[id];
+            }
+        });
+
+        $('#btn-save-bulk-date-history').on('click', function () {
+            var newDate = $('#bulk_payment_date_history').val();
+
+            if (selected_cbr_history.length === 0) {
+                return Swal.fire('Error', 'Please select CBR first!', 'error');
+            }
+
+            if (!newDate) {
+                return Swal.fire('Error', 'Please select a date!', 'error');
+            }
+
+            $.ajax({
+                url: $('meta[name="base_url"]').attr('content') + "MyCbr/bulk_update_payment_date",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    cbr_list: selected_cbr_history, // Langsung pakai array history
+                    new_date: newDate
+                },
+                beforeSend: function () {
+                    Swal.fire({ title: 'Updating History...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                },
+                success: function (res) {
+                    Swal.close();
+                    if (res.code == 200) {
+                        Toast.fire({ icon: 'success', title: res.msg });
+
+                        // Clear Form & Modal
+                        $('#bulk_payment_date_history').val('');
+                        $('#modal-bulk-payment-plan-history').modal('hide');
+
+                        // Reset State Khusus History
+                        selected_cbr_history = [];
+                        selected_details_history = {};
+
+                        // Reload hanya Table History
+                        $('#TableDataHistory').DataTable().ajax.reload(null, false);
+
+                        // Uncheck header jika ada
+                        $('#CheckAllHistory').prop('checked', false);
+                    } else {
+                        Swal.fire('Failed', res.msg, 'error');
+                    }
+                }
+            });
+        });
 
         // Warna yang akan digunakan saat row dipilih (DataTables default biru)
         const SELECTED_BG = '#007bff';

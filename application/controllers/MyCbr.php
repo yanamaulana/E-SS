@@ -34,6 +34,34 @@ class MyCbr extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    public function bulk_update_payment_date()
+    {
+        $cbr_list = $this->input->post('cbr_list'); // Ini berupa array
+        $new_date = $this->input->post('new_date');
+
+        if (empty($cbr_list) || empty($new_date)) {
+            echo json_encode(['code' => 500, 'msg' => 'Invalid Data']);
+            return;
+        }
+
+        $this->db->trans_start();
+
+        // Update sekaligus menggunakan where_in
+        $this->db->where_in('CBReq_No', $cbr_list);
+        $this->db->update('TaccCashBookReq_Header', [
+            'Payment_Plan_Date' => $new_date,
+            'Last_Update'       => date('Y-m-d H:i:s')
+        ]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            echo json_encode(['code' => 500, 'msg' => 'Database Error']);
+        } else {
+            echo json_encode(['code' => 200, 'msg' => count($cbr_list) . ' CBR updated successfully!']);
+        }
+    }
+
     public function approve_submission()
     {
         $Cbrs = $this->input->post('CBReq_No');
@@ -256,23 +284,24 @@ class MyCbr extends CI_Controller
             0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
-            3 => 'Document_Date',
-            4 => 'TAccCashBookReq_Header.Currency_Id',
-            5 => 'Amount',
-            6 => 'Document_Number',
-            7 => 'Descript',
-            8 => 'baseamount',
-            9 => 'curr_rate',
-            10 => 'Approval_Status',
-            11 => 'CBReq_Status',
-            12 => 'Paid_Status',
-            13 => 'Creation_DateTime',
-            14 => 'Created_By',
-            15 => 'First_Name',
-            16 => 'Last_Update',
-            17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID ',
-            19 => 'TAccCashBookReq_Header.Approve_Date',
+            3 => 'TAccCashBookReq_Header.Payment_Plan_Date',
+            4 => 'Document_Date',
+            5 => 'TAccCashBookReq_Header.Currency_Id',
+            6 => 'Amount',
+            7 => 'Document_Number',
+            8 => 'Descript',
+            9 => 'baseamount',
+            10 => 'curr_rate',
+            11 => 'Approval_Status',
+            12 => 'CBReq_Status',
+            13 => 'Paid_Status',
+            14 => 'Creation_DateTime',
+            15 => 'Created_By',
+            16 => 'First_Name',
+            17 => 'Last_Update',
+            18 => 'Update_By',
+            19 => 'TAccCashBookReq_Header.Acc_ID ',
+            20 => 'TAccCashBookReq_Header.Approve_Date',
 
         );
         $order  = $columns[$requestData['order']['0']['column']];
@@ -284,7 +313,7 @@ class MyCbr extends CI_Controller
 
         $sql = "Select  distinct TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.isClose, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
         Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_At,
-        Ttrx_Cbr_Approval.IsAppvAdditional,Ttrx_Cbr_Approval.Status_AppvAdditional,Ttrx_Cbr_Approval.AppvAdditional_By,Ttrx_Cbr_Approval.AppvAdditional_Name,Ttrx_Cbr_Approval.AppvAdditional_At, IsAppvFinancePerson,Status_AppvFinancePerson,AppvFinancePerson_By,AppvFinancePerson_Name,AppvFinancePerson_At,
+        Ttrx_Cbr_Approval.IsAppvAdditional,Ttrx_Cbr_Approval.Status_AppvAdditional,Ttrx_Cbr_Approval.AppvAdditional_By,Ttrx_Cbr_Approval.AppvAdditional_Name,Ttrx_Cbr_Approval.AppvAdditional_At, IsAppvFinancePerson,Status_AppvFinancePerson,AppvFinancePerson_By,AppvFinancePerson_Name,AppvFinancePerson_At, TAccCashBookReq_Header.Payment_Plan_Date,
         Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision, Ttrx_Cbr_Approval.Legitimate
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
@@ -308,6 +337,7 @@ class MyCbr extends CI_Controller
             $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
         }
@@ -322,6 +352,7 @@ class MyCbr extends CI_Controller
             $nestedData['isClose'] = $row['isClose'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
+            $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];
             $nestedData['Descript'] = $row['Descript'];
             $nestedData['Document_Number'] = $row['Document_Number'];

@@ -80,6 +80,32 @@
                                     </table>
                                 </form>
                             </div>
+                            <div class="modal fade" tabindex="-1" id="modal-bulk-payment-plan">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Bulk Update Payment Plan Date</h5>
+                                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
+                                                <i class="fas fa-times"></i>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="alert alert-light-primary d-flex align-items-center p-5 mb-5">
+                                                <i class="fas fa-info-circle fs-1 text-primary me-3"></i>
+                                                <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count">0</b> dokumen yang dipilih.</span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold required">New Payment Plan Date</label>
+                                                <input type="text" id="bulk_payment_date" class="form-control date-picker" placeholder="Select Date">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-primary" id="btn-save-bulk-date">Update Now</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="tab-pane fade" id="kt_tab_pane_5" role="tabpanel">
                             <div class="pb-5 table-responsive">
@@ -168,6 +194,7 @@
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Type</th>
+                                            <th class="text-center text-white">Payment Date</th>
                                             <th class="text-center text-white">Doc Date</th>
                                             <th class="text-center text-white">Submit <i class="far fa-calendar-alt text-white"></i></th>
                                             <th class="text-center text-white">Curr</th>
@@ -203,6 +230,32 @@
                                     <tbody class="text-gray-600 fw-bold">
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="modal fade" tabindex="-1" id="modal-bulk-payment-plan-history">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title text-danger"><i class="fas fa-history text-danger me-2"></i> Bulk Update History Payment Date</h5>
+                                            <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
+                                                <i class="fas fa-times"></i>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="alert alert-light-danger d-flex align-items-center p-5 mb-5 border border-danger">
+                                                <i class="fas fa-exclamation-triangle fs-1 text-danger me-3"></i>
+                                                <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count-history">0</b> data di <b>History</b>.</span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold required">New Payment Plan Date</label>
+                                                <input type="text" id="bulk_payment_date_history" class="form-control date-picker" placeholder="Select Date">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="button" class="btn btn-danger" id="btn-save-bulk-date-history">Update History Data</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
