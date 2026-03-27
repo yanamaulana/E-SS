@@ -7,7 +7,7 @@
                     <ul class="nav nav-tabs fs-6 border-0">
                         <li class="nav-item">
                             <a class="nav-link mr-5 active btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_4">
-                                <h5 class="font-weight-bold" id="table-title-main">Sales Order.</h5>
+                                <h5 class="font-weight-bold" id="table-title-main">User Access Log.</h5>
                             </a>
                         </li>
                         <!-- <li class="nav-item mr-5">
@@ -46,21 +46,12 @@
                                 <table id="TableData" class="display compact table-bordered table-striped table-hover table-sm align-middle gy-5 gs-5">
                                     <thead style="background-color: #3B6D8C;">
                                         <tr class="text-start text-white fw-bolder text-uppercase">
-                                            <th class="text-center text-white">
-                                                <div class="custom-checkbox" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="Select ALL">
-                                                    <input class="form-check-input" type="checkbox" id="CheckAll" value="checkall" onclick="check_uncheck_checkbox(this.checked);">
-                                                    <label for="CheckAll" class="custom-control-label"></label>
-                                                </div>
-                                            </th>
-                                            <th class="text-center text-white">SO Number</th>
-                                            <th class="text-center text-white">Customer</th>
-                                            <th class="text-center text-white">Cust PO No</th>
-                                            <th class="text-center text-white">SO Date</th>
-                                            <th class="text-center text-white">Doc Status</th>
-                                            <th class="text-center text-white">SO Status</th>
-                                            <th class="text-center text-white">Approval</th>
-                                            <th class="text-center text-white">Invoiced</th>
-                                            <th class="text-center text-white">Is Active</th>
+                                            <th class="text-center text-white">#</th>
+                                            <th class="text-center text-white">User Name</th>
+                                            <th class="text-center text-white">Full Name</th>
+                                            <th class="text-center text-white">IP Address</th>
+                                            <th class="text-center text-white">Log Time</th>
+                                            <th class="text-center text-white">Log Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600 fw-bold">

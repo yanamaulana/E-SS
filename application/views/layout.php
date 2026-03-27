@@ -504,6 +504,9 @@
                                             </div>
                                             <div class="separator my-2"></div>
                                             <div class="menu-item px-5">
+                                                <a href="<?= base_url('Dashboard/Access_log') ?>" class="menu-link px-5">Access Log</a>
+                                            </div>
+                                            <div class="menu-item px-5">
                                                 <a href="<?= base_url('Auth/logout') ?>" class="menu-link px-5">Sign Out</a>
                                             </div>
                                             <!-- <div class="separator my-2"></div> -->

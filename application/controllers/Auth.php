@@ -125,6 +125,14 @@ class Auth extends CI_Controller
                 'sys_sba_department'           => $employee['Division_Name'],
                 'sys_sba_PayemntCheckPermission' => $PayemntCheckPermission,
             );
+
+            $this->db->insert('EsbaUserLog', [
+                'User_Name' => $user['User_Name'],
+                'Remote_IP' => $this->input->ip_address(),
+                'Log_Date' => date('Y-m-d H:i:s'),
+                'Log_Action' => 'Login'
+            ]);
+
             $this->session->set_userdata($session_data);
             $response = [
                 "code" => 200,
@@ -158,6 +166,14 @@ class Auth extends CI_Controller
         }
     }
 
+    // EsbaUserLog (
+    //     UserLog_ID int IDENTITY(1,1) NOT NULL,
+    //     User_Name int NOT NULL,
+    //     Remote_IP varchar(100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+    //     Log_Date datetime NULL,
+    //     Log_Action varchar(50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+    // );
+
     private function get_arr_dept($div_personal, $username)
     {
         $depts = [];
@@ -185,6 +201,13 @@ class Auth extends CI_Controller
 
     public function logout()
     {
+        $this->db->insert('EsbaUserLog', [
+            'User_Name' => $this->session->userdata('sys_sba_username'),
+            'Remote_IP' => $this->input->ip_address(),
+            'Log_Date' => date('Y-m-d H:i:s'),
+            'Log_Action' => 'Logout'
+        ]);
+
         $this->output->delete_cache();
         $array_items = array(
             'sys_sba_nama',

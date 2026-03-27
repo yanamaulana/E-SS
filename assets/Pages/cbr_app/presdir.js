@@ -26,8 +26,8 @@ $(document).ready(function () {
         orderCellsTop: true,
         select: false,
         "lengthMenu": [
-            [15, 30, 90, 1000],
-            [15, 30, 90, 1000]
+            [1000, 15, 30, 100, 10000],
+            [1000, 15, 30, 100, 10000]
         ],
         ajax: {
             url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_To_Approve",
@@ -127,6 +127,7 @@ $(document).ready(function () {
 
             // Update status tombol "Check All" di header
             updateCheckAllStatus();
+            renderSummaryHTML();
         },
         "buttons": [{
             text: `<i class="fas fa-check"></i> Approve`,
@@ -251,34 +252,89 @@ $(document).ready(function () {
         renderSummaryHTML();
     }
 
-    function renderSummaryHTML() {
-        if (selected_cbr.length === 0) {
-            $('#summary-container').addClass('d-none');
-            $('#summary-text').html('');
-            return;
-        }
+    // function renderSummaryHTML() {
+    //     if (selected_cbr.length === 0) {
+    //         $('#summary-container').addClass('d-none');
+    //         $('#summary-text').html('');
+    //         return;
+    //     }
 
-        // Kalkulasi Total per Currency
-        var sums = {};
+    //     // Kalkulasi Total per Currency
+    //     var sums = {};
+    //     for (var key in selected_details) {
+    //         var item = selected_details[key];
+    //         var curr = item.curr;
+    //         var amount = item.amount;
+
+    //         if (!sums[curr]) sums[curr] = 0;
+    //         sums[curr] += amount;
+    //     }
+
+    //     // Generate HTML Output
+    //     var htmlParts = [];
+    //     for (var curr in sums) {
+    //         // Format angka (ribuan separator)
+    //         var formattedAmount = sums[curr].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    //         htmlParts.push(`<span class="badge badge-light-primary fs-6 me-2 mb-1 border border-primary text-primary">${curr} : ${formattedAmount}</span>`);
+    //     }
+
+    //     $('#summary-text').html(htmlParts.join(' '));
+    //     $('#summary-container').removeClass('d-none');
+    // }
+
+    function renderSummaryHTML() {
+        // --- 1. Hitung Total ALL (Semua baris yang tampil di tabel saat ini) ---
+        var sumsAll = {};
+        // Kita ambil semua data dari instance DataTable yang sedang tampil
+        var allData = $("#TableData").DataTable().rows().data();
+
+        allData.each(function (row) {
+            var curr = row.Currency_Id;
+            var amount = parseFloat(row.Amount) || 0;
+
+            if (!sumsAll[curr]) sumsAll[curr] = 0;
+            sumsAll[curr] += amount;
+        });
+
+        // --- 2. Hitung Total SELECTED (Dari array selected_details) ---
+        var sumsSelected = {};
         for (var key in selected_details) {
             var item = selected_details[key];
-            var curr = item.curr;
-            var amount = item.amount;
-
-            if (!sums[curr]) sums[curr] = 0;
-            sums[curr] += amount;
+            if (!sumsSelected[item.curr]) sumsSelected[item.curr] = 0;
+            sumsSelected[item.curr] += item.amount;
         }
 
-        // Generate HTML Output
+        // --- 3. Generate Tampilan Perbandingan ---
         var htmlParts = [];
-        for (var curr in sums) {
-            // Format angka (ribuan separator)
-            var formattedAmount = sums[curr].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            htmlParts.push(`<span class="badge badge-light-primary fs-6 me-2 mb-1 border border-primary text-primary">${curr} : ${formattedAmount}</span>`);
-        }
 
-        $('#summary-text').html(htmlParts.join(' '));
-        $('#summary-container').removeClass('d-none');
+        // Kita looping berdasarkan Currency yang ditemukan di tabel
+        Object.keys(sumsAll).forEach(function (curr) {
+            var totalAll = sumsAll[curr];
+            var totalSelected = sumsSelected[curr] || 0;
+
+            var fmtAll = totalAll.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            var fmtSelected = totalSelected.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+            // Tampilan Card Kecil
+            htmlParts.push(`
+            <div class="badge badge-light border border-secondary me-2 mb-2 p-3 text-start shadow-sm">
+                <div class="fw-bolder text-dark fs-6 border-bottom mb-1">${curr}</div>
+                <div class="text-primary">
+                    <i class="fas fa-check-square me-1"></i> Selected: <b>${fmtSelected}</b>
+                </div>
+                <div class="text-dark fs-8 mt-3">
+                    <i class="fas fa-list me-1"></i> Outstanding Balance: ${fmtAll}
+                </div>
+            </div>
+        `);
+        });
+
+        if (htmlParts.length > 0) {
+            $('#summary-text').html(htmlParts.join(''));
+            $('#summary-container').removeClass('d-none');
+        } else {
+            $('#summary-container').addClass('d-none');
+        }
     }
 
     function updateCheckAllStatus() {

@@ -28,6 +28,16 @@ class SalesOrder extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    public function add()
+    {
+        $this->data['page_title'] = "Add Sales Order";
+        $this->data['page_content'] = "SalesOrder/add";
+
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
+
+        $this->load->view($this->layout, $this->data);
+    }
+
     public function DT_list_sales_order()
     {
         $requestData = $_REQUEST;
