@@ -1,85 +1,424 @@
-<div class="row">
-    <div class="col-md-6">
+<div class="card card-flush overflow-hidden h-xl-100">
+    <div class="container-fluid py-3">
         <div class="row">
-            <div class="col-md-12">
-                <label for="SO_NUMBER">SO Number : </label>
-                <input type="text" id="SO_NUMBER" name="SO_NUMBER">
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label for="username">SO Tax Type :</label>
-                <td align="Left">
-                    <input type="Radio" name="txtSOtype" id="txtSOtype" value="1" onclick="SO_Switcher(this);" checked=""> Normal &nbsp;
-                    <input type="Radio" name="txtSOtype" id="txtSOtype" value="0" onclick="SO_Switcher(this);"> VAT Include
-                </td>
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label for="username">Project Name :</label>
-                <input type="text" id="selProject" name="selProject">
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label for="username">Allocate To :</label>
-                <td>
-                    <input type="radio" name="rdoAllocate" value="0" onclick="changeType(this);">Project Component
-                    &nbsp;&nbsp;
-                    <input type="radio" name="rdoAllocate" value="1" onclick="changeType(this);" checked="">Cost Center
-                </td>
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label for="username">Document Source :</label>
-                <td>
-                    <input type="Radio" name="rbTypedoc" value="0" checked="" onclick="cleardata();document.frmNew.submit();"> Quotation
-                    <input type="Radio" name="rbTypedoc" value="2" onclick="cleardata();document.frmNew.submit();"> Proforma Invoice
-                    <input type="Radio" name="rbTypedoc" value="3" onclick="cleardata();document.frmNew.submit();"> Sales Contract
-                    <br>
-                    <br>
-                    <div id="DivQuotation" style="display: ;">
-                        <input name="selQuotation" id="selQuotation" type="text" onkeyup="switched('Quo',this)" size="25" maxlength="25" onclick="switched('Quo',this)" onkeypress="return onEnter(event);" value="">
-                        <a style="cursor:pointer" onclick="setObjField('selQuotation','divAjaxLookupQuo'); onEvent();" title="GO">
-                            <img src="/samickerp/erp/images/quicksearch.jpg" alt="Search" border="0" width="18" height="18">
-                        </a>
-                        <br>
-                        <div id="divAjaxLookupQuo" style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto">
+            <div class="col-md-6">
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="SO_NUMBER">SO Number :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSOtype">SO Tax Type :</label>
+                    <div class="col-sm-8 pt-1">
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="txtSOtype" id="taxNormal" value="1" class="custom-control-input" checked="">
+                            <label class="custom-control-label small" for="taxNormal">Normal</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="txtSOtype" id="taxVAT" value="0" class="custom-control-input">
+                            <label class="custom-control-label small" for="taxVAT">VAT Include</label>
                         </div>
                     </div>
-                </td>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="selProject">Project Name :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="selProject" name="selProject" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label col-form-label-sm font-weight-bold">Allocate To :</label>
+                    <div class="col-sm-8 pt-1">
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="rdoAllocate" id="rdoProj" value="0" class="custom-control-input"
+                                <?= (isset($rdoAllocate) && $rdoAllocate == 0) ? 'checked' : '' ?>>
+                            <label class="custom-control-label small" for="rdoProj">Project Component</label>
+                        </div>
+
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="rdoAllocate" id="rdoCC" value="1" class="custom-control-input"
+                                <?= (!isset($rdoAllocate) || $rdoAllocate == 1) ? 'checked' : 'checked' ?>>
+                            <label class="custom-control-label small" for="rdoCC">Cost Center</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-4 col-form-label col-form-label-sm font-weight-bold">Document Source :</label>
+                    <div class="col-sm-8 pt-1">
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="rbTypedoc" id="docQuo" value="0" class="custom-control-input" checked>
+                            <label class="custom-control-label small" for="docQuo">Quotation</label>
+                        </div>
+
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="rbTypedoc" id="docPI" value="2" class="custom-control-input" disabled>
+                            <label class="custom-control-label small text-muted" for="docPI">Proforma Invoice</label>
+                        </div>
+
+                        <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                            <input type="radio" name="rbTypedoc" id="docSC" value="3" class="custom-control-input" disabled>
+                            <label class="custom-control-label small text-muted" for="docSC">Sales Contract</label>
+                        </div>
+
+                        <div class="mt-2">
+                            <div id="DivQuotation" class="mb-2">
+                                <input type="text" name="selQuotation" id="selQuotation"
+                                    class="form-control form-control-sm"
+                                    value="<?= $selQuotation ?>"
+                                    placeholder="Input Quotation Number...">
+
+                                <?php if (!empty($SourceDate)): ?>
+                                    <div class="mt-1 small text-danger font-italic">
+                                        [Doc Source Date : <?= $SourceDate ?>]
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div id="DivProforma" class="mb-2" style="display: none;">
+                                <input type="text" name="selProforma" class="form-control form-control-sm bg-light"
+                                    placeholder="Proforma Number (Disabled)" disabled>
+                            </div>
+
+                            <div id="DivSalesContract" style="display: none;">
+                                <input type="text" name="ddlSalesContract" class="form-control form-control-sm bg-light"
+                                    placeholder="Contract Number (Disabled)" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustName">Customer * :</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm">
+                        <input type="hidden" name="txtCustCode" id="txtCustCode" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustAddress">Address :</label>
+                    <div class="col-sm-8">
+                        <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPName">Contact Person :</label>
+                    <div class="col-sm-8">
+                        <input type="hidden" name="txtCPCode" id="txtCPCode" value="8220">
+                        <input type="text" name="txtCPName" id="txtCPName" class="form-control form-control-sm" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPAddress">Contact Address :</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSPName">Sales Person * :</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="txtSPName" class="form-control form-control-sm bg-light" value="" readonly="">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtMemo">Remarks :</label>
+                    <div class="col-sm-8">
+                        <textarea name="txtMemo" class="form-control form-control-sm" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm">Bonded Area :</label>
+                    <div class="col-sm-8 pt-1">
+                        <div class="custom-control custom-checkbox custom-control-sm">
+                            <input type="checkbox" name="chkKawasan" id="chkKawasan" value="1" class="custom-control-input">
+                            <label class="custom-control-label small" for="chkKawasan">Yes</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="selSNGroup">SN Account :</label>
+                    <div class="col-sm-8">
+                        <select name="selSNGroup" class="form-control form-control-sm">
+
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="selSIGroup">SI Account :</label>
+                    <div class="col-sm-8">
+                        <select name="selSIGroup" class="form-control form-control-sm">
+
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtRevisionReason">Revision Reason :</label>
+                    <div class="col-sm-8">
+                        <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 border-left">
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSODate">SO Date :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtInvDueDate">SO Tax Type :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPONum">Cust PO Num :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPODate">Cust PO Date :</label>
+                    <div class="col-sm-8">
+                        <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm">Prod Month/Year :</label>
+                    <div class="col-sm-8">
+                        <div class="row no-gutters">
+                            <div class="col-6 pr-1">
+                                <select name="txtProMonth" id="txtProMonth" class="form-control form-control-sm">
+                                    <option value="" selected="">-- Month --</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="col-6 pl-1">
+                                <select name="txtProYear" id="txtProYear" class="form-control form-control-sm">
+                                    <option value="">-- Year --</option>
+                                    <?php
+                                    $startYear   = 2024; // Tahun awal sesuai request Anda
+                                    $currentYear = (int)date('Y'); // Mengambil tahun sekarang (2026)
+                                    $endYear     = $currentYear + 2; // Tahun sekarang + 2 (2028)
+
+                                    // Ambil nilai tahun yang sudah terpilih (untuk mode Edit/Reload)
+                                    // Cek dari POST dulu, kalau tidak ada cek dari data Database ($qSales)
+                                    $savedYear = $this->input->post('txtProYear') ?? ($qSales->pro_year ?? "");
+
+                                    for ($y = $startYear; $y <= $endYear; $y++) :
+                                    ?>
+                                        <option value="<?= $y ?>" <?= ($savedYear == $y) ? 'selected' : '' ?>>
+                                            <?= $y ?>
+                                        </option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="selCurrency">SO Currency :</label>
+                    <div class="col-sm-8">
+                        <select name="selCurrency" id="selCurrency" class="form-control form-control-sm">
+                            <option value="AUD">AUD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="IDR" selected>IDR</option>
+                            <option value="JPY">JPY</option>
+                            <option value="KRW">KRW</option>
+                            <option value="SGD">SGD</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="selTaxCurrency">Tax Currency :</label>
+                    <div class="col-sm-8">
+                        <select name="selTaxCurrency" id="selTaxCurrency" class="form-control form-control-sm">
+                            <option value="IDR" selected="">IDR</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="BaseCurr">Base Currency :</label>
+                    <div class="col-sm-8">
+                        <select name="BaseCurr" id="BaseCurr" class="form-control form-control-sm">
+                            <option value="IDR" selected="">IDR</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTerms">Payment Schedule :</label>
+                    <div class="col-sm-8">
+                        <input type="hidden" name="txtTerms" value="0">
+                        <select name="cboTerms" id="cboTerms" class="form-control form-control-sm" onchange="lpage();">
+                            <option value="NONE" selected="">NONE - 1 monthly (cash)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTermsNew">Payment Terms :</label>
+                    <div class="col-sm-8">
+                        <input type="hidden" name="txtTermsNew">
+                        <select name="cboTermsNew" id="cboTermsNew" class="form-control form-control-sm" onchange="lpage();">
+                            <option value="" selected="">None - 1 month (default)</option>
+                            <option value="Term001">Cash - 30 days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtDeliveryTerms">Delivery Terms :</label>
+                    <div class="col-sm-8">
+                        <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <!-- <div class="card mb-3 border-secondary">
+                    <div class="card-header py-1 font-weight-bold small bg-light">Credit Info</div>
+                    <div class="card-body p-2" style="font-size: 0.8rem;">
+                        <input type="hidden" name="txtcreditlimit" value="0"><input type="hidden" name="baseCreditLimit" value="0">
+                        <input type="hidden" name="txtInvNotPaid" value="4848785.666879991"><input type="hidden" name="baseInvNotPaid" value="46703772557.118">
+                        <input type="hidden" name="txtSOApproved" value="55113214.79497244"><input type="hidden" name="baseSOApproved" value="530853542621.58">
+                        <input type="hidden" name="txtRemainingCredit" value="-59962000.46185243"><input type="hidden" name="baseRemainCredit" value="-577557315178.698">
+
+                        <div>Limit : <span id="idcreditLimit">(USD)</span> <span id="creditLimit">0</span></div>
+                        <div>Inv Not Paid : <span id="idInvNotPaid">(USD)</span> <span id="InvNotPaid">4.848.785,66</span></div>
+                        <div class="border-bottom pb-1">SO Approved : <span id="idSOApproved">(USD)</span> <span id="SOApproved">55.113.214,79</span></div>
+                        <div class="pt-1">
+                            Rem. Credit :
+                            <a href="javascript://" onclick="arrNewPop[arrNewPop.length]=PopWindow('/samickerp/...','Preview','800','600','...');" class="font-weight-bold text-danger">
+                                <span id="idRemainingCredit">(USD)</span> <span id="RemainingCredit">-59.962.000,46</span>
+                            </a>
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="cboPriceType">Price Type :</label>
+                    <div class="col-sm-8">
+                        <select name="cboPriceType" id="cboPriceType" class="form-control form-control-sm">
+                            <option value="FOB" selected="">Freight on Board</option>
+                            <option value="CIF">Cost Insurance Freight</option>
+                            <option value="CFR">Cost and Freight</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPiNumber">Pi Number * :</label>
+                    <div class="col-sm-8">
+                        <input name="txtPiNumber" class="form-control form-control-sm" value="">
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label for="Customer">Customer * : </label>
-                <input type="text" name="txtCustName" id="txtCustName" value="">
-                <!-- HIDDEN VALUE -->
-                <input type="hidden" name="txtCustCode" id="txtCustCode" value="">
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <fieldset class="border p-2">
+                    <legend class="w-auto px-2 font-weight-bold small text-uppercase">Currency Converter</legend>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless mb-0" id="tblCurrConverter">
+                        </table>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="col-md-6">
+                <fieldset class="border p-2">
+                    <legend class="w-auto px-2 font-weight-bold small text-uppercase">Tax Converter</legend>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless mb-0" id="tblTaxConverter">
+                        </table>
+                    </div>
+                </fieldset>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <td valign="top" nowrap="">Address</td>
-                <td valign="top">:</td>
-                <td id="AlamatCust">
-                    <input type="hidden" name="txtCustAddress" value="">
-                    <span id="CustAddress">
-                        42212 Remington Ave Temecula CA 92590
-                        USA
-                        Atten Dennis Zager
-                        Tel 4027707747
-                    </span>
-                </td>
+
+        <input type="hidden" name="txtCurr_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
+        <input type="hidden" name="txtTax_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
+        <div class="row mt-2">
+            <div class="col-12">
+                <button type="button" id="btnPickItem" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus-circle"></i> [+] Multiple Item
+                </button>
+
+                <button type="button" id="btnRemoveItem" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-minus-circle"></i> [-] Remove Item
+                </button>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <label>Contact Person : </label>
-                <input type="hidden" name="txtCPCode" value="8220">
-                <input type="text" name="txtCPName" value="Dennis Zager">
+
+        <input type="hidden" name="hdnLstItemID" id="hdnLstItemID" value="">
+        <div class="row mt-3">
+            <div class="col-12 border p-0 shadow-sm" style="height:300px; overflow:auto;">
+                <table class="table table-sm table-bordered table-hover mb-0 text-center" id="tbl_ID" style="font-size: 0.75rem;">
+                    <thead class="bg-light">
+                        <tr class="text-nowrap font-weight-bold">
+                            <th><input type="Checkbox" onclick="IsSelectAll(this)" name="chkAll"></th>
+                            <th>Item Code</th>
+                            <th>Description</th>
+                            <th>Notes</th>
+                            <th style="display:none">Dim</th>
+                            <th>Color</th>
+                            <th>Brand</th>
+                            <th>Type</th>
+                            <th>Qty</th>
+                            <th>Unit</th>
+                            <th>Qty 2</th>
+                            <th>Unit 2</th>
+                            <th style="display:none">Res Qty</th>
+                            <th style="display:none">Unit</th>
+                            <th>Unit Price <br><span id="idUnitPrice" class="badge badge-info small">Conv</span></th>
+                            <th>Disc Val</th>
+                            <th>Disc%</th>
+                            <th>Amount <br><span id="idAmount" class="badge badge-info small">Conv</span></th>
+                            <th>Tax 1</th>
+                            <th>Tax 2</th>
+                            <th colspan="2">Est. Date</th>
+                            <th>CC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>

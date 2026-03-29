@@ -32,10 +32,42 @@ class SalesOrder extends CI_Controller
     {
         $this->data['page_title'] = "Add Sales Order";
         $this->data['page_content'] = "SalesOrder/add";
+        $this->data['rdoAllocate'] = $this->input->post('rdoAllocate') ?? 1;
+        $this->data['rbTypedoc'] = $this->input->post('rbTypedoc') ?? 0;
+
+        // 2. Cukup tangkap nilai Quotation
+        $selQuotation = $this->input->post('selQuotation');
+        $this->data['selQuotation'] = $selQuotation;
+
+        // 3. Ambil Source Date HANYA untuk Quotation
+        $sourceDate = "";
+        if (!empty($selQuotation)) {
+            // Ambil data dari tabel Quotation
+            $q = $this->db->get_where('TACCQUOTATION_HEADER', [
+                'quotation_number' => $selQuotation
+            ])->row();
+
+            // Format tanggal jika data ditemukan
+            $sourceDate = $q ? date('d M Y', strtotime($q->Quotation_Date)) : "";
+        }
+
+        $this->data['SourceDate'] = $sourceDate;
+
+        // Step Proforma (Step 4) dibuang karena tidak akan pernah terpakai
+        $this->data['selProforma'] = "";
+        $this->data['ddlSalesContract'] = "";
+        $this->data['txtExpDelDate'] = "";
+
 
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
 
         $this->load->view($this->layout, $this->data);
+    }
+
+    public function pickitem()
+    {
+        // Tidak ada olah data di sini, langsung lempar ke view
+        $this->load->view('SalesOrder/pickitem_view');
     }
 
     public function DT_list_sales_order()
@@ -117,5 +149,50 @@ class SalesOrder extends CI_Controller
         );
         //----------------------------------------------------------------------------------
         echo json_encode($json_data);
+    }
+
+    public function get_currency_rate()
+    {
+        // Ambil data dari input AJAX
+        $selectedCurr = $this->input->get('curr'); // Misal: USD
+        $baseCurrency = $this->input->cookie('currencyid') ?? 'IDR';
+        $companyId    = 2; // Sesuai data uat Anda
+
+        if ($selectedCurr == $baseCurrency) {
+            echo "";
+            return;
+        }
+
+        // Query MSSQL 2014
+        // Kita ambil 'scale' sebagai rate-nya
+        $this->db->select('scale');
+        $this->db->from('TCurrencyConverter');
+        $this->db->where('currency_id_1', $selectedCurr);
+        $this->db->where('currency_id_2', $baseCurrency);
+        $this->db->where('status', 1);
+        $this->db->where('company_id', $companyId);
+
+        // Logic Tanggal: Hari ini harus di antara start dan end date
+        $today = date('Y-m-d H:i:s');
+        $this->db->where("'$today' BETWEEN start_date AND end_date");
+
+        // Ambil yang paling update
+        $this->db->order_by('last_update', 'DESC');
+        $this->db->limit(1);
+
+        $query = $this->db->get();
+        $data  = $query->row();
+
+        if ($data) {
+            $rate = $data->scale;
+
+            // Format string untuk add.js Anda: 
+            // Type|Currency|Rate;Type|Currency|Rate
+            // Biasanya Rate Tax dan Amount sama, jika berbeda silakan sesuaikan logic-nya
+            echo "Amount|$selectedCurr|$rate;Tax|$selectedCurr|$rate";
+        } else {
+            // Jika tidak ada rate yang ditemukan
+            echo "";
+        }
     }
 }

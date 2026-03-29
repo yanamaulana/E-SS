@@ -13,6 +13,7 @@ class Auth extends CI_Controller
     {
         parent::__construct();
         $this->load->model('m_helper', 'help');
+        $this->load->helper('cookie');
         $this->HR = $this->load->database('HR', TRUE);
     }
 
@@ -134,6 +135,14 @@ class Auth extends CI_Controller
             ]);
 
             $this->session->set_userdata($session_data);
+            set_cookie([
+                'name'   => 'currencyid',
+                'value'  => 'IDR',
+                'expire' => '86400 * 30', // Berlaku 30 hari
+                'path'   => '/',
+                'secure' => FALSE,     // Set TRUE jika web Anda sudah HTTPS
+                'httponly' => FALSE    // Set FALSE agar bisa dibaca oleh JavaScript (jika butuh)
+            ]);
             $response = [
                 "code" => 200,
                 "msg" => "Successfully login into " . $this->config->item('init_app_name') . " !"
@@ -208,6 +217,7 @@ class Auth extends CI_Controller
             'Log_Action' => 'Logout'
         ]);
 
+        delete_cookie('currencyid');
         $this->output->delete_cache();
         $array_items = array(
             'sys_sba_nama',
