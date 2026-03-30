@@ -217,40 +217,70 @@ $(document).ready(function () {
 
 });
 
-function getItem(meth) {
-    // 1. Ambil referensi window popup yang sedang terbuka
-    // Kita cari checkbox yang dicentang di window popup tersebut
-    var popup = window.frmSearch; // atau sesuaikan jika menggunakan variabel lain
+function getItem(meth, custData) {
+    // 1. UPDATE HEADER SO & ACCOUNT GROUPS
+    if (custData) {
+        // Header Customer (Seperti sebelumnya)
+        $('#txtCustName').val(custData.Account_Name);
+        $('#txtCustCode').val(custData.Account_ID);
+        $('#txtCustAddress').val(custData.Addr);
+        $('input[name="txtSPName"]').val(custData.salesname);
+        $('#selCurrency').val(custData.Account_CurrencyID).trigger('change');
+        $('#chkKawasan').prop('checked', custData.kawasanberikat == 1);
 
-    // Looping setiap checkbox yang dicentang di popup
-    $(window.pickItemWindow.document).find('input[name="chkItem"]:checked').each(function () {
+        var accountText = custData.Account_Name;
+        var singleOption = `<option value="${custData.Account_ID}" selected>${accountText}</option>`;
+
+        // Langsung masukkan ke dropdown SN dan SI
+        $('select[name="selSNGroup"]').html(singleOption);
+        $('select[name="selSIGroup"]').html(singleOption);
+
+        // ISI DATA CONTACT PERSON
+        if ($('#txtCPName').length) {
+            $('#txtCPName').val(custData.cpName);
+        }
+        if ($('#txtCPCode').length) {
+            $('#txtCPCode').val(custData.cpCode);
+        }
+        if ($('input[name="txtCPAddress"]').length) {
+            $('input[name="txtCPAddress"]').val(custData.cpAddr);
+        }
+
+        // Mapping NPWP (NPWP yang tadi)
+        if ($('#txtnpwp').length) $('#txtnpwp').val(custData.taxNumber);
+        if ($('#CPTaxFileNumber').length) $('#CPTaxFileNumber').text(custData.taxNumber || '-');
+    }
+
+
+    // 2. PROSES ITEM DETAIL (Tetap sama seperti sebelumnya)
+    var popupWindow = window.pickItemWindow;
+    if (!popupWindow) return;
+
+    $(popupWindow.document).find('input[name="chkItem"]:checked').each(function () {
         var itemCode = $(this).val();
-        var row = $(this).closest('tr'); // Ambil baris TR di popup
+        var row = $(this).closest('tr');
 
-        // Ambil data dari kolom-kolom di popup
-        var itemName = row.find('td:eq(3)').text();
-        var color = row.find('td:eq(4)').text();
-        var brand = row.find('td:eq(5)').text();
-        var size = row.find('td:eq(6)').text();
-        var type = row.find('td:eq(7)').text();
+        var itemName = row.find('td:eq(3)').text().trim();
+        var color = row.find('td:eq(4)').text().trim();
+        var brand = row.find('td:eq(5)').text().trim();
+        var size = row.find('td:eq(6)').text().trim();
+        var type = row.find('td:eq(7)').text().trim();
 
-        // 2. Cek apakah item sudah ada di tabel utama agar tidak double
         var isExist = false;
         $('#tbl_ID tbody tr').each(function () {
-            if ($(this).find('td:eq(1)').text() == itemCode) {
+            if ($(this).find('td:eq(1)').text().trim() == itemCode) {
                 isExist = true;
             }
         });
 
         if (!isExist) {
-            // 3. Masukkan ke tabel utama (#tbl_ID)
             var newRow = `
                 <tr class="text-nowrap">
                     <td><input type="checkbox" name="chk_item[]"></td>
                     <td>${itemCode}</td>
                     <td>${itemName}</td>
                     <td><input type="text" name="notes[]" class="form-control form-control-sm"></td>
-                    <td style="display:none"></td>
+                    <td style="display:none">${size}</td>
                     <td>${color}</td>
                     <td>${brand}</td>
                     <td>${type}</td>
@@ -266,13 +296,24 @@ function getItem(meth) {
                     <td class="text-right">0</td>
                     <td><input type="text" name="tax1[]" class="form-control form-control-sm" value=""></td>
                     <td><input type="text" name="tax2[]" class="form-control form-control-sm" value=""></td>
-                    <td colspan="2"><input type="date" name="est_date[]" class="form-control form-control-sm"></td>
+                    <td colspan="2"><input type="date" name="est_date[]" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>"></td>
                     <td><input type="text" name="cc[]" class="form-control form-control-sm"></td>
                 </tr>
             `;
             $('#tbl_ID tbody').append(newRow);
         }
     });
+
+    if (typeof lpage === "function") {
+        lpage();
+    }
+}
+
+// Tambahkan ini di tag <script> Main Page Mas Yana
+function lpage() {
+    console.log("Kalkulasi lpage dijalankan...");
+    // Di sini nantinya Mas Yana isi logic untuk hitung Total, Grand Total, atau Pajak
+    // Untuk sementara kita biarkan kosong agar tidak error
 }
 
 // Tambahan: Fungsi saat Mas buka popup

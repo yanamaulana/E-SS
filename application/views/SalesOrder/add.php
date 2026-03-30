@@ -108,6 +108,14 @@
                 </div>
 
                 <div class="form-group row mt-2">
+                    <label class="col-sm-4 col-form-label col-form-label-sm">Tax File Number :</label>
+                    <div class="col-sm-8 pt-2">
+                        <input type="hidden" name="txtnpwp" id="txtnpwp" value="">
+                        <span id="CPTaxFileNumber" class="fw-bold text-dark" style="font-size: 0.85rem;">-</span>
+                    </div>
+                </div>
+
+                <div class="form-group row mt-2">
                     <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPName">Contact Person :</label>
                     <div class="col-sm-8">
                         <input type="hidden" name="txtCPCode" id="txtCPCode" value="8220">
