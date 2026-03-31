@@ -195,4 +195,30 @@ class SalesOrder extends CI_Controller
             echo "";
         }
     }
+
+    public function get_tax_list()
+    {
+        $sql = "SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
+            FROM TaccTax 
+            ORDER BY Tax_Name";
+        $data = $this->db->query($sql)->result();
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
+    }
+
+    public function get_cc_list()
+    {
+        $companyID = 2; // Sesuai query Mas Yana
+        $sql = "SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
+            FROM TAccCostCenter 
+            WHERE Company_ID = $companyID 
+            AND CC_Type = 'CC'
+            ORDER BY CostCenter_Name_en ASC";
+
+        $data = $this->db->query($sql)->result();
+        return $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
+    }
 }

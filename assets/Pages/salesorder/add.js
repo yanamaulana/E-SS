@@ -14,10 +14,6 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
-
-
-
-
     // Inisialisasi label saat halaman pertama kali load (setelah reload submit)
     var currentType = $('input[name="rdoAllocate"]:checked').val();
     updateAllocateLabel(currentType);
@@ -161,8 +157,8 @@ $(document).ready(function () {
         // selCatType=FG&menu=sales&source=SO&selRFQ=&sumber=sales&selCurrency=IDR&date=03/29/2026&cboCP=&cboCustomer=
 
         // Pengaturan Ukuran Window (Sesuai aslinya 500x500)
-        const w = 500;
-        const h = 500;
+        const w = 720;
+        const h = 720;
         const left = (screen.width / 2) - (w / 2);
         const top = (screen.height / 2) - (h / 2);
 
@@ -215,7 +211,148 @@ $(document).ready(function () {
         $('#frmNew').submit();
     };
 
+    // Trigger lpage saat kurs diubah
+    $(document).on('keyup change', 'input[name="txtCurr_USD"], input[name="txtTax_USD"]', function () {
+        lpage();
+    });
+
+    // Alias untuk mencocokkan fungsi onblur="recalcTotal()" di HTML Mas Yana
+    function recalcTotal() {
+        lpage();
+    }
+
+
+    // Trigger saat input diubah
+    $(document).on('keyup change', '.qty-trigger, .price-trigger, .disc-trigger, .disc-pct-trigger, .tax-trigger, #idDiscall, #txt_cd_amount, input[name="txtCurr_USD"], input[name="txtTax_USD"]', function () {
+        // Qty 2 mengikuti Qty 1
+        if ($(this).hasClass('qty-trigger')) {
+            $(this).closest('tr').find('input[name="qty2[]"]').val($(this).val());
+        }
+        lpage();
+    });
+
+    function lpage() {
+        // Ambil Kurs dari table Converter
+        let kursCurr = parseFloat($('input[name="txtCurr_USD"]').val().replace(/,/g, '')) || 1;
+        let kursTax = parseFloat($('input[name="txtTax_USD"]').val().replace(/,/g, '')) || 1;
+
+        let totalQty = 0;
+        let totalAmountSO = 0; // Tetap dlm USD/Mata uang SO
+        let totalTaxIDRPlus = 0;
+        let totalTaxIDRMinus = 0;
+
+        $('#tbl_ID tbody tr').each(function () {
+            let row = $(this);
+
+            let qty = parseFloat(row.find('.qty-trigger').val()) || 0;
+            let price = parseFloat(row.find('.price-trigger').val().replace(/,/g, '')) || 0;
+            let dVal = parseFloat(row.find('.disc-trigger').val().replace(/,/g, '')) || 0;
+            let dPct = parseFloat(row.find('.disc-pct-trigger').val()) || 0;
+
+            // 1. HITUNG AMOUNT PER BARIS (SO Currency - Misal USD)
+            // (Price - DiscVal) * Qty - (Result * DiscPct%)
+            let baseAmount = qty * (price - dVal);
+            let rowNetAmountSO = baseAmount - (baseAmount * (dPct / 100));
+
+            // Update display Amount di baris (Tetap SO Currency)
+            row.find('.total-amount').text(rowNetAmountSO.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+
+            // 2. HITUNG PAJAK (Ke IDR menggunakan Kurs Pajak)
+            function getTaxIDR(selectName) {
+                let opt = row.find(`select[name="${selectName}"] option:selected`);
+                let rate = parseFloat(opt.data('rate')) || 0;
+                let op = opt.data('op') || '+';
+                // Nilai Pajak IDR = (Amount SO * Rate%) * Kurs Pajak
+                return { val: (rowNetAmountSO * (rate / 100)) * kursTax, op: op };
+            }
+
+            let t1 = getTaxIDR('tax1[]');
+            let t2 = getTaxIDR('tax2[]');
+
+            if (t1.op === '+') totalTaxIDRPlus += t1.val; else totalTaxIDRMinus += t1.val;
+            if (t2.op === '+') totalTaxIDRPlus += t2.val; else totalTaxIDRMinus += t2.val;
+
+            totalQty += qty;
+            totalAmountSO += rowNetAmountSO;
+        });
+
+        // --- 3. HITUNG SUMMARY (CONVERTED = SO CURRENCY) ---
+
+        // A. Total Amount (Converted) -> Tetap SO Currency
+        $('#txtTotAmount').val(totalAmountSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+
+        // B. Global Discount (Converted) -> Tetap SO Currency
+        let globalDiscPct = parseFloat($('#idDiscall').val()) || 0;
+        let globalDiscSO = totalAmountSO * (globalDiscPct / 100);
+        $('#idTotalDiscall').val(globalDiscSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+
+        // C. Tax & Deduction (Sudah dlm IDR)
+        $('#txtTotTaxConv').val(totalTaxIDRPlus.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+        $('#txtTotDeductConv').val(totalTaxIDRMinus.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+
+        // D. Claim Deduction (IDR)
+        let claimIDR = parseFloat($('#txt_cd_amount').val().replace(/,/g, '')) || 0;
+
+        // E. GRAND TOTAL (Converted) 
+        // Logic: (Amount SO - Global Disc SO) + (Pajak IDR / Kurs SO) - (PPh IDR / Kurs SO) - (Claim IDR / Kurs SO)
+        // Kita bagi dengan kursCurr supaya nilainya balik ke mata uang SO (Misal USD)
+        let taxSO = (totalTaxIDRPlus - totalTaxIDRMinus - claimIDR) / kursCurr;
+        let grandTotalSO = (totalAmountSO - globalDiscSO) + taxSO;
+
+        $('#txtGrandTotal').val(grandTotalSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+        $('#txtTotQty').val(totalQty.toFixed(4));
+
+        // Toggle Grand Total view
+        grandTotalSO > 0 ? $('#idTaxHide2').show() : $('#idTaxHide2').hide();
+    }
+
 });
+
+var taxOptionsHtml = '<option value="0" selected>-- No Tax --</option>';
+function loadTaxOptions() {
+    $.ajax({
+        url: $('meta[name="base_url"]').attr('content') + 'SalesOrder/get_tax_list',
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            $.each(data, function (key, val) {
+                // Pastikan variabel tidak null agar tidak error trim
+                var tName = (val.Tax_Name || '').trim();
+                var tCode = (val.Tax_Code || '').trim();
+                var tRate = val.Tax_Rate || 0;
+                var tOp = (val.Tax_operator || '').trim();
+
+                // Gunakan penggabungan string manual (+) agar lebih aman dari karakter spesial
+                taxOptionsHtml += '<option value="' + val.Tax_ID + '" ' +
+                    'data-rate="' + tRate + '" ' +
+                    'data-op="' + tOp + '">' +
+                    tName + ' (' + tCode + ')' +
+                    '</option>';
+            });
+            // console.log("Tax list loaded successfully.");
+        }
+    });
+}
+loadTaxOptions()
+
+var CcOptionsHtml = '<option value="0">..::[NONE]::..</option>';
+function loadCostCenterOptions() {
+    $.ajax({
+        url: $('meta[name="base_url"]').attr('content') + 'SalesOrder/get_cc_list',
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            CcOptionsHtml = '<option value="">-- No CC --</option>'; // Reset
+            $.each(data, function (key, val) {
+                var ccName = (val.Comp_Name || '').trim();
+                // Simpan ID sebagai value
+                CcOptionsHtml += '<option value="' + val.Comp_ID + '">' + ccName + '</option>';
+            });
+            console.log("Cost Center list loaded.");
+        }
+    });
+}
+loadCostCenterOptions();
 
 function getItem(meth, custData) {
     // 1. UPDATE HEADER SO & ACCOUNT GROUPS
@@ -252,9 +389,10 @@ function getItem(meth, custData) {
     }
 
 
-    // 2. PROSES ITEM DETAIL (Tetap sama seperti sebelumnya)
     var popupWindow = window.pickItemWindow;
     if (!popupWindow) return;
+
+    var today = new Date().toISOString().split('T')[0];
 
     $(popupWindow.document).find('input[name="chkItem"]:checked').each(function () {
         var itemCode = $(this).val();
@@ -266,6 +404,7 @@ function getItem(meth, custData) {
         var size = row.find('td:eq(6)').text().trim();
         var type = row.find('td:eq(7)').text().trim();
 
+        // Cek Duplikat
         var isExist = false;
         $('#tbl_ID tbody tr').each(function () {
             if ($(this).find('td:eq(1)').text().trim() == itemCode) {
@@ -275,7 +414,7 @@ function getItem(meth, custData) {
 
         if (!isExist) {
             var newRow = `
-                <tr class="text-nowrap">
+                <tr>
                     <td><input type="checkbox" name="chk_item[]"></td>
                     <td>${itemCode}</td>
                     <td>${itemName}</td>
@@ -284,23 +423,47 @@ function getItem(meth, custData) {
                     <td>${color}</td>
                     <td>${brand}</td>
                     <td>${type}</td>
-                    <td><input type="number" name="qty[]" class="form-control form-control-sm text-right" value="1"></td>
+                    <td><input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="0"></td>
                     <td>PCS</td>
-                    <td><input type="number" name="qty2[]" class="form-control form-control-sm text-right" value="0"></td>
+                    <td><input type="number" name="qty2[]" class="form-control form-control-sm text-right" readonly value="0"></td>
                     <td>PCS</td>
                     <td style="display:none">0</td>
                     <td style="display:none">PCS</td>
-                    <td><input type="text" name="price[]" class="form-control form-control-sm text-right" value="0"></td>
-                    <td><input type="text" name="disc_val[]" class="form-control form-control-sm text-right" value="0"></td>
-                    <td><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right" value="0"></td>
-                    <td class="text-right">0</td>
-                    <td><input type="text" name="tax1[]" class="form-control form-control-sm" value=""></td>
-                    <td><input type="text" name="tax2[]" class="form-control form-control-sm" value=""></td>
-                    <td colspan="2"><input type="date" name="est_date[]" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>"></td>
-                    <td><input type="text" name="cc[]" class="form-control form-control-sm"></td>
+                    <td><input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="0"></td>
+                    <td><input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="0"></td>
+                    <td><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="0"></td>
+                    <td class="text-right total-amount">0</td>
+                    
+                    <td>
+                        <select name="tax1[]" class="form-control form-control-sm tax-trigger" style="min-width:100px">
+                            ${taxOptionsHtml}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="tax2[]" class="form-control form-control-sm tax-trigger" style="min-width:100px">
+                            ${taxOptionsHtml}
+                        </select>
+                    </td>
+
+                    <td colspan="2"><input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="${today}"></td>
+
+                    <td>
+                        <select name="cc[]" class="form-control form-control-sm select2-item" style="min-width:150px">
+                            ${CcOptionsHtml}
+                        </select>
+                    </td>
                 </tr>
             `;
-            $('#tbl_ID tbody').append(newRow);
+            var $row = $(newRow);
+            $('#tbl_ID tbody').append($row);
+            $row.find('.date-picker').flatpickr();
+            $row.find('.select2-item').select2({
+                // allowClear: true,
+                width: '100%',
+                // placeholder: '-- Select --',
+                // PENTING: dropdownParent supaya dropdown-nya gak "ngumpet" atau terpotong
+                dropdownParent: $('#tbl_ID').parent()
+            });
         }
     });
 
@@ -309,15 +472,8 @@ function getItem(meth, custData) {
     }
 }
 
-// Tambahkan ini di tag <script> Main Page Mas Yana
-function lpage() {
-    console.log("Kalkulasi lpage dijalankan...");
-    // Di sini nantinya Mas Yana isi logic untuk hitung Total, Grand Total, atau Pajak
-    // Untuk sementara kita biarkan kosong agar tidak error
-}
-
 // Tambahan: Fungsi saat Mas buka popup
 var pickItemWindow; // Variabel global untuk menampung window popup
 function openPickItem() {
-    pickItemWindow = window.open('<?=base_url("SalesOrder/pickitem")?>', 'pickItem', 'width=900,height=600');
+    pickItemWindow = window.open('<?=base_url("SalesOrder/pickitem")?>', 'pickItem', 'width=900,height=1280,scrollbars=yes,resizable=yes');
 }

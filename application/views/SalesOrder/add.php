@@ -428,5 +428,87 @@
                 </table>
             </div>
         </div>
+        <div class="row mt-4 justify-content-end">
+            <div class="col-md-5">
+                <div class="card shadow-sm border">
+                    <div class="card-body p-4">
+                        <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold" width="40%">Total Qty</td>
+                                    <td width="5%">:</td>
+                                    <td>
+                                        <input type="text" name="txtTotQty" id="txtTotQty" class="form-control form-control-sm text-end fw-bold bg-light" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="fw-bold">Total Amount (Converted)</td>
+                                    <!-- sesuai SO Currency/ Sel Currency -->
+                                    <td>:</td>
+                                    <td>
+                                        <input type="text" name="txtTotAmount" id="txtTotAmount" class="form-control form-control-sm text-end bg-light" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="fw-bold">
+                                        Disc. Global
+                                        <div class="input-group input-group-sm d-inline-flex ms-2" style="width: 70px;">
+                                            <input type="number" id="idDiscall" name="txtDisctotal" class="form-control text-center p-1" value="0" max="100" oninput="if(value>100)value=100">
+                                            <span class="input-group-text p-1">%</span>
+                                        </div>
+                                    </td>
+                                    <td>:</td>
+                                    <td>
+                                        <input type="text" name="txtTotDisc" id="idTotalDiscall" class="form-control form-control-sm text-end bg-light" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="fw-bold">Total Tax (+ IDR)</td>
+                                    <td>:</td>
+                                    <td>
+                                        <input type="text" name="txtTotTaxConv" id="txtTotTaxConv" class="form-control form-control-sm text-end bg-light text-primary" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="fw-bold">Total Deduction (- IDR)</td>
+                                    <td>:</td>
+                                    <td>
+                                        <input type="text" name="txtTotDeductConv" id="txtTotDeductConv" class="form-control form-control-sm text-end bg-light text-danger" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="fw-bold text-danger">Claim Deduction (IDR)</td>
+                                    <td>:</td>
+                                    <td>
+                                        <input type="text" name="txt_cd_amount" id="txt_cd_amount" class="form-control form-control-sm text-end border-danger" value="0.00">
+                                    </td>
+                                </tr>
+
+                                <tr id="idTaxHide2" style="display: none;" class="border-top">
+                                    <td class="fw-bold fs-6 text-primary py-3">Grand Total (Converted)</td>
+                                    <td class="py-3">:</td>
+                                    <td class="py-3">
+                                        <input type="text" name="txtGrandTotal" id="txtGrandTotal" class="form-control form-control-sm text-end fw-bolder fs-6 border-primary bg-primary text-white" readonly value="0.0000">
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="align-top pt-2">Claim Description</td>
+                                    <td class="align-top pt-2">:</td>
+                                    <td>
+                                        <textarea name="txt_cd_desc" id="txt_cd_desc" class="form-control form-control-sm" rows="2" placeholder="Alasan pemotongan..."></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

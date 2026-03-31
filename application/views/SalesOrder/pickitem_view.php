@@ -11,7 +11,7 @@ $cboCustomer = $this->input->get_post('cboCustomer') ?? '';
 $selType     = $this->input->get_post('selType') ?? 'ItemCode';
 $ExtraQuery  = $this->input->get_post('ExtraQuery') ?? '';
 $selPage     = (int)($this->input->get_post('selPage') ?? 1);
-$limit       = 15;
+$limit       = 10;
 $offset      = ($selPage - 1) * $limit;
 $companyID   = 2;
 $strCatType  = 'FG'; // Kita kunci di FG sesuai request awal
@@ -131,7 +131,7 @@ $qItem = $this->db->query($sqlItem)->result();
         }
 
         .table-area {
-            height: 320px;
+            height: 480px;
             overflow-y: auto;
             border: 1px solid #ccc;
         }
