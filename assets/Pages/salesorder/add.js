@@ -14,6 +14,13 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
+    // Trigger saat Currency di Header berubah
+    $('#selCurrency').on('change', function () {
+        var selectedCurr = $(this).val(); // Ambil USD, IDR, dll
+        $('.curr-label').text(selectedCurr);
+        lpage(); // Hitung ulang jika perlu
+    });
+
     // Inisialisasi label saat halaman pertama kali load (setelah reload submit)
     var currentType = $('input[name="rdoAllocate"]:checked').val();
     updateAllocateLabel(currentType);
@@ -232,38 +239,53 @@ $(document).ready(function () {
     });
 
     function lpage() {
-        // Ambil Kurs dari table Converter
-        let kursCurr = parseFloat($('input[name="txtCurr_USD"]').val().replace(/,/g, '')) || 1;
-        let kursTax = parseFloat($('input[name="txtTax_USD"]').val().replace(/,/g, '')) || 1;
+        // 1. Helper function untuk ambil angka aman
+        const getNum = (selector, defaultVal = 0) => {
+            let element = $(selector);
+            if (element.length === 0) return defaultVal;
+            let val = element.val() || "";
+            return parseFloat(val.toString().replace(/,/g, '')) || defaultVal;
+        };
 
-        let totalQty = 0;
-        let totalAmountSO = 0; // Tetap dlm USD/Mata uang SO
+        // 2. Ambil Parameter Global
+        let kursCurr = getNum('input[name="txtCurr_USD"]', 1);
+        let kursTax = getNum('input[name="txtTax_USD"]', 1);
+        let globalDiscPct = getNum('#idDiscall', 0);
+        let claimIDR = getNum('#txt_cd_amount', 0);
+
+        let grandTotQty = 0;
+        let totalNetAmountSO = 0;
         let totalTaxIDRPlus = 0;
         let totalTaxIDRMinus = 0;
 
+        // 3. LOOP 1: Hitung Net Amount per baris (SO Currency)
         $('#tbl_ID tbody tr').each(function () {
             let row = $(this);
-
             let qty = parseFloat(row.find('.qty-trigger').val()) || 0;
             let price = parseFloat(row.find('.price-trigger').val().replace(/,/g, '')) || 0;
             let dVal = parseFloat(row.find('.disc-trigger').val().replace(/,/g, '')) || 0;
             let dPct = parseFloat(row.find('.disc-pct-trigger').val()) || 0;
 
-            // 1. HITUNG AMOUNT PER BARIS (SO Currency - Misal USD)
-            // (Price - DiscVal) * Qty - (Result * DiscPct%)
             let baseAmount = qty * (price - dVal);
             let rowNetAmountSO = baseAmount - (baseAmount * (dPct / 100));
 
-            // Update display Amount di baris (Tetap SO Currency)
             row.find('.total-amount').text(rowNetAmountSO.toLocaleString('en-US', { minimumFractionDigits: 2 }));
 
-            // 2. HITUNG PAJAK (Ke IDR menggunakan Kurs Pajak)
+            grandTotQty += qty;
+            totalNetAmountSO += rowNetAmountSO;
+        });
+
+        // 4. LOOP 2: Hitung Pajak (IDR) dari DPP setelah Diskon Global
+        $('#tbl_ID tbody tr').each(function () {
+            let row = $(this);
+            let rowAmountSO = parseFloat(row.find('.total-amount').text().replace(/,/g, '')) || 0;
+            let dppRowSO = rowAmountSO * (1 - (globalDiscPct / 100));
+
             function getTaxIDR(selectName) {
                 let opt = row.find(`select[name="${selectName}"] option:selected`);
                 let rate = parseFloat(opt.data('rate')) || 0;
                 let op = opt.data('op') || '+';
-                // Nilai Pajak IDR = (Amount SO * Rate%) * Kurs Pajak
-                return { val: (rowNetAmountSO * (rate / 100)) * kursTax, op: op };
+                return { val: (dppRowSO * (rate / 100)) * kursTax, op: op };
             }
 
             let t1 = getTaxIDR('tax1[]');
@@ -271,39 +293,32 @@ $(document).ready(function () {
 
             if (t1.op === '+') totalTaxIDRPlus += t1.val; else totalTaxIDRMinus += t1.val;
             if (t2.op === '+') totalTaxIDRPlus += t2.val; else totalTaxIDRMinus += t2.val;
-
-            totalQty += qty;
-            totalAmountSO += rowNetAmountSO;
         });
 
-        // --- 3. HITUNG SUMMARY (CONVERTED = SO CURRENCY) ---
+        // 5. UPDATE SUMMARY (SO Currency)
+        let globalDiscValSO = totalNetAmountSO * (globalDiscPct / 100);
 
-        // A. Total Amount (Converted) -> Tetap SO Currency
-        $('#txtTotAmount').val(totalAmountSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+        $('#txtTotAmount').val(totalNetAmountSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+        $('#idTotalDiscall').val(globalDiscValSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
 
-        // B. Global Discount (Converted) -> Tetap SO Currency
-        let globalDiscPct = parseFloat($('#idDiscall').val()) || 0;
-        let globalDiscSO = totalAmountSO * (globalDiscPct / 100);
-        $('#idTotalDiscall').val(globalDiscSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
-
-        // C. Tax & Deduction (Sudah dlm IDR)
+        // 6. UPDATE TAX (IDR)
         $('#txtTotTaxConv').val(totalTaxIDRPlus.toLocaleString('en-US', { minimumFractionDigits: 4 }));
         $('#txtTotDeductConv').val(totalTaxIDRMinus.toLocaleString('en-US', { minimumFractionDigits: 4 }));
 
-        // D. Claim Deduction (IDR)
-        let claimIDR = parseFloat($('#txt_cd_amount').val().replace(/,/g, '')) || 0;
+        // 7. HITUNG GRAND TOTAL (SO Currency)
+        let adjSO = (totalTaxIDRPlus - totalTaxIDRMinus - claimIDR) / kursCurr;
+        let finalGrandTotalSO = (totalNetAmountSO - globalDiscValSO) + adjSO;
 
-        // E. GRAND TOTAL (Converted) 
-        // Logic: (Amount SO - Global Disc SO) + (Pajak IDR / Kurs SO) - (PPh IDR / Kurs SO) - (Claim IDR / Kurs SO)
-        // Kita bagi dengan kursCurr supaya nilainya balik ke mata uang SO (Misal USD)
-        let taxSO = (totalTaxIDRPlus - totalTaxIDRMinus - claimIDR) / kursCurr;
-        let grandTotalSO = (totalAmountSO - globalDiscSO) + taxSO;
+        $('#txtGrandTotal').val(finalGrandTotalSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
+        $('#txtTotQty').val(grandTotQty.toFixed(4));
 
-        $('#txtGrandTotal').val(grandTotalSO.toLocaleString('en-US', { minimumFractionDigits: 4 }));
-        $('#txtTotQty').val(totalQty.toFixed(4));
+        // 8. UPDATE PAYMENT DETAIL (Hanya bisa dihitung SETELAH finalGrandTotalSO ketemu)
+        let percentage1 = parseFloat($('#hidPercentage1').val()) || 100;
+        let paymentAmount1 = finalGrandTotalSO * (percentage1 / 100);
+        $('#txtAmount1').val(paymentAmount1.toLocaleString('en-US', { minimumFractionDigits: 4 }));
 
-        // Toggle Grand Total view
-        grandTotalSO > 0 ? $('#idTaxHide2').show() : $('#idTaxHide2').hide();
+        // 9. UI Toggle
+        finalGrandTotalSO > 0 ? $('#idTaxHide2').show() : $('#idTaxHide2').hide();
     }
 
 });

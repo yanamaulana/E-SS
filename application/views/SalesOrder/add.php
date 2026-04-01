@@ -358,7 +358,7 @@
         </div>
 
         <div class="row mt-3">
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <fieldset class="border p-2">
                     <legend class="w-auto px-2 font-weight-bold small text-uppercase">Currency Converter</legend>
                     <div class="table-responsive">
@@ -368,7 +368,7 @@
                 </fieldset>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <fieldset class="border p-2">
                     <legend class="w-auto px-2 font-weight-bold small text-uppercase">Tax Converter</legend>
                     <div class="table-responsive">
@@ -428,7 +428,42 @@
                 </table>
             </div>
         </div>
-        <div class="row mt-4 justify-content-end">
+        <div class="row mt-4">
+            <div class="col-md-5">
+                <div class="card shadow-sm border mt-4">
+                    <div class="card-header bg-light py-2">
+                        <h6 class="card-title mb-0 small text-uppercase fw-bold">Payment Detail</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-row-bordered mb-0" id="tblPayment">
+                            <thead class="bg-light">
+                                <tr class="fw-bold fs-7 text-gray-800">
+                                    <th class="text-center" width="50">No</th>
+                                    <th class="text-center">Invoice Date</th>
+                                    <th class="text-center">Due Date</th>
+                                    <th class="text-center">Amount (<span class="curr-label">USD</span>)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center align-middle">1</td>
+                                    <td>
+                                        <input type="text" name="txtInvoiceDate1" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="txtDueDate1" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="txtAmount1" id="txtAmount1" class="form-control form-control-sm text-end bg-light" readonly value="0.0000">
+                                        <input type="hidden" name="hidPercentage1" id="hidPercentage1" value="100">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1">&nbsp;</div>
             <div class="col-md-5">
                 <div class="card shadow-sm border">
                     <div class="card-body p-4">
@@ -443,7 +478,7 @@
                                 </tr>
 
                                 <tr>
-                                    <td class="fw-bold">Total Amount (Converted)</td>
+                                    <td class="fw-bold">Total Amount (<span class="curr-label">Converted</span>)</td>
                                     <!-- sesuai SO Currency/ Sel Currency -->
                                     <td>:</td>
                                     <td>
@@ -490,7 +525,7 @@
                                 </tr>
 
                                 <tr id="idTaxHide2" style="display: none;" class="border-top">
-                                    <td class="fw-bold fs-6 text-primary py-3">Grand Total (Converted)</td>
+                                    <td class="fw-bold fs-6 text-primary py-3">Grand Total (<span class="curr-label">Converted</span>)</td>
                                     <td class="py-3">:</td>
                                     <td class="py-3">
                                         <input type="text" name="txtGrandTotal" id="txtGrandTotal" class="form-control form-control-sm text-end fw-bolder fs-6 border-primary bg-primary text-white" readonly value="0.0000">
