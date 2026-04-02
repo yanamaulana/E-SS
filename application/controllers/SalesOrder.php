@@ -221,4 +221,79 @@ class SalesOrder extends CI_Controller
             ->set_content_type('application/json')
             ->set_output(json_encode($data));
     }
+
+    public function store()
+    {
+        $this->db->trans_begin(); // Sesuai <cftransaction> di CF10
+
+        try {
+            $sonum = $this->input->post('SONum');
+            $isConfirm = $this->input->post('txtconfirm'); // 'YES' atau 'NO'
+            $task = $this->input->post('task'); // 'Add' atau 'Edit'
+
+            // 1. Logika Revision (Jika Edit & Ada Revisi)
+            if ($task == 'Edit' && $this->input->post('HIDREVISION') > 0) {
+                // INSERT ke TAccSOHistory_Header (Select dari table aslinya)
+                // INSERT ke TAccSOHistory_Detail (Select dari table aslinya)
+            }
+
+            // 2. Persiapkan Data Header
+            $dataHeader = [
+                'SO_Number'       => $sonum,
+                'SO_Date'         => date('Y-m-d H:i:s', strtotime($this->input->post('txtSODate'))),
+                'Account_ID'      => $this->input->post('txtCustCode'),
+                'SO_Status'       => ($isConfirm == 'YES') ? 2 : 1,
+                'Currency_ID'     => $this->input->post('SelCurrency'),
+                'Invoice_Amount'  => str_replace(',', '', $this->input->post('txtTotAmount')),
+                'Base_Invoice_Amount' => str_replace(',', '', $this->input->post('hidBaseTotAmount')),
+                'Created_By'      => $this->session->userdata('CKSATRIADEVID'),
+                'Update_By'       => $this->session->userdata('CKSATRIADEVID'),
+                'Last_Update'     => date('Y-m-d H:i:s'),
+                // Tambahkan field lainnya sesuai qadd.cfm
+            ];
+
+            if ($task == 'Edit') {
+                $this->db->where('SO_Number', $sonum)->update('TAccSO_Header', $dataHeader);
+                $this->db->where('SO_Number', $sonum)->delete('TAccSO_Detail'); // Bersihkan detail lama
+            } else {
+                $this->db->insert('TAccSO_Header', $dataHeader);
+            }
+
+            // 3. Logika Detail (Looping item)
+            $rowCount = $this->input->post('rowCount');
+            for ($i = 1; $i <= rowCount; $i++) {
+                if ($this->input->post("TXTPARTNO_$i")) {
+                    $unitPrice = str_replace(',', '', $this->input->post("txtConvertedUnitPrice_$i"));
+                    $qty = $this->input->post("txtQty_$i");
+
+                    $dataDetail = [
+                        'SO_Number'        => $sonum,
+                        'Item_Code'        => $this->input->post("TXTPARTNO_$i"),
+                        'Qty'              => $qty,
+                        'UnitPrice'        => $unitPrice,
+                        'Base_UnitPrice'   => $unitPrice * $this->input->post('rate'), // Contoh rate
+                        'TotalPrice'       => str_replace(',', '', $this->input->post("txtConvertedAmount_$i")),
+                        // ... sisanya samakan dengan qadd.cfm
+                    ];
+                    $this->db->insert('TAccSO_Detail', $dataDetail);
+                }
+            }
+
+            // 4. Inventory Reservation (Jika Confirm)
+            if ($isConfirm == 'YES') {
+                $this->reserve_inventory($sonum); // Buat fungsi private di bawah
+            }
+
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                echo json_encode(["code" => 500, "msg" => "Gagal simpan database"]);
+            } else {
+                $this->db->trans_commit();
+                echo json_encode(["code" => 200, "msg" => "Sales Order $sonum berhasil disimpan!"]);
+            }
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            echo json_encode(["code" => 500, "msg" => $e->getMessage()]);
+        }
+    }
 }
