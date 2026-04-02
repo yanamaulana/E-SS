@@ -260,6 +260,8 @@ $(document).ready(function () {
 
 });
 
+const site_url = $('meta[name="base_url"]').attr('content');
+
 function lpage() {
     // 1. Helper function untuk ambil angka aman
     const getNum = (selector, defaultVal = 0) => {

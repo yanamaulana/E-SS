@@ -226,6 +226,10 @@ class SalesOrder extends CI_Controller
     {
         $this->db->trans_begin(); // Sesuai <cftransaction> di CF10
 
+        $SoNum = $this->help->generate_so_number('TAccPattern', 'salesJournal', 'SONum', 'value', 2, 9, 'Trans'); // Panggil fungsi generate_so_number() dari M_helper
+        var_dump($SoNum); // Debug: Tampilkan nomor SO yang dihasilkan
+        die;
+
         try {
             $sonum = $this->input->post('SONum');
             $isConfirm = $this->input->post('txtconfirm'); // 'YES' atau 'NO'
@@ -261,7 +265,7 @@ class SalesOrder extends CI_Controller
 
             // 3. Logika Detail (Looping item)
             $rowCount = $this->input->post('rowCount');
-            for ($i = 1; $i <= rowCount; $i++) {
+            for ($i = 1; $i <= $rowCount; $i++) {
                 if ($this->input->post("TXTPARTNO_$i")) {
                     $unitPrice = str_replace(',', '', $this->input->post("txtConvertedUnitPrice_$i"));
                     $qty = $this->input->post("txtQty_$i");
@@ -281,7 +285,7 @@ class SalesOrder extends CI_Controller
 
             // 4. Inventory Reservation (Jika Confirm)
             if ($isConfirm == 'YES') {
-                $this->reserve_inventory($sonum); // Buat fungsi private di bawah
+                // $this->reserve_inventory($sonum); // Buat fungsi private di bawah
             }
 
             if ($this->db->trans_status() === FALSE) {

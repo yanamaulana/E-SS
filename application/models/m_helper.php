@@ -388,4 +388,99 @@ class m_helper extends CI_Model
 
         return $result;
     }
+
+    public function generate_so_number($tableName, $documentType, $documentNoName, $type, $companyID, $locationID, $trxNoName)
+    {
+        $db = $this->db;
+
+        // 1. Ambil SEMUA kepingan pattern tanpa filter Company/WH yang terlalu ketat dulu
+        // Karena baris SOL, Year, Month seringkali bersifat global (Company 0 / 1)
+        $db->select('*')->from($tableName)
+            ->where('PatternGroup', $documentType)
+            ->where('DISPLAY_ID', 1)
+            ->where('LastNumber', 'SOL');
+
+        // Kita urutkan sesuai Order_ID agar susunannya SOL -> 209 -> 26 -> 01 -> - -> 0000009
+        $qData = $db->order_by('Order_ID', 'ASC')->get();
+
+        if ($qData->num_rows() === 0) return "Pattern not set!";
+
+        $finalNumber = "";
+        $processedFields = [];
+
+        foreach ($qData->result() as $row) {
+            $fieldName = trim($row->FieldName);
+
+            // FILTER DUPLIKAT: Agar tidak memproses FieldName yang sama berkali-kali
+            if (in_array($fieldName, $processedFields)) continue;
+
+            // Filter Company (Sesuaikan dengan data Mas)
+            if ($row->Company_ID != $companyID && $row->Company_ID != 0) continue;
+
+            $pId  = $row->Pattern_Id;
+            $temp = (string)$row->LastNumber;
+
+            // --- 1. HANDLING TANGGAL COLDFUSION (#...) ---
+            if (str_contains($temp, '#')) {
+                $temp = strtolower($temp);
+                if (str_contains($temp, 'yy')) {
+                    $temp = date('y');
+                } elseif (str_contains($temp, 'mm')) {
+                    $temp = date('m');
+                }
+            }
+
+            // --- 2. HANDLING COUNTER (DiffNumber) ---
+            if ($fieldName === 'DiffNumber' && (int)$row->Increment > 0) {
+                // Tandai bahwa kita sudah memproses counter utama
+                $processedFields[] = $fieldName;
+
+                if ($type === "Pattern") {
+                    $temp = str_repeat("x", $row->Length);
+                } else {
+                    // MENCARI COUNTER DI TAccPatternDiffNumber
+                    // Kita cari dulu, apakah Pattern_Id ini punya jatah di tabel tahunan?
+                    $qCek = $db->where('pattern_id', $pId)
+                        ->where('year', date('Y'))
+                        ->where('month IS NULL', null, false)
+                        ->get('TAccPatternDiffNumber')->row();
+
+                    if ($qCek) {
+                        // JIKA KETEMU: Increment angka yang ada di DiffNumber
+                        $newNo = (int)$qCek->lastnumber + (int)$row->Increment;
+
+                        // Eksekusi Update ke tabel DiffNumber
+                        $db->where('ID', $qCek->ID)->update('TAccPatternDiffNumber', ['lastnumber' => $newNo]);
+
+                        $temp = (string)$newNo;
+                        // Debug (Opsional): log_message('debug', "Update DiffNumber ID $qCek->ID to $newNo");
+                    } else {
+                        // JIKA TIDAK KETEMU di DiffNumber: Update ke table utama TAccPattern
+                        $newNo = (int)$row->LastNumber + (int)$row->Increment;
+
+                        $db->where('Pattern_Id', $pId)
+                            ->where('PatternGroup', $documentType)
+                            ->update($tableName, ['LastNumber' => $newNo]);
+
+                        $temp = (string)$newNo;
+                    }
+
+                    // Padding 7 digit (0000010)
+                    $temp = str_pad($temp, (int)$row->Length, "0", STR_PAD_LEFT);
+                }
+            }
+            // --- 3. HANDLING FIELD LAINNYA ---
+            else {
+                $processedFields[] = $fieldName;
+                if ($fieldName === "Code") {
+                    $LID = str_pad($locationID, 2, "0", STR_PAD_LEFT);
+                    $temp .= $companyID . $LID;
+                }
+            }
+
+            $finalNumber .= $temp;
+        }
+
+        return $finalNumber;
+    }
 }
