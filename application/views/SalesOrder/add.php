@@ -7,6 +7,7 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="SO_NUMBER">SO Number :</label>
                         <div class="col-sm-8">
                             <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm">
+                            <input type="hidden" id="task" name="task" value="<?= $task ?> ?>">
                         </div>
                     </div>
 

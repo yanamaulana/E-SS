@@ -170,7 +170,7 @@ $(document).ready(function () {
                     text: `<i class="fas fa-plus fs-2"></i> New SO`,
                     className: "btn btn-success",
                     action: function (e, dt, node, config) {
-                        return window.location.href = $('meta[name="base_url"]').attr('content') + `SalesOrder/add`;
+                        return window.location.href = $('meta[name="base_url"]').attr('content') + `SalesOrder/add/new`;
 
                     }
                 },

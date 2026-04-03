@@ -393,91 +393,102 @@ class m_helper extends CI_Model
     {
         $db = $this->db;
 
-        // 1. Ambil SEMUA kepingan pattern tanpa filter Company/WH yang terlalu ketat dulu
-        // Karena baris SOL, Year, Month seringkali bersifat global (Company 0 / 1)
+        // 1. Ambil SEMUA komponen pattern untuk SalesJournal
+        // Sesuai temuan SSMS: PatternGroup = 'SalesJournal' dan DISPLAY_ID = 1
         $db->select('*')->from($tableName)
-            ->where('PatternGroup', $documentType)
-            ->where('DISPLAY_ID', 1)
-            ->where('LastNumber', 'SOL');
+            ->where('PatternGroup', 'SalesJournal')
+            ->where('DISPLAY_ID', 1);
 
-        // Kita urutkan sesuai Order_ID agar susunannya SOL -> 209 -> 26 -> 01 -> - -> 0000009
+        // Kunci Company: Global (0) atau Spesifik (2)
+        $db->group_start()
+            ->where('Company_id', $companyID)
+            ->or_where('Company_id', 0)
+            ->group_end();
+
+        // Urutkan berdasarkan Order_ID agar susunan nomor benar (SOL -> Tahun -> Bulan -> Counter)
         $qData = $db->order_by('Order_ID', 'ASC')->get();
 
-        if ($qData->num_rows() === 0) return "Pattern not set!";
+        if ($qData->num_rows() === 0) {
+            return "Pattern not set!";
+        }
 
         $finalNumber = "";
-        $processedFields = [];
+        $processedFields = []; // Penjaga agar FieldName yang duplikat tidak diproses berkali-kali
 
         foreach ($qData->result() as $row) {
             $fieldName = trim($row->FieldName);
 
-            // FILTER DUPLIKAT: Agar tidak memproses FieldName yang sama berkali-kali
-            if (in_array($fieldName, $processedFields)) continue;
+            // A. FILTER: Skip TransactionNumber ("COBA") dan Field yang sudah diproses (Anti-Duplikat)
+            if ($fieldName === 'TransactionNumber' || in_array($fieldName, $processedFields)) {
+                continue;
+            }
 
-            // Filter Company (Sesuaikan dengan data Mas)
-            if ($row->Company_ID != $companyID && $row->Company_ID != 0) continue;
-
-            $pId  = $row->Pattern_Id;
+            $pId  = $row->Pattern_Id; // ID Primary Key dari TAccPattern
             $temp = (string)$row->LastNumber;
 
             // --- 1. HANDLING TANGGAL COLDFUSION (#...) ---
+            // Mengubah #dateformat(now(),"YY")# -> 26, #dateformat(now(),"MM")# -> 04
             if (str_contains($temp, '#')) {
                 $temp = strtolower($temp);
                 if (str_contains($temp, 'yy')) {
                     $temp = date('y');
                 } elseif (str_contains($temp, 'mm')) {
+                    // Sekarang April (04). Jika ingin paksa Januari saat testing, ganti date('m') jadi '01'
                     $temp = date('m');
                 }
             }
 
-            // --- 2. HANDLING COUNTER (DiffNumber) ---
+            // --- 2. HANDLING COUNTER UTAMA (DiffNumber) ---
             if ($fieldName === 'DiffNumber' && (int)$row->Increment > 0) {
-                // Tandai bahwa kita sudah memproses counter utama
-                $processedFields[] = $fieldName;
+                $processedFields[] = $fieldName; // Kunci agar counter cuma diproses 1x
 
                 if ($type === "Pattern") {
                     $temp = str_repeat("x", $row->Length);
                 } else {
-                    // MENCARI COUNTER DI TAccPatternDiffNumber
-                    // Kita cari dulu, apakah Pattern_Id ini punya jatah di tabel tahunan?
-                    $qCek = $db->where('pattern_id', $pId)
-                        ->where('year', date('Y'))
-                        ->where('month IS NULL', null, false)
-                        ->get('TAccPatternDiffNumber')->row();
+                    $currentYear = (int)date('Y');
+
+                    // CEK: Apakah baris tahun berjalan sudah ada di TAccPatternDiffNumber?
+                    // Gunakan query manual untuk memastikan IS NULL terbaca SQL Server
+                    $sqlCek = "SELECT ID, lastnumber FROM TAccPatternDiffNumber 
+                           WHERE pattern_id = ? AND [year] = ? AND [month] IS NULL";
+                    $qCek = $db->query($sqlCek, [$pId, $currentYear])->row();
 
                     if ($qCek) {
-                        // JIKA KETEMU: Increment angka yang ada di DiffNumber
-                        $newNo = (int)$qCek->lastnumber + (int)$row->Increment;
+                        // A. JIKA TAHUN SUDAH ADA: Update Increment (+1) secara Atomic
+                        $sqlUpd = "UPDATE TAccPatternDiffNumber SET lastnumber = lastnumber + ? WHERE ID = ?";
+                        $db->query($sqlUpd, [(int)$row->Increment, $qCek->ID]);
 
-                        // Eksekusi Update ke tabel DiffNumber
-                        $db->where('ID', $qCek->ID)->update('TAccPatternDiffNumber', ['lastnumber' => $newNo]);
-
-                        $temp = (string)$newNo;
-                        // Debug (Opsional): log_message('debug', "Update DiffNumber ID $qCek->ID to $newNo");
+                        // Ambil angka terbaru setelah update
+                        $res = $db->select('lastnumber')->where('ID', $qCek->ID)->get('TAccPatternDiffNumber')->row();
+                        $newNo = $res->lastnumber;
                     } else {
-                        // JIKA TIDAK KETEMU di DiffNumber: Update ke table utama TAccPattern
-                        $newNo = (int)$row->LastNumber + (int)$row->Increment;
-
-                        $db->where('Pattern_Id', $pId)
-                            ->where('PatternGroup', $documentType)
-                            ->update($tableName, ['LastNumber' => $newNo]);
-
-                        $temp = (string)$newNo;
+                        // B. JIKA TAHUN BARU (Misal ganti ke 2027): Insert Baris Baru & Reset ke 1
+                        $dataBaru = [
+                            'pattern_id' => $pId,
+                            'year'       => $currentYear,
+                            'month'      => NULL,
+                            'lastnumber' => 1
+                        ];
+                        $db->insert('TAccPatternDiffNumber', $dataBaru);
+                        $newNo = 1;
                     }
 
-                    // Padding 7 digit (0000010)
-                    $temp = str_pad($temp, (int)$row->Length, "0", STR_PAD_LEFT);
+                    // Padding angka sesuai Length (Misal 7 digit: 0000010)
+                    $temp = str_pad((string)$newNo, (int)$row->Length, "0", STR_PAD_LEFT);
                 }
             }
-            // --- 3. HANDLING FIELD LAINNYA ---
+            // --- 3. HANDLING FIELD CODE & STATIS LAINNYA ---
             else {
                 $processedFields[] = $fieldName;
+
+                // Jika field adalah 'Code', sisipkan CompanyID (2) dan LocationID (09)
                 if ($fieldName === "Code") {
                     $LID = str_pad($locationID, 2, "0", STR_PAD_LEFT);
                     $temp .= $companyID . $LID;
                 }
             }
 
+            // GABUNGKAN SEMUA KOMPONEN KE STRING FINAL
             $finalNumber .= $temp;
         }
 

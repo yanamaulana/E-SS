@@ -28,7 +28,7 @@ class SalesOrder extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
-    public function add()
+    public function add($task)
     {
         $this->data['page_title'] = "Add Sales Order";
         $this->data['page_content'] = "SalesOrder/add";
@@ -57,6 +57,7 @@ class SalesOrder extends CI_Controller
         $this->data['selProforma'] = "";
         $this->data['ddlSalesContract'] = "";
         $this->data['txtExpDelDate'] = "";
+        $this->data['task'] = $task;
 
 
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
@@ -224,80 +225,119 @@ class SalesOrder extends CI_Controller
 
     public function store()
     {
-        $this->db->trans_begin(); // Sesuai <cftransaction> di CF10
-
-        $SoNum = $this->help->generate_so_number('TAccPattern', 'salesJournal', 'SONum', 'value', 2, 9, 'Trans'); // Panggil fungsi generate_so_number() dari M_helper
-        var_dump($SoNum); // Debug: Tampilkan nomor SO yang dihasilkan
-        die;
+        // Pastikan transaksi dimulai sebelum panggil helper generate nomor
+        $this->db->trans_begin();
 
         try {
-            $sonum = $this->input->post('SONum');
+            $task      = $this->input->post('task'); // 'new' atau 'edit'
             $isConfirm = $this->input->post('txtconfirm'); // 'YES' atau 'NO'
-            $task = $this->input->post('task'); // 'Add' atau 'Edit'
 
-            // 1. Logika Revision (Jika Edit & Ada Revisi)
-            if ($task == 'Edit' && $this->input->post('HIDREVISION') > 0) {
-                // INSERT ke TAccSOHistory_Header (Select dari table aslinya)
-                // INSERT ke TAccSOHistory_Detail (Select dari table aslinya)
+            // 1. GENERATE SO NUMBER (Hanya jika task 'new')
+            if ($task == 'new') {
+                $SoNum = $this->help->generate_so_number('TAccPattern', 'salesJournal', 'SONum', 'value', 2, 9, 'Trans');
+            } else {
+                $SoNum = $this->input->post('SO_NUMBER');
             }
 
-            // 2. Persiapkan Data Header
+            // Ambil Rate Kurs (Default 1 jika IDR/tidak ada)
+            // Masih pake str_replace buat jaga-jaga kalau ada koma nyelip
+            $rate = str_replace(',', '', $this->input->post('txtCurr_IDR') ?? 1);
+            $userId = $this->session->userdata('sys_sba_userid');
+
+            // 2. PREPARE DATA HEADER (TAccSO_Header)
             $dataHeader = [
-                'SO_Number'       => $sonum,
-                'SO_Date'         => date('Y-m-d H:i:s', strtotime($this->input->post('txtSODate'))),
-                'Account_ID'      => $this->input->post('txtCustCode'),
-                'SO_Status'       => ($isConfirm == 'YES') ? 2 : 1,
-                'Currency_ID'     => $this->input->post('SelCurrency'),
-                'Invoice_Amount'  => str_replace(',', '', $this->input->post('txtTotAmount')),
-                'Base_Invoice_Amount' => str_replace(',', '', $this->input->post('hidBaseTotAmount')),
-                'Created_By'      => $this->session->userdata('CKSATRIADEVID'),
-                'Update_By'       => $this->session->userdata('CKSATRIADEVID'),
-                'Last_Update'     => date('Y-m-d H:i:s'),
-                // Tambahkan field lainnya sesuai qadd.cfm
+                'SO_Number'           => $SoNum,
+                'TrxNo'               => $SoNum,
+                'SO_Date'             => date('Y-m-d H:i:s', strtotime($this->input->post('txtSODate'))),
+                'SO_Notes'            => $this->input->post('txtMemo'),
+                'Account_ID'          => $this->input->post('txtCustCode'),
+                'Contact_ID'          => $this->input->post('txtCPCode'),
+                'PO_NumCustomer'      => $this->input->post('txtPONum'),
+                'PO_DateCustomer'     => !empty($this->input->post('txtPODate')) ? date('Y-m-d', strtotime($this->input->post('txtPODate'))) : NULL,
+                'SO_Status'           => ($isConfirm == 'YES') ? 3 : 1, // Status 3 biasanya Confirm/Approved
+                'Company_ID'          => 2,
+                'WH_ID'               => 9,
+                'Currency_ID'         => $this->input->post('selCurrency'),
+                'Tax_Currency_ID'     => $this->input->post('selTaxCurrency'),
+                'Invoice_Amount'      => str_replace(',', '', $this->input->post('txtTotAmount')),
+                'Base_Invoice_Amount' => (float)str_replace(',', '', $this->input->post('txtTotAmount')) * (float)$rate,
+                'Production_month'    => $this->input->post('txtProMonth'),
+                'Production_year'     => $this->input->post('txtProYear'),
+                'PriceType'           => $this->input->post('cboPriceType'),
+                'pi_number'           => $this->input->post('txtPiNumber'), // 'SG260108-01' masuk sini
+                'SC_Number'           => NULL, // Sesuai info Mas, ini selalu NULL
+                'KawasanBerikat'      => ($this->input->post('chkKawasan') == '1') ? 1 : 0,
+                'isTaxAble'           => ($this->input->post('txtSOtype') == '1') ? 1 : 0,
+                'Update_By'           => $userId,
+                'Last_Update'         => date('Y-m-d H:i:s')
             ];
 
-            if ($task == 'Edit') {
-                $this->db->where('SO_Number', $sonum)->update('TAccSO_Header', $dataHeader);
-                $this->db->where('SO_Number', $sonum)->delete('TAccSO_Detail'); // Bersihkan detail lama
-            } else {
+            if ($task == 'new') {
+                $dataHeader['Created_By']        = $userId;
+                $dataHeader['Creation_DateTime'] = date('Y-m-d H:i:s');
                 $this->db->insert('TAccSO_Header', $dataHeader);
+            } else {
+                $this->db->where('SO_Number', $SoNum)->update('TAccSO_Header', $dataHeader);
+                // Jika edit, hapus detail lama dulu (Wipe and Replace)
+                $this->db->where('SO_Number', $SoNum)->delete('TAccSO_Detail');
             }
 
-            // 3. Logika Detail (Looping item)
-            $rowCount = $this->input->post('rowCount');
-            for ($i = 1; $i <= $rowCount; $i++) {
-                if ($this->input->post("TXTPARTNO_$i")) {
-                    $unitPrice = str_replace(',', '', $this->input->post("txtConvertedUnitPrice_$i"));
-                    $qty = $this->input->post("txtQty_$i");
+            // 3. PREPARE DATA DETAIL (Looping Array [])
+            $qtyArray = $this->input->post('qty');
 
-                    $dataDetail = [
-                        'SO_Number'        => $sonum,
-                        'Item_Code'        => $this->input->post("TXTPARTNO_$i"),
-                        'Qty'              => $qty,
-                        'UnitPrice'        => $unitPrice,
-                        'Base_UnitPrice'   => $unitPrice * $this->input->post('rate'), // Contoh rate
-                        'TotalPrice'       => str_replace(',', '', $this->input->post("txtConvertedAmount_$i")),
-                        // ... sisanya samakan dengan qadd.cfm
-                    ];
-                    $this->db->insert('TAccSO_Detail', $dataDetail);
+            if (!empty($qtyArray) && is_array($qtyArray)) {
+                foreach ($qtyArray as $i => $val) {
+                    // Pastikan item_code[] ada di baris HTML Mas
+                    $itemCode = $this->input->post('item_code')[$i] ?? $this->input->post('TXTPARTNO')[$i];
+
+                    if (!empty($itemCode)) {
+                        $qty       = (float)str_replace(',', '', $val);
+                        $unitPrice = (float)str_replace(',', '', $this->input->post('price')[$i]);
+                        $discVal   = (float)str_replace(',', '', $this->input->post('disc_val')[$i] ?? 0);
+
+                        // Hitung Total (Netto)
+                        $totalPrice = ($qty * $unitPrice) - $discVal;
+
+                        $dataDetail = [
+                            'SO_Number'        => $SoNum,
+                            'Item_Code'        => $itemCode,
+                            'Item_Description' => $this->input->post('item_desc')[$i] ?? '',
+                            'Qty'              => $qty,
+                            'UnitPrice'        => $unitPrice,
+                            'Base_UnitPrice'   => $unitPrice * (float)$rate,
+                            'Disc_percentage'  => str_replace(',', '', $this->input->post('disc_pct')[$i] ?? 0),
+                            'Disc_Value'       => $discVal,
+                            'TotalPrice'       => $totalPrice,
+                            'Base_TotalPrice'  => $totalPrice * (float)$rate,
+                            'Tax_Code1'        => $this->input->post('tax1')[$i],
+                            'Tax_Code2'        => $this->input->post('tax2')[$i],
+                            'EstimateDate'     => !empty($this->input->post('est_date')[$i]) ? $this->input->post('est_date')[$i] : NULL,
+                            'Comp_ID'          => $this->input->post('cc')[$i], // Cost Center
+                            'config_order'     => $i + 1,
+                            'Dimension_ID'     => 3, // Sesuai sampel data Mas Yana
+                            'Notes'            => $this->input->post('notes')[$i],
+                            'Include_DO'       => 1
+                        ];
+                        $this->db->insert('TAccSO_Detail', $dataDetail);
+                    }
                 }
             }
 
-            // 4. Inventory Reservation (Jika Confirm)
-            if ($isConfirm == 'YES') {
-                // $this->reserve_inventory($sonum); // Buat fungsi private di bawah
-            }
-
+            // 4. SELESAIKAN TRANSAKSI
             if ($this->db->trans_status() === FALSE) {
                 $this->db->trans_rollback();
-                echo json_encode(["code" => 500, "msg" => "Gagal simpan database"]);
+                echo json_encode(["code" => 500, "msg" => "Error Database: Gagal menyimpan data."]);
             } else {
                 $this->db->trans_commit();
-                echo json_encode(["code" => 200, "msg" => "Sales Order $sonum berhasil disimpan!"]);
+                echo json_encode([
+                    "code" => 200,
+                    "msg"  => "Sales Order $SoNum berhasil disimpan!",
+                    "so_number" => $SoNum
+                ]);
             }
         } catch (Exception $e) {
             $this->db->trans_rollback();
-            echo json_encode(["code" => 500, "msg" => $e->getMessage()]);
+            echo json_encode(["code" => 500, "msg" => "Fatal Error: " . $e->getMessage()]);
         }
     }
 }
