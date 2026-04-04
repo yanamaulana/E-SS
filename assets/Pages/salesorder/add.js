@@ -18,8 +18,11 @@ $(document).ready(function () {
     $('#selCurrency').on('change', function () {
         var selectedCurr = $(this).val(); // Ambil USD, IDR, dll
         $('.curr-label').text(selectedCurr);
-        lpage(); // Hitung ulang jika perlu
+        getCurrencyRate(selectedCurr);
+        // lpage(); // sudah di panggil di dalam getCurrencyRate setelah rate berhasil diambil
     });
+
+    getCurrencyRate($('#selCurrency').val()); // Panggil saat load untuk inisialisasi (jika sudah ada value)
 
     // Inisialisasi label saat halaman pertama kali load (setelah reload submit)
     var currentType = $('input[name="rdoAllocate"]:checked').val();
@@ -48,11 +51,6 @@ $(document).ready(function () {
             $('#allocateTo').text("Project Component");
         }
     }
-
-    $('#selCurrency').on('change', function () {
-        var val = $(this).val();
-        getCurrencyRate(val); // Ini akan jalan meskipun function di dalam ready()
-    });
     // --------------------------------------------------------
 
     // 1. Fungsi untuk memproses string rate dari server
@@ -61,7 +59,6 @@ $(document).ready(function () {
         const objTblCurr = document.getElementById('tblCurrConverter');
         const objTblTax = document.getElementById('tblTaxConverter');
 
-        // Reset tabel agar tidak double saat ganti currency
         if (objTblCurr) objTblCurr.innerHTML = "";
         if (objTblTax) objTblTax.innerHTML = "";
 
@@ -73,14 +70,15 @@ $(document).ready(function () {
             if (!awal) continue;
 
             let detail = awal.split("|");
-            let type = detail[0]; // Amount atau Tax
-            let curr = detail[1]; // USD, EUR, dll
-            window.currConverter = detail[2]; // Simpan ke global agar terbaca addRowCurrency
+            let type = detail[0];
+            let curr = detail[1];
+            window.currConverter = detail[2];
             window.currID = curr;
 
-            if (type == "Amount" && curr != baseCurrency) {
+            // Hapus pengecekan != baseCurrency agar IDR tetap muncul
+            if (type == "Amount") {
                 addRowCurrency('tblCurrConverter', type, curr);
-            } else if (type == "Tax" && curr != baseCurrency) {
+            } else if (type == "Tax") {
                 addRowCurrency('tblTaxConverter', type, curr);
             }
         }
@@ -453,7 +451,7 @@ function getItem(meth, custData) {
             var newRow = `
                 <tr class="text-nowrap">
                     <td><input type="checkbox" name="chk_item[]"></td>
-                    <td>${itemCode}</td>
+                    <td>${itemCode} <input type="hidden" name="item_code[]" value="${itemCode}"></td>
                     <td>${itemName}</td>
                     <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm"></td>
                     <td style="display:none">${size}</td>

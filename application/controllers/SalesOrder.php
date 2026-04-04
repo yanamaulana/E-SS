@@ -59,6 +59,21 @@ class SalesOrder extends CI_Controller
         $this->data['txtExpDelDate'] = "";
         $this->data['task'] = $task;
 
+        if ($task == 'new') {
+            $sql = "SELECT T1.Emp_ID, 
+                   ISNULL(T1.First_Name, '') + ' ' + ISNULL(T1.Middle_Name, '') + ' ' + ISNULL(T1.Last_Name, '') AS name 
+            FROM THRMEmpPersonalData AS T1 
+            WHERE EXISTS ( 
+                SELECT 1 FROM thrmEmpCompany AS T2 
+                WHERE T2.Emp_ID = T1.Emp_ID AND T2.Company_ID = 2 
+            ) 
+            AND (T1.Terminate_Date >= GETDATE() OR T1.Terminate_Date IS NULL) 
+            AND isnull(T1.isSalesPerson,0) = 1
+            ORDER BY T1.First_Name ASC";
+
+            $this->data['sales_person'] = $this->db->query($sql)->result();
+        }
+
 
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
 
@@ -159,11 +174,6 @@ class SalesOrder extends CI_Controller
         $baseCurrency = $this->input->cookie('currencyid') ?? 'IDR';
         $companyId    = 2; // Sesuai data uat Anda
 
-        if ($selectedCurr == $baseCurrency) {
-            echo "";
-            return;
-        }
-
         // Query MSSQL 2014
         // Kita ambil 'scale' sebagai rate-nya
         $this->db->select('scale');
@@ -238,34 +248,60 @@ class SalesOrder extends CI_Controller
             } else {
                 $SoNum = $this->input->post('SO_NUMBER');
             }
-
             // Ambil Rate Kurs (Default 1 jika IDR/tidak ada)
             // Masih pake str_replace buat jaga-jaga kalau ada koma nyelip
-            $rate = str_replace(',', '', $this->input->post('txtCurr_IDR') ?? 1);
+            $SelCurr = 'txtCurr_' . $this->input->post('selCurrency');
+            $rate = str_replace(',', '', $this->input->post($SelCurr) ?? 1);
             $userId = $this->session->userdata('sys_sba_userid');
+
+            // Ambil nilai Tax dari form (Nilai dalam IDR/Base)
+            $taxBase = (float)str_replace(',', '', $this->input->post('txtTotTaxConv') ?? 0);
+
+            // Hitung Tax dalam Currency Document (Misal USD)
+            // Jika IDR, maka $rate adalah 1, hasilnya tetap sama.
+            $taxAmount = ($rate > 0) ? ($taxBase / $rate) : 0;
 
             // 2. PREPARE DATA HEADER (TAccSO_Header)
             $dataHeader = [
                 'SO_Number'           => $SoNum,
                 'TrxNo'               => $SoNum,
-                'SO_Date'             => date('Y-m-d H:i:s', strtotime($this->input->post('txtSODate'))),
+                'SO_Date'             => date('Y-m-d', strtotime($this->input->post('txtSODate'))) . ' ' . date('H:i:s'), // Gabungkan dengan waktu saat submit
                 'SO_Notes'            => $this->input->post('txtMemo'),
                 'Account_ID'          => $this->input->post('txtCustCode'),
+                'Payment_Type'        => 'Credit',
                 'Contact_ID'          => $this->input->post('txtCPCode'),
                 'PO_NumCustomer'      => $this->input->post('txtPONum'),
                 'PO_DateCustomer'     => !empty($this->input->post('txtPODate')) ? date('Y-m-d', strtotime($this->input->post('txtPODate'))) : NULL,
-                'SO_Status'           => ($isConfirm == 'YES') ? 3 : 1, // Status 3 biasanya Confirm/Approved
+                'Project_ID'          => $this->input->post('selProject') ?: 0,
+                'SO_Status'           => ($this->input->post('txtconfirm') == 'YES') ? 2 : 1,
+                'Approval_Status'     => '0',
                 'Company_ID'          => 2,
                 'WH_ID'               => 9,
                 'Currency_ID'         => $this->input->post('selCurrency'),
                 'Tax_Currency_ID'     => $this->input->post('selTaxCurrency'),
+                'Tax_Amount'          => $taxAmount,      // Nilai Pajak dalam Currency Document (USD/EUR dll)
+                'Base_Tax_Amount'     => $taxBase,
+                'SN_Status'           => 'ND',
+                'Emp_ID'              => $this->input->post('txtSPCode'),
+                'Invoice_Status'      => 'NI',
                 'Invoice_Amount'      => str_replace(',', '', $this->input->post('txtTotAmount')),
+                'Due_date'            => $this->input->post('txtInvDueDate'),
+                'SOType'              => $this->input->post('txtSOtype') ?: '1',
                 'Base_Invoice_Amount' => (float)str_replace(',', '', $this->input->post('txtTotAmount')) * (float)$rate,
+                'ItemCategoryType'    => 'FG',
                 'Production_month'    => $this->input->post('txtProMonth'),
                 'Production_year'     => $this->input->post('txtProYear'),
                 'PriceType'           => $this->input->post('cboPriceType'),
                 'pi_number'           => $this->input->post('txtPiNumber'), // 'SG260108-01' masuk sini
                 'SC_Number'           => NULL, // Sesuai info Mas, ini selalu NULL
+                'terms'               => $this->input->post('cboTerms'),
+                'Deliveryterms'       => $this->input->post('txtDeliveryTerms'),
+                'isClose' => 0,
+                'close_reason' => NULL,
+                'project_code' => 0,
+                'Proforma_Number' => 0,
+                'SN_Account_ID' => $this->input->post('selSNGroup'),
+                'SI_Account_ID' => $this->input->post('selSIGroup'),
                 'KawasanBerikat'      => ($this->input->post('chkKawasan') == '1') ? 1 : 0,
                 'isTaxAble'           => ($this->input->post('txtSOtype') == '1') ? 1 : 0,
                 'Update_By'           => $userId,

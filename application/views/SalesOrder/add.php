@@ -1,18 +1,18 @@
 <div class="card card-flush overflow-hidden h-xl-100">
-    <form name="frmNew" action="" method="post">
+    <form name="frmNew" id="frmNew" action="" method="post">
         <div class="container-fluid py-3">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="SO_NUMBER">SO Number :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm">
-                            <input type="hidden" id="task" name="task" value="<?= $task ?> ?>">
+                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm" placeholder="SOL209<?= date('ym') ?>-XXXXXXX" readonly>
+                            <input type="hidden" id="task" name="task" value="<?= $task ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
-                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSOtype">SO Tax Type :</label>
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSOtype">So Tax Type :</label>
                         <div class="col-sm-8 pt-1">
                             <div class="custom-control custom-radio custom-control-inline custom-control-sm">
                                 <input type="radio" name="txtSOtype" id="taxNormal" value="1" class="custom-control-input" checked="">
@@ -28,7 +28,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selProject">Project Name :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="selProject" name="selProject" class="form-control form-control-sm">
+                            <input type="text" id="selProject" name="selProject" class="form-control form-control-sm" placeholder="Project Name...">
                         </div>
                     </div>
 
@@ -97,7 +97,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustName">Customer * :</label>
                         <div class="col-sm-8">
-                            <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm">
+                            <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm" placeholder="Customer...." readonly>
                             <input type="hidden" name="txtCustCode" id="txtCustCode" value="">
                         </div>
                     </div>
@@ -105,14 +105,14 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustAddress">Address :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3"></textarea>
+                            <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3" placeholder="Address..." readonly></textarea>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm">Tax File Number :</label>
                         <div class="col-sm-8 pt-2">
-                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="">
+                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="" placeholder="Tax File Number..." readonly>
                             <span id="CPTaxFileNumber" class="fw-bold text-dark" style="font-size: 0.85rem;">-</span>
                         </div>
                     </div>
@@ -120,29 +120,39 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPName">Contact Person :</label>
                         <div class="col-sm-8">
-                            <input type="hidden" name="txtCPCode" id="txtCPCode" value="8220">
-                            <input type="text" name="txtCPName" id="txtCPName" class="form-control form-control-sm" value="">
+                            <input type="hidden" name="txtCPCode" id="txtCPCode" value="">
+                            <input type="text" name="txtCPName" id="txtCPName" class="form-control form-control-sm" value="" placeholder="Contact Person..." readonly>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPAddress">Contact Address :</label>
                         <div class="col-sm-8">
-                            <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="">
+                            <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="" placeholder="Contact Address..." readonly>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
-                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSPName">Sales Person * :</label>
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSPCode">Sales Person * :</label>
                         <div class="col-sm-8">
-                            <input type="text" name="txtSPName" class="form-control form-control-sm bg-light" value="" readonly="">
+                            <select name="txtSPCode" id="txtSPCode" class="form-control form-control-sm select2-item" data-control="select2">
+                                <option value="">-- Select Sales Person --</option>
+                                <?php if (!empty($sales_person)): ?>
+                                    <?php foreach ($sales_person as $sp): ?>
+                                        <option value="<?= $sp->Emp_ID ?>"
+                                            <?= (isset($qSales->Emp_ID) && $qSales->Emp_ID == $sp->Emp_ID) ? 'selected' : '' ?>>
+                                            <?= $sp->name ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtMemo">Remarks :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtMemo" class="form-control form-control-sm" rows="3"></textarea>
+                            <textarea name="txtMemo" class="form-control form-control-sm" rows="3" placeholder="Remarks..."></textarea>
                         </div>
                     </div>
 
@@ -160,7 +170,7 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSNGroup">SN Account :</label>
                         <div class="col-sm-8">
                             <select name="selSNGroup" class="form-control form-control-sm">
-
+                                <option value="-1" disabled selected>NONE</option>
                             </select>
                         </div>
                     </div>
@@ -169,7 +179,7 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSIGroup">SI Account :</label>
                         <div class="col-sm-8">
                             <select name="selSIGroup" class="form-control form-control-sm">
-
+                                <option value="-1" disabled selected>NONE</option>
                             </select>
                         </div>
                     </div>
@@ -177,7 +187,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtRevisionReason">Revision Reason :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3"></textarea>
+                            <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3" placeholder="Revision Reason..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -186,28 +196,28 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSODate">SO Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm">
+                            <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
-                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtInvDueDate">SO Tax Type :</label>
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="txtInvDueDate">Due Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm">
+                            <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPONum">Cust PO Num :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm">
+                            <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm" placeholder="Customer PO Number...">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPODate">Cust PO Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm">
+                            <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
                         </div>
                     </div>
 
@@ -311,7 +321,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtDeliveryTerms">Delivery Terms :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2"></textarea>
+                            <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2" placeholder="Delivery Terms..."></textarea>
                         </div>
                     </div>
 
@@ -349,7 +359,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPiNumber">Pi Number * :</label>
                         <div class="col-sm-8">
-                            <input name="txtPiNumber" class="form-control form-control-sm" value="">
+                            <input name="txtPiNumber" class="form-control form-control-sm" value="" placeholder="PI Number...">
                         </div>
                     </div>
                 </div>
@@ -376,6 +386,7 @@
                     </fieldset>
                 </div>
             </div>
+            <input type="hidden" name="CurrencyRateList" id="CurrencyRateList" value="">
 
             <input type="hidden" name="txtCurr_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
             <input type="hidden" name="txtTax_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
