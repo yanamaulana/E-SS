@@ -96,7 +96,31 @@ $sqlCount = "SELECT COUNT(TITEM.item_code) as total FROM TITEM INNER JOIN TItemC
 $totalRows = $this->db->query($sqlCount)->row()->total;
 $totalPages = ceil($totalRows / $limit);
 
-$sqlItem = "SELECT TITEM.item_code, TITEM.Item_name, tgscolor.Color_Name as Color, TITEM.Item_Size as Brand, CAST(ISNULL(TITEM.Item_Length,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Width,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Height,0) AS VARCHAR) + ' mm' as Size, TITEM.customfield1 AS Type FROM TITEM INNER JOIN TItemCompany ON TItemCompany.item_code = TItem.item_code INNER JOIN TitemCategory ON TitemCategory.ItemCategory_ID = TItemCompany.ItemCategory_ID INNER JOIN TItemDimension ON TItemDimension.Dimension_ID = TItemCompany.Dimension_ID LEFT JOIN tgscolor ON tgscolor.color_code = TITEM.item_color WHERE (TItem.InActive is NULL Or TItem.InActive = 0) AND TItemCompany.Company_ID = $companyID AND TitemCategory.ItemCategoryType = '$strCatType' AND TITEM.itemclass = 0 AND TITEM.item_code IN (SELECT DISTINCT ITEM_CODE FROM TDATAGROUPITEM WHERE DATAGROUP_ID IN (20, 86)) $sqlSearch ORDER BY TITEM.item_code ASC OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY";
+$sqlItem = "SELECT 
+                TITEM.item_code, 
+                TITEM.Item_name, 
+                tgscolor.Color_Name as Color, 
+                TITEM.Item_Size as Brand, 
+                CAST(ISNULL(TITEM.Item_Length,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Width,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Height,0) AS VARCHAR) + ' mm' as Size, 
+                TITEM.customfield1 AS Type,
+                -- Tambahan sesuai instruksi Mas Yana
+                TITEM.unit_type_id,
+                (SELECT unit_name FROM taccunittype WHERE unit_type_id = TITEM.unit_type_id) AS unit_name,
+                TItemCompany.Dimension_ID
+            FROM TITEM 
+            INNER JOIN TItemCompany ON TItemCompany.item_code = TItem.item_code 
+            INNER JOIN TitemCategory ON TitemCategory.ItemCategory_ID = TItemCompany.ItemCategory_ID 
+            INNER JOIN TItemDimension ON TItemDimension.Dimension_ID = TItemCompany.Dimension_ID 
+            LEFT JOIN tgscolor ON tgscolor.color_code = TITEM.item_color 
+            WHERE (TItem.InActive is NULL Or TItem.InActive = 0) 
+            AND TItemCompany.Company_ID = $companyID 
+            AND TitemCategory.ItemCategoryType = '$strCatType' 
+            AND TITEM.itemclass = 0 
+            AND TITEM.item_code IN (SELECT DISTINCT ITEM_CODE FROM TDATAGROUPITEM WHERE DATAGROUP_ID IN (20, 86)) 
+            $sqlSearch 
+            ORDER BY TITEM.item_code ASC 
+            OFFSET $offset ROWS FETCH NEXT $limit ROWS ONLY";
+
 $qItem = $this->db->query($sqlItem)->result();
 ?>
 
@@ -245,10 +269,25 @@ $qItem = $this->db->query($sqlItem)->result();
                             <tr>
                                 <td colspan="8" class="text-center py-4">-- No Record Found --</td>
                             </tr>
-                            <?php else: $no = $offset + 1;
+                            <?php else:
+                            $no = $offset + 1;
                             foreach ($qItem as $row): ?>
                                 <tr>
-                                    <td class="text-center"><input type="checkbox" name="chkItem" value="<?= $row->item_code ?>"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="chkItem"
+                                            value="<?= $row->item_code ?>"
+                                            data-code="<?= $row->item_code ?>"
+                                            data-name="<?= htmlspecialchars($row->Item_name) ?>"
+                                            data-color="<?= $row->Color ?? '-' ?>"
+                                            data-brand="<?= $row->Brand ?? '-' ?>"
+                                            data-size="<?= $row->Size ?>"
+                                            data-type="<?= $row->Type ?>"
+                                            data-unitid="<?= $row->unit_type_id ?>"
+                                            data-unitname="<?= $row->unit_name ?>"
+                                            data-unitid2="<?= $row->unit_type_id ?>"
+                                            data-unitname2="<?= $row->unit_name ?>"
+                                            data-dimid="<?= $row->Dimension_ID ?>">
+                                    </td>
                                     <td class="text-center"><?= $no++ ?></td>
                                     <td><?= $row->item_code ?></td>
                                     <td><?= $row->Item_name ?></td>

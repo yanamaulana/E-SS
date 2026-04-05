@@ -63,8 +63,11 @@ $(document).ready(function () {
         if (objTblTax) objTblTax.innerHTML = "";
 
         if (!valCurr) return;
+        //Amount|USD|16922.00000000;Tax|USD|16922.00000000
+        // ubah jadi IDR|1;USD|16922 untuk di masukan ke value input hidden #CurrencyRateList
 
         const bagi = valCurr.split(";");
+        let CurrencyRateList = 'IDR|1';
         for (let i = 0; i < bagi.length; i++) {
             let awal = bagi[i];
             if (!awal) continue;
@@ -74,6 +77,12 @@ $(document).ready(function () {
             let curr = detail[1];
             window.currConverter = detail[2];
             window.currID = curr;
+            if (i == 0 && curr != 'IDR') {
+                CurrencyRateList = `DR|1;${curr}|${parseFloat(window.currConverter)}`;
+            }
+            if (i == 0) {
+                $('#CurrencyRateList').val(CurrencyRateList);
+            }
 
             // Hapus pengecekan != baseCurrency agar IDR tetap muncul
             if (type == "Amount") {
@@ -429,82 +438,106 @@ function getItem(meth, custData) {
 
     var today = new Date().toISOString().split('T')[0];
 
+    // Fungsi ini biasanya dipanggil di dalam getItem(meth, custData)
     $(popupWindow.document).find('input[name="chkItem"]:checked').each(function () {
-        var itemCode = $(this).val();
-        var row = $(this).closest('tr');
+        var $chk = $(this); // Checkbox yang sedang di-loop
+        var itemCode = $chk.val();
 
-        var itemName = row.find('td:eq(3)').text().trim();
-        var color = row.find('td:eq(4)').text().trim();
-        var brand = row.find('td:eq(5)').text().trim();
-        var size = row.find('td:eq(6)').text().trim();
-        var type = row.find('td:eq(7)').text().trim();
+        // Ambil data dari atribut data-* yang kita buat di pickitem_view
+        var itemName = $chk.data('name');
+        var color = $chk.data('color');
+        var brand = $chk.data('brand');
+        var size = $chk.data('size');
+        var type = $chk.data('type');
+        var unitId = $chk.data('unitid');
+        var unitName = $chk.data('unitname');
+        var unitId2 = $chk.data('unitid2');
+        var unitName2 = $chk.data('unitname2');
+        var dimensionId = $chk.data('dimid');
 
         // Cek Duplikat
         var isExist = false;
         $('#tbl_ID tbody tr').each(function () {
-            if ($(this).find('td:eq(1)').text().trim() == itemCode) {
+            if ($(this).find('input[name="item_code[]"]').val() == itemCode) {
                 isExist = true;
             }
         });
 
         if (!isExist) {
+            // Render Row (Gunakan variabel yang sudah ditangkap di atas)
             var newRow = `
-                <tr class="text-nowrap">
-                    <td><input type="checkbox" name="chk_item[]"></td>
-                    <td>${itemCode} <input type="hidden" name="item_code[]" value="${itemCode}"></td>
-                    <td>${itemName}</td>
-                    <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm"></td>
-                    <td style="display:none">${size}</td>
-                    <td>${color}</td>
-                    <td>${brand}</td>
-                    <td>${type}</td>
-                    
-                    <td style="min-width: 85px;">
-                        <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="0">
-                    </td>
-                    <td class="fw-bold text-muted">PCS</td> 
-                    <td style="min-width: 85px;">
-                        <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="0">
-                    </td>
-                    <td class="fw-bold text-muted">PCS</td> 
-                    <td style="display:none">0</td>
-                    <td style="display:none">PCS</td>
-                    
-                    <td style="min-width: 85px;"><input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="0"></td>
-                    <td style="min-width: 85px;"><input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="0"></td>
-                    <td style="min-width: 85px;"><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="0"></td>
-                    <td class="text-right fw-bold total-amount">0.00</td>
-                    
-                    <td style="min-width: 110px;">
-                        <select name="tax1[]" class="form-control form-control-sm tax-trigger">
-                            ${taxOptionsHtml}
-                        </select>
-                    </td>
-                    <td style="min-width: 110px;">
-                        <select name="tax2[]" class="form-control form-control-sm tax-trigger">
-                            ${taxOptionsHtml}
-                        </select>
-                    </td>
+            <tr class="text-nowrap">
+                <td><input type="checkbox" name="chk_item[]"></td>
+                <td>
+                    ${itemCode} 
+                    <input type="hidden" name="item_code[]" value="${itemCode}">
+                    <input type="hidden" name="unit_id[]" value="${unitId}"> 
+                    <input type="hidden" name="unit_id2[]" value="${unitId2}">
+                    <input type="hidden" name="dim_id[]" value="${dimensionId || 3}">
+                </td>
+                <td>
+                    ${itemName} 
+                    <input type="hidden" name="item_name[]" value="${itemName}">
+                    <input type="hidden" name="gen_flag[]" value="0">
+                    <input type="hidden" name="parent_item[]" value="0">
+                    <input type="hidden" name="parent_path[]" value="0">
+                </td>
+                <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm"></td>
+                <td style="display:none">${size}</td>
+                <td>${color}</td>
+                <td>${brand}</td>
+                <td>${type}</td>
+                
+                <td style="min-width: 85px;">
+                    <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="0">
+                </td>
+                <td class="fw-bold text-muted">${unitName}</td> 
+                <td style="min-width: 85px;">
+                    <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="0">
+                </td>
+                <td class="fw-bold text-muted">${unitName2}</td> 
+                
+                <td style="display:none">
+                    <input type="hidden" name="cs_number[]" value="">
+                    <input type="hidden" name="extra_price[]" value="0">
+                    <input type="hidden" name="others[]" value="">
+                </td>
+                
+                <td style="min-width: 85px;"><input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="0"></td>
+                <td style="min-width: 85px;"><input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="0"></td>
+                <td style="min-width: 85px;"><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="0"></td>
+                <td class="text-right fw-bold total-amount">0.00</td>
+                
+                <td style="min-width: 110px;">
+                    <select name="tax1[]" class="form-control form-control-sm tax-trigger">
+                        ${taxOptionsHtml}
+                    </select>
+                </td>
+                <td style="min-width: 110px;">
+                    <select name="tax2[]" class="form-control form-control-sm tax-trigger">
+                        ${taxOptionsHtml}
+                    </select>
+                </td>
 
-                    <td colspan="2" style="min-width: 110px;">
-                        <input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="${today}">
-                    </td>
+                <td colspan="2" style="min-width: 110px;">
+                    <input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="${typeof today !== 'undefined' ? today : ''}">
+                </td>
 
-                    <td style="min-width: 110px;">
-                        <select name="cc[]" class="form-control form-control-sm select2-item">
-                            ${CcOptionsHtml}
-                        </select>
-                    </td>
-                </tr>
-            `;
+                <td style="min-width: 110px;">
+                    <select name="cc[]" class="form-control form-control-sm select2-item">
+                        ${CcOptionsHtml}
+                    </select>
+                </td>
+            </tr>
+        `;
+
             var $row = $(newRow);
             $('#tbl_ID tbody').append($row);
+
+            // Re-inisialisasi Plugin
             $row.find('.date-picker').flatpickr();
             $row.find('.select2-item').select2({
-                // allowClear: true,
                 width: '100%',
-                // placeholder: '-- Select --',
-                // PENTING: dropdownParent supaya dropdown-nya gak "ngumpet" atau terpotong
                 dropdownParent: $('#tbl_ID').parent()
             });
         }
@@ -618,6 +651,24 @@ function passingVars(IsConfirm) {
     let numRowsTerm = $('#tblPayment tr').length - 1;
     if (numRowsTerm < 1) {
         alert('Add Payment Term!');
+        return false;
+    }
+
+    // Prod Month/Year required jika isinya '' maka false
+    if ($('#txtProdMonth').length && $('#txtProdYear').length) {
+        if ($.trim($('#txtProdMonth').val()) === '' || $.trim($('#txtProdYear').val()) === '') {
+            alert('Production Month and Year are required!');
+            return false;
+        }
+    }
+
+    //txtPiNumber required jika string txtPONum
+    if ($('#txtPiNumber').length && $.trim($('#txtPiNumber').val()) === '') {
+        alert('PI Number is required!');
+        return false;
+    }
+    if ($('#txtPONum').length && $.trim($('#txtPONum').val()) === '') {
+        alert('PO Number Customer is required!');
         return false;
     }
 

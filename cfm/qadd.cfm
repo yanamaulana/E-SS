@@ -787,81 +787,97 @@ where so_number='#SONum#'
 <cfloop from="1" to="#hdnCount#" index="idxFree">
 <cfif isDefined("hdnFreeItemCode#idxFree#")>
 <cfquery name="qInsertFreeItem" datasource="#iif(isDefined('DSN'),'DSN','Attributes.DSN')#">
-	INSERT INTO TACCSO_Detail
-	(
-	   SO_Number,
-	   Item_Code,
-	   Item_description,
-	   Qty,
-	   <!--- add by meicy 20090910 --->
-	   Qty2,
-	   Unit_Type,
-	   Unit_Type2,
-	   <!--- end add by meicy --->
-	   UnitPrice,
-	   Base_UnitPrice,
-	   Disc_Percentage,
-	   Tax_Code1,Tax_Percentage1,Tax_Operator1,Tax_Amount1,
-	   Tax_Code2,Tax_Percentage2,Tax_Operator2,Tax_Amount2,
+	<cfscript>
+    // Ambil data dari form/evaluate agar tidak perlu ngetik evaluate berkali-kali
+    vItemCode    = evaluate("TXTPARTNO_#idx#");
+    vItemDesc    = evaluate("txtDesc_#idx#");
+    vQty         = val(replace(evaluate("txtQty_#idx#"), ",", "", "ALL"));
+    vQty2        = val(replace(evaluate("txtQty2_#idx#"), ",", "", "ALL"));
+    vUnit1       = evaluate("txtUnitID_#idx#");
+    
+    // Logika UnitID2
+    vUnit2Raw    = evaluate("txtUnitID2_#idx#");
+    vUnit2       = (vUnit2Raw neq '') ? vUnit2Raw : 0;
 
-	   TotalPrice,
-	   Base_TotalPrice,
-	   Include_DO,
-	   Others,
-	   CS_Number,
-	   ExtraPrice,
-	   EstimateDate,
-	   generate_flag,
-	   parent_item,
-	   parent_path
-	   ,config_level
-       ,config_ratio,config_order
-       <cfif rbTypeDoc IS 3>
-         , ref_id
-       </cfif>
-       ,Dimension_ID
-       ,Disc_Value
-	   ,isFreeItem
-       ,Comp_id	   
-	)
-	VALUES
-	(
-		'#SONum#',
-		'#evaluate("hdnFreeItemCode#idxFree#")#',
-		'#evaluate("hdnFreeItemName#idxFree#")#',
-		#val(replace(evaluate("hdnFreeQty#idxFree#"),",","","ALL"))#,
-		  
-		#val(replace(evaluate("hdnFreeQty#idxFree#"),",","","ALL"))#,
-		#evaluate("hdnFreeUnitType#idxFree#")#,
-	
-		#evaluate("hdnFreeUnitType#idxFree#")#, 
-		  
-		0,
-		0,
-		0,
-		0,0,0,0,
-		0,0,0,0,
-		0,
-		0,
-		1,
-		'',
-		'',
-		'',
-		<cfif not isdefined("txtEstimateDate_#idx#") or evaluate("txtEstimateDate_#idx#")  eq "">#createodbcdate(createdate(year(txtSOdate),month(txtSODate),day(txtSODate)))#<cfelse>#createodbcdate(evaluate("txtEstimateDate_#idx#"))#</cfif>
-		,'0'
-		,'0'
-		,'0'
-		,NULL
-		,NULL
-		,0
-	    <cfif rbTypeDoc IS 3>
-	    , 0
-	    </cfif>
-	    ,#evaluate("hdnFreeDimensionID#idxFree#")#
-	    ,'0'
-		,'1'
-        ,#evaluate("FreeSelCostcenter#idxFree#")#
-	)
+    // Logika Pajak 1
+    vTax1Raw     = evaluate("seltax1_#idx#");
+    vTax1Pct     = val(listGetAt(vTax1Raw, 2, "|"));
+    vTax1Code    = (vTax1Pct neq 0) ? listGetAt(vTax1Raw, 1, "|") : 0;
+    vTax1Op      = (vTax1Pct neq 0) ? listGetAt(vTax1Raw, 3, "|") : 0;
+    vTax1Amt     = (vTax1Pct neq 0) ? TaxAmount1 : 0;
+
+    // Logika Pajak 2
+    vTax2Raw     = evaluate("seltax2_#idx#");
+    vTax2Pct     = val(listGetAt(vTax2Raw, 2, "|"));
+    vTax2Code    = (vTax2Pct neq 0) ? listGetAt(vTax2Raw, 1, "|") : 0;
+    vTax2Op      = (vTax2Pct neq 0) ? listGetAt(vTax2Raw, 3, "|") : 0;
+    vTax2Amt     = (vTax2Pct neq 0) ? TaxAmount2 : 0;
+
+    // Logika Tanggal Estimasi
+    if (not isDefined("txtEstimateDate_#idx#") or evaluate("txtEstimateDate_#idx#") eq "") {
+        vEstDate = createODBCDate(createDate(year(txtSOdate), month(txtSODate), day(txtSODate)));
+    } else {
+        vEstDate = createODBCDate(evaluate("txtEstimateDate_#idx#"));
+    }
+
+    // Logika Parent Item & Path
+    vParentItem  = (evaluate("form.parent_item_#idx#") eq "undefined") ? 0 : form["parent_item_#idx#"];
+    vParentPath  = (evaluate("form.parent_path_#idx#") eq "undefined") ? 0 : form["parent_path_#idx#"];
+    
+    // Logika Level & Ratio (NULL handling)
+    vLevel       = isDefined("form.hdnLevel_#idx#") ? val(form["hdnLevel_#idx#"]) : "NULL";
+    vRatio       = isDefined("form.hdnRatio_#idx#") ? val(form["hdnRatio_#idx#"]) : "NULL";
+
+    vDiscValue   = val(replace(evaluate("txtDisc_#idx#"), ",", "", "ALL"));
+</cfscript>
+<cfquery name="qInsertDetail" datasource="#DSN#">
+    INSERT INTO TAccSO_Detail SET
+        SO_Number        = '#SONum#',
+        Item_Code        = '#vItemCode#',
+        Item_description = '#vItemDesc#',
+        Qty              = #vQty#,
+        Qty2             = #vQty2#,
+        Unit_Type        = #evaluate("txtUnitID_#idx#")#,
+        Unit_Type2       = #vUnit2#,
+        UnitPrice        = #Price#,
+        Base_UnitPrice   = #PriceBase#,
+        Disc_Percentage  = #val(replace(evaluate("TXTDISCOUNT1"&idx),",","","ALL"))#,
+        
+        Tax_Code1        = '#vTax1Code#',
+        Tax_Percentage1  = #vTax1Pct#,
+        Tax_Operator1    = '#vTax1Op#',
+        Tax_Amount1      = #vTax1Amt#,
+        
+        Tax_Code2        = '#vTax2Code#',
+        Tax_Percentage2  = #vTax2Pct#,
+        Tax_Operator2    = '#vTax2Op#',
+        Tax_Amount2      = #vTax2Amt#,
+        
+        TotalPrice       = #TotalPrice#,
+        Base_TotalPrice  = #TotalPriceBase#,
+        Include_DO       = <cfif qCheckItem.habis eq 1>1<cfelse>0</cfif>,
+        Others           = '#evaluate("txtOthers_#idx#")#',
+        CS_Number        = '#evaluate("txtCS_#idx#")#',
+        ExtraPrice       = #val(replace(evaluate("txtExtra_#idx#"),",","","ALL"))#,
+        EstimateDate     = #vEstDate#,
+        generate_flag    = '#form["HID_generate_flag_#idx#"]#',
+        parent_item      = '<cfif evaluate("form.parent_item_#idx#") IS "undefined">0<cfelse>#form["parent_item_#idx#"]#</cfif>',
+        parent_path      = '<cfif evaluate("form.parent_path_#idx#") IS "undefined">0<cfelse>#form["parent_path_#idx#"]#</cfif>',
+        Comp_ID          = #evaluate("selComponent_#idx#")#,
+        config_level     = #vLevel#,
+        config_ratio     = #vRatio#,
+        config_order     = #setorder#,
+        Dimension_ID     = #form['txtDimensionID_' & idx]#,
+        Disc_Value       = #val(replace(evaluate("txtDisc_"&idx),",","","ALL"))#,
+        isFreeItem       = '0',
+        Notes            = '#form['txtNotes_' & idx]#'
+
+        <cfif rbTypeDoc IS 3>
+            , ref_id = #form['hdnSCDetailID_' & idx]#
+        </cfif>;
+
+    SELECT @@IDENTITY AS 'Identity';
+</cfquery>
 </cfquery>
 </cfif>
 <!--- <cfquery name="qInsertHistory" datasource="#iif(isDefined('DSN'),'DSN','Attributes.DSN')#">

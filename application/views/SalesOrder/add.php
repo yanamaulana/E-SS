@@ -227,7 +227,7 @@
                             <div class="row no-gutters">
                                 <div class="col-6 pr-1">
                                     <select name="txtProMonth" id="txtProMonth" class="form-control form-control-sm">
-                                        <option value="" selected="">-- Month --</option>
+                                        <option value="" selected disabled>-- Month --</option>
                                         <option value="1">January</option>
                                         <option value="2">February</option>
                                         <option value="3">March</option>
@@ -244,7 +244,7 @@
                                 </div>
                                 <div class="col-6 pl-1">
                                     <select name="txtProYear" id="txtProYear" class="form-control form-control-sm">
-                                        <option value="">-- Year --</option>
+                                        <option value="" selected disabled>-- Year --</option>
                                         <?php
                                         $startYear   = 2024;
                                         $currentYear = (int)date('Y');
@@ -359,7 +359,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPiNumber">Pi Number * :</label>
                         <div class="col-sm-8">
-                            <input name="txtPiNumber" class="form-control form-control-sm" value="" placeholder="PI Number...">
+                            <input name="txtPiNumber" id="txtPiNumber" class="form-control form-control-sm" value="" placeholder="PI Number...">
                         </div>
                     </div>
                 </div>
@@ -528,7 +528,7 @@
                                     </tr>
 
                                     <tr>
-                                        <td class="fw-bold text-danger">Claim Deduction (IDR)</td>
+                                        <td class="fw-bold text-danger">Claim Deduction (<span class="curr-label">IDR</span>)</td>
                                         <td>:</td>
                                         <td>
                                             <input type="text" name="txt_cd_amount" id="txt_cd_amount" class="form-control form-control-sm text-end border-danger" value="0.00">

@@ -300,10 +300,28 @@ class SalesOrder extends CI_Controller
                 'close_reason' => NULL,
                 'project_code' => 0,
                 'Proforma_Number' => 0,
+                'isSisterCompany' => 0,
+                'SisterCompany' => 0,
+                'CurrencyRateList' => $this->input->post('CurrencyRateList'),
+                'Tax_CurrencyRateList' => 'IDR|1',
+                'AllocateTo' => $this->input->post('rdoAllocate'),
+                'TransactionDiscountRate' => $this->input->post('txtDisctotal') ?? 0,
+                'TransactionDiscountAmount' => $this->input->post('txtTotDisc') ?? 0,
+                'TransactionDiscountBaseAmount' => floatval($this->input->post('txtTotDisc')) * (float)$rate,
+                'include_do' => 1,
+                'paymentterm_code' => $this->input->post('cboTermsNew'),
+                'Revision_Number' => 0,
+                'isExport' => 1,
+                'reason_revision' => $this->input->post('txtRevisionReason'),
+                'claim_deduction_amount' => $this->input->post('txt_cd_amount'),
+                'claim_deduction_desc' => $this->input->post('txt_cd_desc'),
                 'SN_Account_ID' => $this->input->post('selSNGroup'),
                 'SI_Account_ID' => $this->input->post('selSIGroup'),
+                'disc_id' => 0,
                 'KawasanBerikat'      => ($this->input->post('chkKawasan') == '1') ? 1 : 0,
-                'isTaxAble'           => ($this->input->post('txtSOtype') == '1') ? 1 : 0,
+                'isTaxAble'           => 0,
+                'Production_month' => $this->input->post('txtProMonth'),
+                'Production_year' => $this->input->post('txtProYear'),
                 'Update_By'           => $userId,
                 'Last_Update'         => date('Y-m-d H:i:s')
             ];
@@ -323,39 +341,99 @@ class SalesOrder extends CI_Controller
 
             if (!empty($qtyArray) && is_array($qtyArray)) {
                 foreach ($qtyArray as $i => $val) {
-                    // Pastikan item_code[] ada di baris HTML Mas
+
+                    // 1. Ambil Item Code (Pastikan index-nya sesuai)
                     $itemCode = $this->input->post('item_code')[$i] ?? $this->input->post('TXTPARTNO')[$i];
 
-                    if (!empty($itemCode)) {
-                        $qty       = (float)str_replace(',', '', $val);
-                        $unitPrice = (float)str_replace(',', '', $this->input->post('price')[$i]);
-                        $discVal   = (float)str_replace(',', '', $this->input->post('disc_val')[$i] ?? 0);
+                    // Jika baris ini kosong, lewati
+                    if (empty($itemCode)) continue;
 
-                        // Hitung Total (Netto)
-                        $totalPrice = ($qty * $unitPrice) - $discVal;
+                    // 2. Pembersihan & Perhitungan Angka
+                    $qty        = (float)str_replace(',', '', $val);
+                    $qty2       = (float)str_replace(',', '', $this->input->post('qty2')[$i] ?? 0);
+                    $unitPrice  = (float)str_replace(',', '', $this->input->post('price')[$i] ?? 0);
+                    $discVal    = (float)str_replace(',', '', $this->input->post('disc_val')[$i] ?? 0);
+                    $totalPrice = ($qty * $unitPrice) - $discVal;
 
-                        $dataDetail = [
-                            'SO_Number'        => $SoNum,
-                            'Item_Code'        => $itemCode,
-                            'Item_Description' => $this->input->post('item_desc')[$i] ?? '',
-                            'Qty'              => $qty,
-                            'UnitPrice'        => $unitPrice,
-                            'Base_UnitPrice'   => $unitPrice * (float)$rate,
-                            'Disc_percentage'  => str_replace(',', '', $this->input->post('disc_pct')[$i] ?? 0),
-                            'Disc_Value'       => $discVal,
-                            'TotalPrice'       => $totalPrice,
-                            'Base_TotalPrice'  => $totalPrice * (float)$rate,
-                            'Tax_Code1'        => $this->input->post('tax1')[$i],
-                            'Tax_Code2'        => $this->input->post('tax2')[$i],
-                            'EstimateDate'     => !empty($this->input->post('est_date')[$i]) ? $this->input->post('est_date')[$i] : NULL,
-                            'Comp_ID'          => $this->input->post('cc')[$i], // Cost Center
-                            'config_order'     => $i + 1,
-                            'Dimension_ID'     => 3, // Sesuai sampel data Mas Yana
-                            'Notes'            => $this->input->post('notes')[$i],
-                            'Include_DO'       => 1
-                        ];
-                        $this->db->insert('TAccSO_Detail', $dataDetail);
+                    // Rate (Asumsi variabel $rate sudah didefinisikan sebelumnya)
+                    $currentRate = (float)($rate ?? 1);
+
+                    // 3. Logic Pajak 1
+                    $tax1_raw = $this->input->post('tax1')[$i] ?? '';
+                    $t1_code = 0;
+                    $t1_rate = 0;
+                    $t1_op = '0';
+                    $t1_amt = 0;
+
+                    if (!empty($tax1_raw) && strpos($tax1_raw, '|') !== false) {
+                        $t1_parts = explode('|', $tax1_raw);
+                        $t1_code  = $t1_parts[0];
+                        $t1_rate  = (float)$t1_parts[1];
+                        $t1_op    = $t1_parts[2];
+                        $t1_amt   = ($totalPrice * $t1_rate) / 100;
                     }
+
+                    // 4. Logic Pajak 2
+                    $tax2_raw = $this->input->post('tax2')[$i] ?? '';
+                    $t2_code = 0;
+                    $t2_rate = 0;
+                    $t2_op = '0';
+                    $t2_amt = 0;
+
+                    if (!empty($tax2_raw) && strpos($tax2_raw, '|') !== false) {
+                        $t2_parts = explode('|', $tax2_raw);
+                        $t2_code  = $t2_parts[0];
+                        $t2_rate  = (float)$t2_parts[1];
+                        $t2_op    = $t2_parts[2];
+                        $t2_amt   = ($totalPrice * $t2_rate) / 100;
+                    }
+
+                    // 5. Prepare Data Detail
+                    $dataDetail = [
+                        'SO_Number'        => $SoNum, // Pastikan $SoNum sudah ada
+                        'Item_Code'        => $itemCode,
+                        'Item_description' => $this->input->post('item_name')[$i] ?? '',
+                        'Qty'              => $qty,
+                        'Qty2'             => $qty2,
+                        'Unit_Type'        => $this->input->post('unit_id')[$i] ?: 0,
+                        'Unit_Type2'       => $this->input->post('unit_id2')[$i] ?: 0,
+                        'UnitPrice'        => $unitPrice,
+                        'Base_UnitPrice'   => $unitPrice * $currentRate,
+                        'Disc_Percentage'  => (float)str_replace(',', '', $this->input->post('disc_pct')[$i] ?? 0),
+                        'Disc_Value'       => $discVal,
+                        'Tax_Code1'        => $t1_code,
+                        'Tax_Percentage1'  => $t1_rate,
+                        'Tax_Operator1'    => $t1_op,
+                        'Tax_Amount1'      => $t1_amt,
+                        'Tax_Code2'        => $t2_code,
+                        'Tax_Percentage2'  => $t2_rate,
+                        'Tax_Operator2'    => $t2_op,
+                        'Tax_Amount2'      => $t2_amt,
+                        'TotalPrice'       => $totalPrice,
+                        'Base_TotalPrice'  => $totalPrice * $currentRate,
+                        'Include_DO'       => 1,
+                        'Others'           => $this->input->post('others')[$i] ?? '',
+                        'CS_Number'        => $this->input->post('cs_number')[$i] ?? '',
+                        'ExtraPrice'       => (float)str_replace(',', '', $this->input->post('extra_price')[$i] ?? 0),
+                        'EstimateDate'     => !empty($this->input->post('est_date')[$i]) ? $this->input->post('est_date')[$i] : $this->input->post('txtSODate'),
+                        'generate_flag'    => $this->input->post('gen_flag')[$i] ?? '0',
+                        'parent_item'      => $this->input->post('parent_item')[$i] ?? '0',
+                        'parent_path'      => $this->input->post('parent_path')[$i] ?? '0',
+                        'Comp_ID'          => $this->input->post('cc')[$i] ?: 0,
+                        'config_level'     => $this->input->post('level')[$i] ?? 0,
+                        'config_ratio'     => $this->input->post('ratio')[$i] ?? 1,
+                        'config_order'     => $i + 1,
+                        'Dimension_ID'     => $this->input->post('dim_id')[$i] ?: 3,
+                        'isFreeItem'       => '0',
+                        'Notes'            => $this->input->post('notes')[$i] ?? ''
+                    ];
+
+                    if ($this->input->post('rbTypeDoc') == 3) {
+                        $dataDetail['ref_id'] = $this->input->post('hdnSCDetailID')[$i];
+                    }
+
+                    // Simpan per baris
+                    $this->db->insert('TAccSO_Detail', $dataDetail);
                 }
             }
 
