@@ -52,7 +52,6 @@ $(document).ready(function () {
           </div>`
             }
         },
-        // ... (Kolom-kolom lain tetap sama, saya persingkat agar fokus ke logika) ...
         { data: "CBReq_No", name: "CBReq_No" },
         { data: "Type", name: "Type", visible: false },
         { data: "Document_Date", name: "Document_Date", render: function (data) { return data.substring(0, data.indexOf(' ')); } },
@@ -83,7 +82,8 @@ $(document).ready(function () {
         { data: "First_Name", name: "First_Name" },
         { data: "Last_Update", name: "Last_Update", visible: false },
         { data: "Acc_ID", name: "Acc_ID", visible: false },
-        { data: "Approve_Date", name: "Approve_Date", visible: false }
+        { data: "Approve_Date", name: "Approve_Date", visible: false },
+        { data: "Payment_Plan_Date", name: "Payment_Plan_Date" }
         ],
         order: [
             [3, "DESC"]
