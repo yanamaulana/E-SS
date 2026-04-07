@@ -393,7 +393,7 @@
             <div class="row mt-2">
                 <div class="col-6">
                     <button type="button" id="btnPickItem" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-plus-circle"></i> [+] Multiple Item
+                        <i class="fas fa-plus-circle"></i> [+] Pick Customer & Select Item Manually
                     </button>
 
                     <button type="button" id="btnRemoveItem" class="btn btn-sm btn-outline-danger">
@@ -606,13 +606,13 @@
                 </div>
             </div>
             <div class="modal-body">
+                <label>Pilih File Excel (.xlsx)</label>
                 <div class="form-group">
-                    <label>Pilih File Excel (.xlsx / .xls)</label>
-                    <input type="file" id="excel_file" class="form-control-file" accept=".xlsx, .xls">
+                    <input type="file" id="excel_file" class="form-control form-control-file" accept=".xlsx, .xls">
                 </div>
-                <div class="alert alert-info small">
+                <div class="alert alert-info small mt-4">
                     <i class="fas fa-info-circle"></i> Gunakan template yang tersedia agar format data sesuai.
-                    <a href="#" id="downloadTemplate" class="font-weight-bold text-primary">Download Template</a>
+                    <a href="<?= base_url('assets/templates/SOtemplate.xlsx') ?>" id="downloadTemplate" class="font-weight-bold text-primary">Download Template</a>
                 </div>
             </div>
             <div class="modal-footer">
@@ -624,4 +624,3 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>

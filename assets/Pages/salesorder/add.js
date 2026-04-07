@@ -268,156 +268,199 @@ $(document).ready(function () {
 
     // Trigger Modal
     $('#btnUploadItem').on('click', function () {
-        $('#modalUploadExcel').modal('show');
-    });
-
-    // Proses Upload
-    $('#btnExecuteUpload').on('click', function () {
-        const fileInput = document.getElementById('excel_file');
-        const file = fileInput.files[0];
-
-        if (!file) {
-            alert("Silakan pilih file terlebih dahulu!");
+        if (!$('#txtCustCode').val()) {
+            alert("Silakan pilih customer terlebih dahulu!");
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-            if (jsonData.length > 0) {
-                processExcelData(jsonData);
-                $('#modalUploadExcel').modal('hide');
-                fileInput.value = ''; // Clear input
-            } else {
-                alert("File kosong atau format tidak sesuai!");
-            }
-        };
-        reader.readAsArrayBuffer(file);
+        $('#modalUploadExcel').modal('show');
     });
 
-    function processExcelData(data) {
-        const tbody = $('#tbl_ID tbody');
-        // Ambil tanggal hari ini untuk default jika di excel kosong
-        const today = new Date().toISOString().split('T')[0];
+    // 1. Tombol Trigger Upload di Modal
+    $('#btnExecuteUpload').on('click', function () {
+        let file_data = $('#excel_file').prop('files')[0];
 
-        data.forEach((row) => {
-            // Mapping kolom Excel ke variabel
-            const itemCode = row['Item Code'] || '';
-            const itemName = row['Description'] || '';
-            const notes = row['Notes'] || '';
-            const dimId = row['Dim ID'] || 3;
-            const sizeInfo = row['Size Info'] || '0.00 x 0.00 x 0.00 mm';
-            const color = row['Color'] || 'NA';
-            const brand = row['Brand'] || '';
-            const type = row['Type'] || '';
-            const qty = row['Qty'] || 0;
-            const unitName = row['Unit'] || 'Pcs';
-            const unitId = row['Unit ID'] || 3;
-            const qty2 = row['Qty 2'] || 0;
-            const unitName2 = row['Unit 2'] || 'Pcs';
-            const unitId2 = row['Unit ID 2'] || 3;
-            const price = row['Price'] || 0;
-            const discPct = row['Disc %'] || 0;
-            const estDate = row['Est Date'] || today;
-            const ccId = row['CC ID'] || "";
+        if (!file_data) {
+            alert("Silakan pilih file Excel terlebih dahulu!");
+            return;
+        }
 
-            // Template baris persis seperti manual pick Anda
-            var newRow = `
-            <tr class="text-nowrap">
-                <td><input type="checkbox" name="chk_item[]"></td>
-                <td>
-                    ${itemCode} 
-                    <input type="hidden" name="item_code[]" value="${itemCode}">
-                    <input type="hidden" name="unit_id[]" value="${unitId}"> 
-                    <input type="hidden" name="unit_id2[]" value="${unitId2}">
-                    <input type="hidden" name="dim_id[]" value="${dimId}">
-                </td>
-                <td>
-                    ${itemName} 
-                    <input type="hidden" name="item_name[]" value="${itemName}">
-                    <input type="hidden" name="gen_flag[]" value="0">
-                    <input type="hidden" name="parent_item[]" value="0">
-                    <input type="hidden" name="parent_path[]" value="0">
-                </td>
-                <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm" value="${notes}"></td>
-                <td style="display:none">${sizeInfo}</td>
-                <td>${color}</td>
-                <td>${brand}</td>
-                <td>${type}</td>
-                
-                <td style="min-width: 85px;">
-                    <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="${qty}">
-                </td>
-                <td class="fw-bold text-muted">${unitName}</td> 
-                <td style="min-width: 85px;">
-                    <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="${qty2}">
-                </td>
-                <td class="fw-bold text-muted">${unitName2}</td> 
-                
-                <td style="display:none">
-                    <input type="hidden" name="cs_number[]" value="">
-                    <input type="hidden" name="extra_price[]" value="0">
-                    <input type="hidden" name="others[]" value="">
-                </td>
-                
-                <td style="min-width: 85px;"><input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="${price}"></td>
-                <td style="min-width: 85px;"><input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="0"></td>
-                <td style="min-width: 85px;"><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="${discPct}"></td>
-                <td class="text-right fw-bold total-amount">0.00</td>
-                
-                <td style="min-width: 110px;">
-                    <select name="tax1[]" class="form-control form-control-sm tax-trigger">
-                        ${taxOptionsHtml}
-                    </select>
-                </td>
-                <td style="min-width: 110px;">
-                    <select name="tax2[]" class="form-control form-control-sm tax-trigger">
-                        ${taxOptionsHtml}
-                    </select>
-                </td>
+        let formData = new FormData();
+        formData.append('file_excel', file_data);
 
-                <td colspan="2" style="min-width: 110px;">
-                    <input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="${estDate}">
-                </td>
+        $.ajax({
+            url: site_url + 'SalesOrder/process_excel_import',
+            type: 'POST',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: 'JSON',
+            beforeSend: function () {
+                $('#btnExecuteUpload').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+            },
+            success: function (response) {
+                // 1. Cek jika server kirim error status
+                if (response.status === "error") {
+                    alert("Waduh: " + response.msg);
+                    return;
+                }
 
-                <td style="min-width: 110px;">
-                    <select name="cc[]" class="form-control form-control-sm select2-item-new">
-                        ${CcOptionsHtml}
-                    </select>
-                </td>
-            </tr>`;
+                if (Array.isArray(response) && response.length > 0) {
 
-            let $newRow = $(newRow);
+                    // --- KUNCI UTAMA: KOSONGKAN TABEL ---
+                    // Menghapus semua baris <tr> yang ada di dalam tbody sebelum diisi data Excel
+                    $('#tbl_ID tbody').empty();
 
-            // Set value untuk select Tax dan CC jika ada di excel
-            // (Opsional: jika excel berisi ID Pajak/CC)
-            // $newRow.find('select[name="cc[]"]').val(ccId); 
+                    response.forEach(function (item) {
+                        let rowHtml = buildRowDetail(item);
+                        let $row = $(rowHtml);
 
-            tbody.append($newRow);
+                        // 2. Tempel row baru ke tabel yang sudah kosong
+                        $('#tbl_ID tbody').append($row);
+
+                        // 3. Handle Select Biasa (Tax 1 & Tax 2)
+                        $row.find('select[name="tax1[]"], select[name="tax2[]"]').each(function () {
+                            let valExcel = $(this).attr('data-selected');
+                            if (valExcel !== undefined && valExcel !== "") {
+                                $(this).val(valExcel);
+                            }
+                        });
+
+                        // 4. Handle Select2 untuk CC (Cost Center)
+                        let $ccSelect = $row.find('.select2-item-new');
+                        let ccVal = $ccSelect.attr('data-selected');
+
+                        $ccSelect.select2({
+                            theme: 'bootstrap5',
+                            width: '100%'
+                        });
+
+                        if (ccVal !== undefined && ccVal !== "") {
+                            $ccSelect.val(ccVal).trigger('change');
+                        }
+
+                        $ccSelect.removeClass('select2-item-new').addClass('select2-item');
+                    });
+
+                    // 5. Jalankan Flatpickr untuk baris baru
+                    $(".date-picker").flatpickr({ dateFormat: "Y-m-d" });
+
+                    // 6. Trigger hitung ulang semua total (Qty/Price change)
+                    $('.qty-trigger').trigger('change');
+
+                    // Tutup modal setelah berhasil
+                    $('#modalUploadExcel').modal('hide');
+                    alert("Data Excel berhasil di-import!");
+
+                } else {
+                    alert("Data Excel kosong atau Item Code tidak ditemukan!");
+                }
+
+                // tutup modal setelah berhasil
+                $('#modalUploadExcel').modal('hide');
+                // clear form input file 
+                $('#excel_file').val('');
+            },
+            error: function (xhr) {
+                alert("Terjadi kesalahan sistem saat memproses Excel.");
+            },
+            error: function (xhr) {
+                alert("Terjadi kesalahan sistem: " + xhr.statusText);
+            },
+            complete: function () {
+                $('#btnExecuteUpload').prop('disabled', false).html('<i class="fas fa-upload"></i> Proses Detail');
+            }
         });
+    });
 
-        // --- RE-INITIALIZE PLUGINS ---
+    function buildRowDetail(data) {
+        const totalAmount = data.total_amount || "0.00";
+        const notes = data.notes || "";
+        // Jika tanggal di excel kosong, pakai hari ini
+        const estDate = data.est_date || new Date().toISOString().split('T')[0];
 
-        // 1. Inisialisasi Flatpickr untuk baris baru
+        return `
+        <tr class="text-nowrap">
+            <td><input type="checkbox" name="chk_item[]"></td>
+            <td>
+                ${data.item_code} 
+                <input type="hidden" name="item_code[]" value="${data.item_code}">
+                <input type="hidden" name="unit_id[]" value="${data.unit_id}"> 
+                <input type="hidden" name="unit_id2[]" value="${data.unit_id}">
+                <input type="hidden" name="dim_id[]" value="${data.dim_id}">
+            </td>
+            <td>
+                ${data.item_name} 
+                <input type="hidden" name="item_name[]" value="${data.item_name}">
+                <input type="hidden" name="gen_flag[]" value="0">
+                <input type="hidden" name="parent_item[]" value="0">
+                <input type="hidden" name="parent_path[]" value="0">
+            </td>
+            <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm" value="${notes}"></td>
+            <td style="display:none">${data.size}</td>
+            <td>${data.color}</td>
+            <td>${data.brand}</td>
+            <td>${data.type}</td>
+            
+            <td style="min-width: 85px;">
+                <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="${data.qty}">
+            </td>
+            <td class="fw-bold text-muted">${data.unit_name}</td> 
+            <td style="min-width: 85px;">
+                <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="0">
+            </td>
+            <td class="fw-bold text-muted">${data.unit_name}</td> 
+            
+            <td style="display:none">
+                <input type="hidden" name="cs_number[]" value="">
+                <input type="hidden" name="extra_price[]" value="0">
+                <input type="hidden" name="others[]" value="">
+            </td>
+            
+            <td style="min-width: 85px;"><input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="${data.price}"></td>
+            <td style="min-width: 85px;"><input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="0"></td>
+            <td style="min-width: 85px;"><input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="${data.disc_pct}"></td>
+            <td class="text-right fw-bold total-amount">${totalAmount}</td>
+            
+            <td style="min-width: 110px;">
+                <select name="tax1[]" class="form-control form-control-sm tax-trigger" data-selected="${data.tax1}">
+                    ${taxOptionsHtml}
+                </select>
+            </td>
+            <td style="min-width: 110px;">
+                <select name="tax2[]" class="form-control form-control-sm tax-trigger" data-selected="${data.tax2}">
+                    ${taxOptionsHtml}
+                </select>
+            </td>
+
+            <td colspan="2" style="min-width: 110px;">
+                <input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="${estDate}">
+            </td>
+
+            <td style="min-width: 110px;">
+                <select name="cc[]" class="form-control form-control-sm select2-item-new" data-selected="${data.cc}">
+                    ${CcOptionsHtml}
+                </select>
+            </td>
+        </tr>`;
+    }
+
+    // 3. Fungsi Inisialisasi Ulang Plugin UI
+    function initNewRowPlugins() {
+        // Inisialisasi Flatpickr
         if ($(".date-picker").length > 0) {
             $(".date-picker").flatpickr({
                 dateFormat: "Y-m-d",
+                allowInput: true
             });
         }
 
-        // 2. Inisialisasi Select2 untuk baris baru
+        // Inisialisasi Select2 (khusus yang baru ditambah)
         $('.select2-item-new').select2({
             theme: 'bootstrap5',
             width: '100%'
         }).removeClass('select2-item-new').addClass('select2-item');
-
-        // 3. Trigger Kalkulasi Otomatis
-        // Kita tembak event 'change' pada qty agar function calculateTotal Anda jalan
-        $('.qty-trigger').trigger('change');
     }
 
 });
@@ -507,7 +550,7 @@ function lpage() {
     finalGrandTotalSO > 0 ? $('#idTaxHide2').show() : $('#idTaxHide2').hide();
 }
 
-var taxOptionsHtml = '<option value="0" selected>-- No Tax --</option>';
+var taxOptionsHtml = '<option value="0" data-rate="0" data-op="+" selected>-- No Tax --</option>';
 function loadTaxOptions() {
     $.ajax({
         url: $('meta[name="base_url"]').attr('content') + 'SalesOrder/get_tax_list',
@@ -522,10 +565,10 @@ function loadTaxOptions() {
                 var tOp = (val.Tax_operator || '').trim();
 
                 // Gunakan penggabungan string manual (+) agar lebih aman dari karakter spesial
-                taxOptionsHtml += '<option value="' + val.Tax_ID + '" ' +
+                taxOptionsHtml += '<option value="' + val.Tax_Code + '" ' +
                     'data-rate="' + tRate + '" ' +
                     'data-op="' + tOp + '">' +
-                    tName + ' (' + tCode + ')' +
+                    tName +
                     '</option>';
             });
             // console.log("Tax list loaded successfully.");
@@ -541,7 +584,7 @@ function loadCostCenterOptions() {
         type: "GET",
         dataType: "json",
         success: function (data) {
-            CcOptionsHtml = '<option value="">-- No CC --</option>'; // Reset
+            CcOptionsHtml = '<option value="0">..::[NONE]::..</option>'; // Reset
             $.each(data, function (key, val) {
                 var ccName = (val.Comp_Name || '').trim();
                 // Simpan ID sebagai value

@@ -1,6 +1,9 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 class SalesOrder extends CI_Controller
 {
     private $Date;
@@ -452,6 +455,137 @@ class SalesOrder extends CI_Controller
         } catch (Exception $e) {
             $this->db->trans_rollback();
             echo json_encode(["code" => 500, "msg" => "Fatal Error: " . $e->getMessage()]);
+        }
+    }
+
+
+    public function process_excel_import()
+    {
+        // 1. Validasi File Upload
+        if (!isset($_FILES['file_excel']['name']) || $_FILES['file_excel']['name'] == "") {
+            echo json_encode(["status" => "error", "msg" => "File tidak ditemukan"]);
+            return;
+        }
+
+        $file_path = $_FILES['file_excel']['tmp_name'];
+        $companyID = 2; // Ambil Company ID dari session
+
+        try {
+            // 2. Load Spreadsheet
+            $spreadsheet = IOFactory::load($file_path);
+            $sheet = $spreadsheet->getActiveSheet();
+
+            /** * toArray parameters:
+             * null: value if cell is empty
+             * true: calculate formulas
+             * true: format data (returns strings as seen in excel)
+             * false: return indexed array (0, 1, 2...) bukan (A, B, C...)
+             */
+            $dataArray = $sheet->toArray(null, true, true, false);
+
+            $responseItems = [];
+            $seen_codes    = []; // Tracker untuk deteksi duplikat
+            $duplicate_errors = []; // Penampung list kode yang duplikat
+
+            // 3. Loop Data Excel (Mulai Baris ke-2 / Index 1)
+            foreach ($dataArray as $index => $row) {
+                if ($index == 0) continue; // Lewati Header
+
+                // Mapping Kolom Excel
+                // Index: 0=A, 1=B, 2=C, 3=D, 4=E, 5=F, 6=G, 7=H, 8=I
+                $itemCode = trim($row[0] ?? '');
+                if (empty($itemCode)) continue; // Jika Item Code kosong, lewati baris
+
+                // --- VALIDASI DUPLIKAT ---
+                if (isset($seen_codes[$itemCode])) {
+                    // Jika sudah pernah ada, tambahkan ke list error (biar user tahu baris mana yang dobel)
+                    $duplicate_errors[] = "Baris " . ($index + 1) . ": Item Code [$itemCode] duplikat.";
+                    continue; // Skip baris ini, jangan diproses ke DB
+                }
+
+                // Tandai bahwa kode ini sudah diproses
+                $seen_codes[$itemCode] = true;
+
+                $qty      = (float)str_replace(',', '', $row[1] ?? 0);
+                $price    = (float)str_replace(',', '', $row[2] ?? 0);
+                $discPct  = (float)str_replace(',', '', $row[3] ?? 0);
+                $tax1     = trim($row[4] ?? '0');
+                $tax2     = trim($row[5] ?? '0');
+                $estDate  = trim($row[6] ?? date('Y-m-d'));
+                $ccCode   = trim($row[7] ?? '');
+                $notes    = trim($row[8] ?? '');
+
+                // 4. Query Database (Sinkron dengan qitem pick item manual)
+                $item = $this->db->query("
+                    SELECT 
+                        TITEM.item_code, 
+                        TITEM.Item_name, 
+                        tgscolor.Color_Name as Color, 
+                        TITEM.Item_Size as Brand, 
+                        CAST(ISNULL(TITEM.Item_Length,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Width,0) AS VARCHAR) + ' x ' + CAST(ISNULL(TITEM.Item_Height,0) AS VARCHAR) + ' mm' as Size, 
+                        TITEM.customfield1 AS Type,
+                        TITEM.unit_type_id,
+                        (SELECT unit_name FROM taccunittype WHERE unit_type_id = TITEM.unit_type_id) AS unit_name,
+                        TItemCompany.Dimension_ID
+                    FROM TITEM 
+                    INNER JOIN TItemCompany ON TItemCompany.item_code = TItem.item_code 
+                    LEFT JOIN tgscolor ON tgscolor.color_code = TITEM.item_color 
+                    WHERE TITEM.item_code = ? 
+                    AND TItemCompany.Company_ID = ?
+                    AND (TItem.InActive is NULL Or TItem.InActive = 0)
+                ", [$itemCode, $companyID])->row();
+
+                //berikan validasi apabila salah satu baris berisi item code yang tidak ditemukan, maka proses import akan dihentikan dan memberikan pesan error
+                if (empty($item)) {
+                    header('Content-Type: application/json');
+                    echo json_encode(["status" => "error", "msg" => "Item Code '$itemCode' tidak ditemukan di database. Proses import dihentikan."]);
+                    return;
+                }
+
+                if ($item) {
+                    // 5. Kalkulasi Amount (Netto)
+                    $gross  = $qty * $price;
+                    $amount = $gross - ($gross * ($discPct / 100));
+
+                    // 6. Siapkan Data untuk Response JSON
+                    $responseItems[] = [
+                        'item_code'    => $item->item_code,
+                        'item_name'    => $item->Item_name,
+                        'unit_id'      => $item->unit_type_id,
+                        'unit_name'    => $item->unit_name,
+                        'dim_id'       => $item->Dimension_ID,
+                        'size'         => $item->Size,
+                        'color'        => $item->Color,
+                        'brand'        => $item->Brand,
+                        'type'         => $item->Type,
+                        // Data mentah dari Excel
+                        'qty'          => $qty,
+                        'price'        => $price,
+                        'disc_pct'     => $discPct,
+                        'tax1'         => $tax1,
+                        'tax2'         => $tax2,
+                        'est_date'     => $estDate,
+                        'cc'           => $ccCode,
+                        'notes'        => $notes,
+                        'total_amount' => number_format($amount, 2, '.', '') // Format 0.00
+                    ];
+                }
+            }
+
+            if (!empty($duplicate_errors)) {
+                echo json_encode([
+                    "status" => "error",
+                    "msg"    => "Terdeteksi duplikasi item dalam file Excel:<br>" . implode("<br>", $duplicate_errors)
+                ]);
+                return;
+            }
+
+            // 7. Output Final
+            header('Content-Type: application/json');
+            echo json_encode($responseItems);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(["status" => "error", "msg" => "Error loading file: " . $e->getMessage()]);
         }
     }
 }

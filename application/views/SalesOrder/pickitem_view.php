@@ -246,7 +246,7 @@ $qItem = $this->db->query($sqlItem)->result();
             </div>
         </div>
         <div class="footer-action">
-            <button type="button" class="btn btn-sm btn-primary px-4" onclick="selectalot('C')">Select Item</button>
+            <button type="button" class="btn btn-sm btn-primary px-4" onclick="selectalot('C')">Pick Customer & Item</button>
             <button type="button" class="btn btn-sm btn-secondary" onclick="window.close()">Close</button>
         </div>
         <div class="px-2 mt-2">
