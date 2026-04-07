@@ -116,6 +116,7 @@ class Auth extends CI_Controller
             $session_data = array(
                 'sys_sba_isDir'                => $is_dir,
                 'sys_sba_isAdm'                => $is_admin,
+                'sys_sba_isSalesPerson'        => $user['isSalesPerson'],
                 'sys_cbr_divs'                 => $Cbr_Depts,
                 'sys_sba_userid'               => $user['User_ID'],
                 'sys_sba_username'             => $user['User_Name'],

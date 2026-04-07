@@ -391,13 +391,18 @@
             <input type="hidden" name="txtCurr_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
             <input type="hidden" name="txtTax_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
             <div class="row mt-2">
-                <div class="col-12">
+                <div class="col-6">
                     <button type="button" id="btnPickItem" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-plus-circle"></i> [+] Multiple Item
                     </button>
 
                     <button type="button" id="btnRemoveItem" class="btn btn-sm btn-outline-danger">
                         <i class="fas fa-minus-circle"></i> [-] Remove Item
+                    </button>
+                </div>
+                <div class="col-6 text-end">
+                    <button type="button" id="btnUploadItem" class="btn btn-sm btn-success">
+                        <i class="fas fa-file-excel"></i> [+] Upload Item
                     </button>
                 </div>
             </div>
@@ -440,10 +445,10 @@
                 </div>
             </div>
             <div class="row mt-4">
-                <div class="col-md-5">
+                <div class="col-md-6">
                     <div class="card shadow-sm border mt-4">
                         <div class="card-header py-2">
-                            <h6 class="card-title mb-0 small text-uppercase fw-bold">Payment Detail</h6>
+                            <h6 class="card-title mb-0 small text-uppercase font-weight-bold">Payment Detail</h6>
                         </div>
                         <div class="card-body p-0">
                             <table class="table table-sm table-striped border mb-0" id="tblPayment">
@@ -474,8 +479,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-1">&nbsp;</div>
-                <div class="col-md-5">
+                <!-- <div class="col-md-1">&nbsp;</div> -->
+                <div class="col-md-6 mt-4 pl-5">
                     <div class="card shadow-sm border">
                         <div class="card-body p-4">
                             <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
@@ -589,3 +594,34 @@
         </div>
     </form>
 </div>
+<div class="modal fade" id="modalUploadExcel" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-file-excel"></i> Upload Item Detail</h5>
+                <div class="btn btn-icon btn-sm btn-light ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="svg-icon svg-icon-2x">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Pilih File Excel (.xlsx / .xls)</label>
+                    <input type="file" id="excel_file" class="form-control-file" accept=".xlsx, .xls">
+                </div>
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle"></i> Gunakan template yang tersedia agar format data sesuai.
+                    <a href="#" id="downloadTemplate" class="font-weight-bold text-primary">Download Template</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" id="btnExecuteUpload" class="btn btn-success">
+                    <i class="fas fa-upload"></i> Proses Detail
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>

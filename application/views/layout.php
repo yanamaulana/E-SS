@@ -50,6 +50,7 @@
                 $is_dir = $this->session->userdata('sys_sba_isDir');
 
                 $is_admin = $this->session->userdata('sys_sba_isAdm');
+                $isSalesPerson = $this->session->userdata('sys_sba_isSalesPerson');
                 $sess_dept = $this->session->userdata('sys_sba_department');
                 $sess_jabatan = $this->session->userdata('sys_sba_jabatan');
                 $PayemntCheckPermission = $this->session->userdata('sys_sba_PayemntCheckPermission');
@@ -272,7 +273,7 @@
 
 
 
-                            <?php if ($is_admin == true) : ?>
+                            <?php if ($isSalesPerson == 1) : ?>
                                 <div class="menu-item">
                                     <div class="menu-content pt-4 pb-2">
                                         <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">SALES ORDER</span>

@@ -323,10 +323,10 @@ $qItem = $this->db->query($sqlItem)->result();
                 alert("Please Select Customer!");
                 return false;
             }
-            if ($('input[name="chkItem"]:checked').length == 0) {
-                alert("Please Pick Item!");
-                return false;
-            }
+            // if ($('input[name="chkItem"]:checked').length == 0) {
+            //     alert("Please Pick Item!");
+            //     return false;
+            // }
 
             if (window.opener && !window.opener.closed) {
                 var custData = {
