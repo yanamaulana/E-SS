@@ -143,12 +143,12 @@ class CbrAppAsstManager extends CI_Controller
             12 => 'Paid_Status',
             13 => 'Creation_DateTime',
             14 => 'Created_By',
-            15 => 'First_Name',
-            16 => 'Last_Update',
+            15 => 'UserDivision',
+            16 => 'First_Name',
             17 => 'Update_By',
             18 => 'TAccCashBookReq_Header.Acc_ID ',
             19 => 'TAccCashBookReq_Header.Approve_Date',
-
+            20 => 'TAccCashBookReq_Header.Payment_Plan_Date',
         );
         $order  = $columns[$requestData['order']['0']['column']];
         $dir    = $requestData['order']['0']['dir'];
@@ -156,7 +156,7 @@ class CbrAppAsstManager extends CI_Controller
         $until  = $this->input->post('until');
         $username = $this->session->userdata('sys_sba_username');
 
-        $sql = "SELECT distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,UserDivision
+        $sql = "SELECT distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,UserDivision, Payment_Plan_Date
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
@@ -196,7 +196,7 @@ class CbrAppAsstManager extends CI_Controller
             $sql_filter .= " TAccCashBookReq_Header.CBReq_No LIKE '%" . $search_value . "%' ";
             $sql_filter .= " OR First_Name LIKE '%" . $search_value . "%' ";
             $sql_filter .= " OR Document_Number LIKE '%" . $search_value . "%' ";
-            $sql_filter .= " OR Document_Date LIKE '%" . $search_value . "%' ";
+            $sql_filter .= " OR Payment_Plan_Date LIKE '%" . $search_value . "%' ";
             $sql_filter .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $search_value . "%' ";
             $sql_filter .= " OR Descript LIKE '%" . $search_value . "%' ";
             $sql_filter .= " OR CBReq_Status LIKE '%" . $search_value . "%' ";
@@ -237,6 +237,7 @@ class CbrAppAsstManager extends CI_Controller
             $nestedData['Currency_Id'] = $row['Currency_Id'];
             $nestedData['Approve_Date'] = $row['Approve_Date'];
             $nestedData['UserDivision'] = $row['UserDivision'];
+            $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
 
             $data[] = $nestedData;
         }

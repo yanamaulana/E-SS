@@ -64,8 +64,10 @@
                                                 <th class="text-center text-white">Created_By</th>
                                                 <th class="text-center text-white">Department</th>
                                                 <th class="text-center text-white">Created By</th>
+                                                <th class="text-center text-white">Last Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
+                                                <th class="text-center text-white">Payment Plan Date</th>
                                                 <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
                                             </tr>
                                         </thead>

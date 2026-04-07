@@ -145,11 +145,12 @@ class CbrAppDirector extends CI_Controller
             12 => 'Paid_Status',
             13 => 'Creation_DateTime',
             14 => 'Created_By',
-            15 => 'First_Name',
-            16 => 'Last_Update',
+            15 => 'UserDivision',
+            16 => 'First_Name',
             17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID',
+            18 => 'TAccCashBookReq_Header.Acc_ID ',
             19 => 'TAccCashBookReq_Header.Approve_Date',
+            20 => 'TAccCashBookReq_Header.Payment_Plan_Date',
         );
 
         // Menentukan pengurutan
@@ -162,7 +163,7 @@ class CbrAppDirector extends CI_Controller
                     H.Acc_ID, H.Descript, H.Amount, H.baseamount, H.curr_rate, 
                     H.Approval_Status, H.CBReq_Status, H.Paid_Status, H.Creation_DateTime, 
                     H.Created_By, P.First_Name AS Created_By_Name, H.Last_Update, H.Update_By, 
-                    H.Currency_Id, H.Approve_Date, UserDivision
+                    H.Currency_Id, H.Approve_Date, UserDivision, Payment_Plan_Date
                 FROM TAccCashBookReq_Header H
                 INNER JOIN TUserGroupL GL ON H.Created_By = GL.User_ID
                 INNER JOIN TUserPersonal P ON H.Created_By = P.User_ID
@@ -218,6 +219,7 @@ class CbrAppDirector extends CI_Controller
             $sql .= " OR H.Currency_Id LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.Descript LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.CBReq_Status LIKE '%" . $searchValue . "%' ";
+            $sql .= " OR H.Payment_Plan_Date LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.Amount LIKE '%" . $searchValue . "%') ";
         }
 
@@ -251,7 +253,8 @@ class CbrAppDirector extends CI_Controller
                 'Update_By' => $row['Update_By'],
                 'Currency_Id' => $row['Currency_Id'],
                 'Approve_Date' => $row['Approve_Date'],
-                'UserDivision' => $row['UserDivision'] // Tambahkan kolom baru
+                'UserDivision' => $row['UserDivision'], // Tambahkan kolom baru
+                'Payment_Plan_Date' => $row['Payment_Plan_Date'] // Tambahkan kolom baru
             );
             $data[] = $nestedData;
         }

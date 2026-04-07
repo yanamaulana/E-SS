@@ -112,9 +112,9 @@ $(document).ready(function () {
             render: function (data) {
                 if (data == 'NP') {
                     return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                } else if (data == 'HP'){
+                } else if (data == 'HP') {
                     return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                } else if (data == 'FP'){
+                } else if (data == 'FP') {
                     return `<span class="text-dark badge badge-success">Full Paid</span>`
                 } else {
                     return ''
@@ -153,7 +153,12 @@ $(document).ready(function () {
             data: "Approve_Date",
             name: "Approve_Date",
             visible: false
+        },
+        {
+            data: "Payment_Plan_Date",
+            name: "Payment_Plan_Date",
         }
+
         ],
         order: [
             [3, "DESC"]

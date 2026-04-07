@@ -131,11 +131,11 @@ class CbrAppGeneralManager extends CI_Controller
 
         // Kolom untuk pengurutan dan pencarian
         $columns = array(
-            0 => 'TAccCashBookReq_Header.CBReq_No',
-            1 => 'TAccCashBookReq_Header.CBReq_No', // Duplikat, mungkin kolom ke-2 adalah tampilan lain
+            0 => 'H.CBReq_No',
+            1 => 'H.CBReq_No',
             2 => 'Type',
             3 => 'Document_Date',
-            4 => 'TAccCashBookReq_Header.Currency_Id',
+            4 => 'H.Currency_Id',
             5 => 'Amount',
             6 => 'Document_Number',
             7 => 'Descript',
@@ -146,11 +146,12 @@ class CbrAppGeneralManager extends CI_Controller
             12 => 'Paid_Status',
             13 => 'Creation_DateTime',
             14 => 'Created_By',
-            15 => 'First_Name',
-            16 => 'Last_Update',
+            15 => 'UserDivision',
+            16 => 'First_Name',
             17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID',
-            19 => 'TAccCashBookReq_Header.Approve_Date',
+            18 => 'H.Acc_ID ',
+            19 => 'H.Approve_Date',
+            20 => 'H.Payment_Plan_Date',
         );
 
         // Menentukan pengurutan
@@ -167,7 +168,7 @@ class CbrAppGeneralManager extends CI_Controller
                     H.Acc_ID, H.Descript, H.Amount, H.baseamount, H.curr_rate, 
                     H.Approval_Status, H.CBReq_Status, H.Paid_Status, H.Creation_DateTime, 
                     H.Created_By, P.First_Name AS Created_By_Name, H.Last_Update, H.Update_By, 
-                    H.Currency_Id, H.Approve_Date
+                    H.Currency_Id, H.Approve_Date, UserDivision, H.Payment_Plan_Date
                 FROM TAccCashBookReq_Header H
                 INNER JOIN TUserPersonal P ON H.Created_By = P.User_ID
                 LEFT OUTER JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
@@ -213,6 +214,7 @@ class CbrAppGeneralManager extends CI_Controller
             $sql .= " OR H.Currency_Id LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.Descript LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.CBReq_Status LIKE '%" . $searchValue . "%' ";
+            $sql .= " OR H.Payment_Plan_Date LIKE '%" . $searchValue . "%' ";
             $sql .= " OR H.Amount LIKE '%" . $searchValue . "%') ";
         }
 
@@ -244,8 +246,10 @@ class CbrAppGeneralManager extends CI_Controller
                 'First_Name' => $row['Created_By_Name'],
                 'Last_Update' => $row['Last_Update'],
                 'Update_By' => $row['Update_By'],
+                'UserDivision' => $row['UserDivision'],
                 'Currency_Id' => $row['Currency_Id'],
-                'Approve_Date' => $row['Approve_Date']
+                'Approve_Date' => $row['Approve_Date'],
+                'Payment_Plan_Date' => $row['Payment_Plan_Date']
             );
             $data[] = $nestedData;
         }

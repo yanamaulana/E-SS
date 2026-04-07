@@ -151,6 +151,10 @@ $(document).ready(function () {
             data: "Approve_Date",
             name: "Approve_Date",
             visible: false
+        },
+        {
+            data: "Payment_Plan_Date",
+            name: "Payment_Plan_Date",
         }
         ],
         order: [

@@ -7,12 +7,12 @@
                     <ul class="nav nav-tabs fs-6 border-0">
                         <li class="nav-item">
                             <a class="nav-link mr-5 active btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_4">
-                                <h5 class="font-weight-bold" id="table-title-main">Requires Accounting Approval.</h5>
+                                <h5 class="font-weight-bold" id="table-title-main">Requires <?= $this->session->userdata('sys_sba_jabatan') ?> Approval.</h5>
                             </a>
                         </li>
                         <li class="nav-item mr-5">
                             <a class="nav-link btn btn-flex btn-active-light-primary" data-bs-toggle="tab" href="#kt_tab_pane_5">
-                                <h5 class="font-weight-bold" id="table-title-history">Monitoring & History Accounting Approval.</h5>
+                                <h5 class="font-weight-bold" id="table-title-history">Monitoring & History <?= $this->session->userdata('sys_sba_jabatan') ?> Approval.</h5>
                             </a>
                         </li>
                     </ul>
@@ -27,6 +27,18 @@
                         <div class="tab-pane fade active show" id="kt_tab_pane_4" role="tabpanel">
                             <div class="pb-5 table-responsive">
                                 <form action="#" id="form-submission" method="post">
+                                    <div id="summary-container" class="alert alert-secondary d-none mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <span class="svg-icon svg-icon-2hx svg-icon-primary me-3">
+                                                <i class="fas fa-wallet fs-2 text-primary"></i>
+                                            </span>
+                                            <div class="d-flex flex-column">
+                                                <h5 class="mb-1">Selection Summary</h5>
+                                                <div id="summary-text" class="fw-bold text-gray-800 fs-6">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <table id="TableData" class="display compact table-bordered table-striped table-hover table-sm align-middle gy-5 gs-5">
                                         <thead style="background-color: #3B6D8C;">
                                             <tr class="text-start text-white fw-bolder text-uppercase">
@@ -52,10 +64,12 @@
                                                 <th class="text-center text-white">Created_By</th>
                                                 <th class="text-center text-white">Department</th>
                                                 <th class="text-center text-white">Created By</th>
-                                                <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
+                                                <th class="text-center text-white">-</th>
+                                                <th class="text-center text-white">-</th>
                                                 <th class="text-center text-white">Payment Plan Date</th>
+                                                <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
                                             </tr>
                                         </thead>
                                         <tbody class="text-gray-600 fw-bold">

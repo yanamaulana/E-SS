@@ -221,13 +221,14 @@ class CbrPaymentStatus extends CI_Controller
             17 => 'Update_By',
             18 => 'TAccCashBookReq_Header.Acc_ID ',
             19 => 'TAccCashBookReq_Header.Approve_Date',
+            20 => 'TAccCashBookReq_Header.Payment_Plan_Date',
 
         );
         $order  = $columns[$requestData['order']['0']['column']];
         $dir    = $requestData['order']['0']['dir'];
         $username = $this->session->userdata('sys_sba_username');
 
-        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision, Legitimate, Payment_Status,Payment_Status_Time_Change,Payment_Status_Change_By
+        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision, Legitimate, Payment_Status,Payment_Status_Time_Change,Payment_Status_Change_By, Payment_Plan_Date
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
@@ -263,6 +264,7 @@ class CbrPaymentStatus extends CI_Controller
             $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
         }
@@ -295,6 +297,7 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
 
             $data[] = $nestedData;
         }
