@@ -296,7 +296,7 @@ class SalesOrder extends CI_Controller
                 'SC_Number'           => NULL, // Sesuai info Mas, ini selalu NULL
                 'terms'               => $this->input->post('cboTerms'),
                 'Deliveryterms'       => $this->input->post('txtDeliveryTerms'),
-                'isClose' => 0,
+                'isClose'             => 0,
                 'close_reason' => NULL,
                 'project_code' => 0,
                 'Proforma_Number' => 0,

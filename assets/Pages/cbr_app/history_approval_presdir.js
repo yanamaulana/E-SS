@@ -26,7 +26,7 @@ $(document).ready(function () {
                 [10, 100, 1000, 10000]
             ],
             ajax: {
-                url: $('meta[name="base_url"]').attr('content') + "HistoryApproval/DT_List_History_Approval",
+                url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_History_Approval",
                 dataType: "json",
                 type: "POST",
                 data: {
@@ -150,7 +150,7 @@ $(document).ready(function () {
                 { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" },
             ],
             order: [
-                [3, "DESC"]
+                [2, "DESC"]
             ],
             columnDefs: [{
                 width: 220,
@@ -195,13 +195,70 @@ $(document).ready(function () {
                 processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" style="text-align:center" class="loading-text"></span> ',
                 searchPlaceholder: "Search..."
             },
-            drawCallback: function () {
+            drawCallback: function (settings) {
+                var api = this.api();
+                var json = api.ajax.json(); // Ambil response JSON dari server
+
+                if (json && json.summary) {
+                    var s = json.summary;
+                    var html = `<div class="row g-2">
+                                    <div class="col-md-4">
+                                        <div class="card bg-white border border-gray-300 p-2 shadow-sm">
+                                            <span class="fs-8 fw-bold text-gray-700">ROW STATUS</span>
+                                            <div class="d-flex justify-content-between fs-9">
+                                                <span>Total: <b>${s.total_rows}</b></span>
+                                                <span class="text-success">Appv: <b>${s.approved}</b></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between fs-9 mt-1">
+                                                <span class="text-primary">Paid: <b>${s.paid}</b></span>
+                                                <span class="text-warning">Pending: <b>${s.pending}</b></span>
+                                            </div>
+                                            <div class="d-flex justify-content-between fs-9 mt-1">
+                                                <span class="text-danger">&nbsp;</span>
+                                                <span class="text-danger">Reject: <b>${s.rejected}</b></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="card bg-white border border-gray-300 p-2 shadow-sm">
+                                            <span class="fs-8 fw-bold text-gray-700 mb-1">MONETARY SUMMARY (SUM)</span>
+                                            <div class="table-responsive">
+                                                <table class="table table-borderless table-sm p-0 m-0" style="font-size: 9px;">
+                                                    <thead>
+                                                        <tr class="border-bottom">
+                                                            <th>Status</th>
+                                                            ${Object.keys({ ...s.sum_pending_approved, ...s.sum_paid_approved, ...s.sum_rejected }).map(c => `<th>${c}</th>`).join('')}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="text-warning py-0">Appv Pending</td>
+                                                            ${Object.keys({ ...s.sum_pending_approved, ...s.sum_paid_approved, ...s.sum_rejected }).map(c => `<td class="fw-bold py-0">${(s.sum_pending_approved[c] || 0).toLocaleString()}</td>`).join('')}
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-success py-0">Appv Paid</td>
+                                                            ${Object.keys({ ...s.sum_pending_approved, ...s.sum_paid_approved, ...s.sum_rejected }).map(c => `<td class="fw-bold py-0">${(s.sum_paid_approved[c] || 0).toLocaleString()}</td>`).join('')}
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-danger py-0">Rejected</td>
+                                                            ${Object.keys({ ...s.sum_pending_approved, ...s.sum_paid_approved, ...s.sum_rejected }).map(c => `<td class="fw-bold py-0">${(s.sum_rejected[c] || 0).toLocaleString()}</td>`).join('')}
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+
+                    $('#data-summary-container').html(html);
+                }
+
+                // Effect Blurry & Tooltip
                 $("TableDataHistory tbody td").addClass("blurry");
                 setTimeout(function () {
                     $("TableDataHistory tbody td").removeClass("blurry");
                 });
                 $('[data-bs-toggle="tooltip"]').tooltip();
-                DataTable.tables({ visible: true, api: true }).columns.adjust();
             },
             "buttons": [{
                 text: `Export to :`,

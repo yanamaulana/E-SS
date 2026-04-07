@@ -76,32 +76,32 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="kt_tab_pane_5" role="tabpanel">
-                            <div class="row">
-                                <form action="#" method="post" id="filter-data">
-                                    <div class="row">
-                                        <div class="col-xl-2 py-2 col-md-2">
-                                            <div class="input-group">
-                                                <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
-                                                    <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-xl-4 py-2 col-md-6">
-                                            <div class="input-group">
-                                                <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
-                                                <span class="input-group-text btn btn-sm btn-primary" title="Date Range" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
-                                                <input type="text" name="until" id="until" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-t') ?>">
-                                            </div>
-                                        </div>
-                                        <div class="col-xl-3 py-2 col-md-6">
-                                            <div class="input-group">
-                                                <button type="button" id="do--filter" class="btn btn-danger btn-sm text-white">&nbsp;<i class="fas fa-search fs-4 me-2"></i> Search</button>
-                                            </div>
+
+                            <form action="#" method="post" id="filter-data">
+                                <div class="row bg-light mb-5 py-5 px-3 rounded">
+                                    <div class="py-2 col-md-2">
+                                        <div class="input-group">
+                                            <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
+                                                <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
+                                                <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                            </select>
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                    <div class="py-2 col-md-4">
+                                        <div class="input-group">
+                                            <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
+                                            <span class="input-group-text btn btn-sm btn-primary" title="Date Range" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
+                                            <input type="text" name="until" id="until" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-t') ?>">
+                                            <button type="button" id="do--filter" class="btn btn-danger btn-sm text-white">&nbsp;<i class="fas fa-search fs-4 me-2"></i> Search</button>
+                                        </div>
+                                    </div>
+                                    <div class="py-2 col-md-6" id="data-summary-container">
+                                        <!-- data summary akan di tampilkan di sini-->
+
+                                    </div>
+                                </div>
+                            </form>
+
                             <hr style="padding-top: 5px; color: black; background-color: black;" />
                             <div class="pb-5 table-responsive">
                                 <table id="TableDataHistory" class="table-sm align-middle display compact table-rounded table-striped table-bordered border dataTable no-footer dt-inline">

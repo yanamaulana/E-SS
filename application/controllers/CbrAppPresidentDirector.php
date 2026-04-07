@@ -218,4 +218,204 @@ class CbrAppPresidentDirector extends CI_Controller
         //----------------------------------------------------------------------------------
         echo json_encode($json_data);
     }
+
+    public function DT_List_History_Approval()
+    {
+        $requestData = $_REQUEST;
+        $columns = array(
+            0 => 'TAccCashBookReq_Header.CBReq_No',
+            1 => 'TAccCashBookReq_Header.CBReq_No',
+            2 => 'Document_Date',
+            3 => 'Currency_Id',
+            4 => 'Amount',
+            5 => 'Descript',
+            6 => 'isClose',
+            7 => 'Status_AppvPresidentDirector',
+            8 => 'Payment_Status',
+            9 => 'UserDivision',
+            10 => 'First_Name',
+            11 => 'IsAppvAsstManager',
+            12 => 'IsAppvManager',
+            13 => 'IsAppvSeniorManager',
+            14 => 'IsAppvGeneralManager',
+            15 => 'IsAppvAdditional',
+            16 => 'IsAppvFinancePerson',
+            17 => 'IsAppvDirector',
+            18 => 'IsAppvFinanceDirector ',
+            19 => 'IsAppvPresidentDirector',
+            20 => 'Payment_Status_Time_Change',
+        );
+        $order  = $columns[$requestData['order']['0']['column']];
+        $dir    = $requestData['order']['0']['dir'];
+        $from   = $this->input->post('from');
+        $until  = $this->input->post('until');
+        $column_range  = $this->input->post('column_range');
+        $username = $this->session->userdata('sys_sba_username');
+
+        $sql = $this->help->generate_sql_spesific_history_approval($username, $column_range, $from, $until);
+
+        $totalData = $this->db->query($sql)->num_rows();
+        if (!empty($requestData['search']['value'])) {
+            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR UserDivision LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%') ";
+            // $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
+            // $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
+            // $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
+            // $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+        }
+
+        // Ambil SEMUA data hasil filter untuk dihitung summary-nya
+        $all_filtered_query = $this->db->query($sql);
+        $all_data = $all_filtered_query->result_array();
+
+        // Inisialisasi Counter & Sum
+        $summary = [
+            'total_rows' => count($all_data),
+            'approved'   => 0,
+            'rejected'   => 0,
+            'paid'       => 0,
+            'pending'    => 0,
+            'sum_pending_approved' => [],
+            'sum_paid_approved'    => [],
+            'sum_rejected'         => []
+        ];
+
+        foreach ($all_data as $row) {
+            $status = $row['Status_AppvPresidentDirector']; // Sesuaikan status utama presdir
+            $payment = $row['Payment_Status'];
+            $curr = $row['Currency_Id'];
+            $amt = (float)$row['Amount'];
+
+            // 1. Count Rows
+            if ($status == 1) $summary['approved']++;
+            if ($status == 2) $summary['rejected']++;
+            if ($payment == 1) $summary['paid']++;
+            if ($payment == 0) $summary['pending']++;
+
+            // 2. Summing Amount
+            if ($status == 1 && $payment == 0) { // Approved Pending Payment
+                $summary['sum_pending_approved'][$curr] = ($summary['sum_pending_approved'][$curr] ?? 0) + $amt;
+            }
+            if ($status == 1 && $payment == 1) { // Approved Paid
+                $summary['sum_paid_approved'][$curr] = ($summary['sum_paid_approved'][$curr] ?? 0) + $amt;
+            }
+            if ($status == 2) { // Rejected
+                $summary['sum_rejected'][$curr] = ($summary['sum_rejected'][$curr] ?? 0) + $amt;
+            }
+        }
+
+        // --- PAGING LOGIC (Existing) ---
+        $totalFiltered = count($all_data);
+        $sql_with_paging = $sql . " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
+        $query = $this->db->query($sql_with_paging);
+        $data = array();
+        foreach ($query->result_array() as $row) {
+            $nestedData = array();
+            $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['isClose'] = $row['isClose'];
+            $nestedData['Type'] = $row['Type'];
+            $nestedData['Document_Date'] = $row['Document_Date'];
+            $nestedData['Acc_ID'] = $row['Acc_ID'];
+            $nestedData['Descript'] = $row['Descript'];
+            $nestedData['Document_Number'] = $row['Document_Number'];
+            $nestedData['Amount'] = $row['Amount'];
+            $nestedData['baseamount'] = $row['baseamount'];
+            $nestedData['curr_rate'] = $row['curr_rate'];
+            $nestedData['Approval_Status'] = $row['Approval_Status'];
+            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
+            $nestedData['Paid_Status'] = $row['Paid_Status'];
+            $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
+            $nestedData['Created_By'] = $row['Created_By'];
+            $nestedData['First_Name'] = $row['Created_By_Name'];
+            $nestedData['Last_Update'] = $row['Last_Update'];
+            $nestedData['Update_By'] = $row['Update_By'];
+            $nestedData['Currency_Id'] = $row['Currency_Id'];
+            $nestedData['Approve_Date'] = $row['Approve_Date'];
+            $nestedData['IsAppvStaff'] = $row['IsAppvStaff'];
+            $nestedData['Status_AppvStaff'] = $row['Status_AppvStaff'];
+            $nestedData['AppvStaff_By'] = $row['AppvStaff_By'];
+            $nestedData['AppvStaff_At'] = $row['AppvStaff_At'];
+            $nestedData['IsAppvChief'] = $row['IsAppvChief'];
+            $nestedData['Status_AppvChief'] = $row['Status_AppvChief'];
+            $nestedData['AppvChief_By'] = $row['AppvChief_By'];
+            $nestedData['AppvChief_Name'] = $row['AppvChief_Name'] ?? '';
+            $nestedData['AppvChief_At'] = $row['AppvChief_At'];
+            $nestedData['IsAppvAsstManager'] = $row['IsAppvAsstManager'];
+            $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
+            $nestedData['AppvAsstManager_By'] = $row['AppvAsstManager_By'];
+            $nestedData['AppvAsstManager_Name'] = $row['AppvAsstManager_Name'] ?? '';
+            $nestedData['AppvAsstManager_At'] = !empty($row['AppvAsstManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-';
+            $nestedData['IsAppvManager'] = $row['IsAppvManager'];
+            $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
+            $nestedData['AppvManager_By'] = $row['AppvManager_By'];
+            $nestedData['AppvManager_Name'] = $row['AppvManager_Name'] ?? '';
+            $nestedData['AppvManager_At'] = !empty($row['AppvManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-';
+            $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
+            $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
+            $nestedData['AppvSeniorManager_By'] = $row['AppvSeniorManager_By'];
+            $nestedData['AppvSeniorManager_Name'] = $row['AppvSeniorManager_Name'] ?? '';
+            $nestedData['AppvSeniorManager_At'] = !empty($row['AppvSeniorManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-';
+            $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
+            $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
+            $nestedData['AppvGeneralManager_By'] = $row['AppvGeneralManager_By'];
+            $nestedData['AppvGeneralManager_Name'] = $row['AppvGeneralManager_Name'] ?? '';
+            $nestedData['AppvGeneralManager_At'] = !empty($row['AppvGeneralManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-';
+
+            $nestedData['IsAppvAdditional'] = $row['IsAppvAdditional'];
+            $nestedData['Status_AppvAdditional'] = $row['Status_AppvAdditional'];
+            $nestedData['AppvAdditional_By'] = $row['AppvAdditional_By'];
+            $nestedData['AppvAdditional_Name'] = $row['AppvAdditional_Name'] ?? '';
+            $nestedData['AppvAdditional_At'] = !empty($row['AppvAdditional_At']) ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-';
+
+            $nestedData['IsAppvFinancePerson'] = $row['IsAppvFinancePerson'];
+            $nestedData['Status_AppvFinancePerson'] = $row['Status_AppvFinancePerson'];
+            $nestedData['AppvFinancePerson_By'] = $row['AppvFinancePerson_By'];
+            $nestedData['AppvFinancePerson_Name'] = $row['AppvFinancePerson_Name'] ?? '';
+            $nestedData['AppvFinancePerson_At'] = !empty($row['AppvFinancePerson_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-';
+
+            $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
+            $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
+            $nestedData['AppvDirector_By'] = $row['AppvDirector_By'];
+            $nestedData['AppvDirector_Name'] = $row['AppvDirector_Name'] ?? '';
+            $nestedData['AppvDirector_At'] = !empty($row['AppvDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-';
+            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'];
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
+            $nestedData['AppvPresidentDirector_By'] = $row['AppvPresidentDirector_By'];
+            $nestedData['AppvPresidentDirector_Name'] = $row['AppvPresidentDirector_Name'] ?? '';
+            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
+            // $nestedData['IsAppvFinanceStaff'] = $row['IsAppvFinanceStaff'];
+            // $nestedData['Status_AppvFinanceStaff'] = $row['Status_AppvFinanceStaff'];
+            // $nestedData['AppvFinanceStaff_By'] = $row['AppvFinanceStaff_By'];
+            // $nestedData['AppvFinanceStaff_At'] = $row['AppvFinanceStaff_At'];
+            // $nestedData['IsAppvFinanceManager'] = $row['IsAppvFinanceManager'];
+            // $nestedData['Status_AppvFinanceManager'] = $row['Status_AppvFinanceManager'];
+            // $nestedData['AppvFinanceManager_By'] = $row['AppvFinanceManager_By'];
+            // $nestedData['AppvFinanceManager_At'] = $row['AppvFinanceManager_At'];
+            $nestedData['IsAppvFinanceDirector'] = $row['IsAppvFinanceDirector'];
+            $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
+            $nestedData['AppvFinanceDirector_By'] = $row['AppvFinanceDirector_By'];
+            $nestedData['AppvFinanceDirector_Name'] = $row['AppvFinanceDirector_Name'] ?? '';
+            $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
+            $nestedData['UserName_User'] = $row['UserName_User'];
+            $nestedData['Rec_Created_At'] = $row['Rec_Created_At'];
+            $nestedData['UserDivision'] = $row['UserDivision'];
+            $nestedData['Legitimate'] = $row['Legitimate'];
+            $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Status_Time_Change'] = !empty($row['Payment_Status_Time_Change']) ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-';
+
+            $data[] = $nestedData;
+        }
+        //----------------------------------------------------------------------------------
+        $json_data = array(
+            "draw" => intval($requestData['draw']),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data" => $data,
+            "summary"         => $summary
+        );
+        //----------------------------------------------------------------------------------
+        echo json_encode($json_data);
+    }
 }
