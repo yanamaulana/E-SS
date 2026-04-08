@@ -35,19 +35,27 @@ class HistoryApproval extends CI_Controller
             8 => 'baseamount',
             9 => 'curr_rate',
             10 => 'Approval_Status',
-            11 => 'CBReq_Status',
-            12 => 'Legitimate',
-            13 => 'Paid_Status',
-            14 => 'Payment_Status',
-            15 => 'Creation_DateTime',
-            16 => 'Created_By',
-            17 => 'UserDivision',
-            18 => 'First_Name',
-            19 => 'Last_Update',
-            20 => 'Acc_ID',
-            21 => 'Approve_Date',
-            22 => 'IsAppvStaff ',
-            23 => 'IsAppvChief',
+            11 => 'isClose',
+            12 => 'Paid_Status',
+            13 => 'Creation_DateTime',
+            14 => 'Created_By',
+            15 => 'UserDivision',
+            16 => 'First_Name',
+            17 => 'Last_Update',
+            18 => 'Acc_ID',
+            19 => 'Approve_Date',
+            20 => 'IsAppvStaff',
+            21 => 'IsAppvChief',
+            22 => 'IsAppvAsstManager ',
+            23 => 'IsAppvManager',
+            24 => 'IsAppvSeniorManager',
+            25 => 'IsAppvGeneralManager',
+            26 => 'IsAppvAdditional',
+            27 => 'IsAppvFinancePerson',
+            28 => 'IsAppvDirector',
+            29 => 'IsAppvFinanceDirector',
+            30 => 'IsAppvPresidentDirector',
+            31 => 'Payment_Plan_Date',
 
         );
         $order  = $columns[$requestData['order']['0']['column']];
@@ -63,6 +71,7 @@ class HistoryApproval extends CI_Controller
         if (!empty($requestData['search']['value'])) {
             $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR UserDivision LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%') ";
             // $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
@@ -167,6 +176,7 @@ class HistoryApproval extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
             $nestedData['Payment_Status_Time_Change'] = !empty($row['Payment_Status_Time_Change']) ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-';
 
             $data[] = $nestedData;

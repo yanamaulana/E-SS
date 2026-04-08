@@ -136,7 +136,11 @@ $(document).ready(function () {
                     data: "IsAppvPresidentDirector", name: "IsAppvPresidentDirector", orderable: false, render: function (data, type, row, meta) {
                         return renderApprovalStatus(data, row.Status_AppvPresidentDirector);
                     }
-                }
+                },
+                {
+                    data: "Payment_Plan_Date",
+                    name: "Payment_Plan_Date",
+                },
             ],
             order: [
                 [3, "DESC"]

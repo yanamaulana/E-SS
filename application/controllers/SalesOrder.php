@@ -64,6 +64,20 @@ class SalesOrder extends CI_Controller
                   ORDER BY D.config_order ASC";
 
             $this->data['details'] = $this->db->query($sqlDetail, [$so_number])->result();
+
+            $this->data['tax_list'] = $this->db->query("SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
+                                                        FROM TaccTax 
+                                                        ORDER BY Tax_Name")->result();
+
+            // --- AMBIL MASTER COST CENTER ---
+            // Berdasarkan manual pick Anda, ini mengambil dari daftar Company/Dept
+            $companyID = 2; // Sesuai query Mas Yana
+
+            $this->data['cc_list'] = $this->db->query("SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
+                                                    FROM TAccCostCenter 
+                                                    WHERE Company_ID = $companyID 
+                                                    AND CC_Type = 'CC'
+                                                    ORDER BY CostCenter_Name_en ASC")->result();
         }
 
         $this->data['rdoAllocate'] = $this->input->post('rdoAllocate') ?? 1;
