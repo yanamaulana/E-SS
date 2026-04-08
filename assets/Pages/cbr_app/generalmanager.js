@@ -496,6 +496,35 @@ $(document).ready(function () {
             }
         });
     }
+
+
+    function check_uncheck_checkbox(isChecked) {
+        $('input[name="CBReq_No[]"]').each(function () {
+            var id = $(this).val();
+
+            // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            // Update visual
+            $(this).prop('checked', isChecked);
+
+            // Update Logic Array
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = {
+                        curr: curr,
+                        amount: amount
+                    };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(item => item !== id);
+                delete selected_details[id];
+            }
+        });
+        renderSummaryHTML();
+    }
 })
 
 // function check_uncheck_checkbox(isChecked) {

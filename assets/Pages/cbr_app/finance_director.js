@@ -13,6 +13,10 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
+    // 1. Variabel Global Penampung ID
+    var selected_cbr = [];
+    var selected_details = {};
+
     var TableData = $("#TableData").DataTable({
         destroy: true,
         processing: true,
@@ -205,6 +209,20 @@ $(document).ready(function () {
                 $("#TableData tbody td").removeClass("blurry");
             });
             $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Loop semua checkbox di halaman aktif, sinkronkan dengan array selected_cbr
+            $('input[name="CBReq_No[]"]').each(function () {
+                var id = $(this).val();
+                if (selected_cbr.includes(id)) {
+                    $(this).prop('checked', true);
+                } else {
+                    $(this).prop('checked', false);
+                }
+            });
+
+            // Update status tombol "Check All" di header
+            updateCheckAllStatus();
+            renderSummaryHTML();
         },
         "buttons": [{
             text: `<i class="fas fa-check"></i> Approve`,
@@ -261,6 +279,111 @@ $(document).ready(function () {
             }
         }],
     }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
+
+    // 3. Listener Checkbox Individu
+    $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function () {
+        var id = $(this).val();
+        var isChecked = $(this).is(':checked');
+
+        // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG (Lebih Stabil)
+        var curr = $(this).data('curr');
+        var amount = parseFloat($(this).data('amount'));
+
+        if (isChecked) {
+            if (!selected_cbr.includes(id)) {
+                selected_cbr.push(id);
+                // Simpan detail
+                selected_details[id] = {
+                    curr: curr,
+                    amount: amount
+                };
+            }
+        } else {
+            selected_cbr = selected_cbr.filter(item => item !== id);
+            // Hapus detail
+            delete selected_details[id];
+        }
+
+        updateCheckAllStatus();
+        renderSummaryHTML(); // Hitung ulang total
+    });
+
+    // 4. Listener Tombol "Check All" di Header (Pastikan ID checkbox header Anda adalah #CheckAll)
+    $('#CheckAll').on('click', function () {
+        var isChecked = $(this).is(':checked');
+        check_uncheck_checkbox(isChecked);
+    });
+
+    function updateCheckAllStatus() {
+        var allCheckedInPage = true;
+        var checkboxes = $('input[name="CBReq_No[]"]');
+
+        if (checkboxes.length === 0) {
+            allCheckedInPage = false;
+        } else {
+            checkboxes.each(function () {
+                if (!$(this).prop('checked')) {
+                    allCheckedInPage = false;
+                }
+            });
+        }
+        $('#CheckAll').prop('checked', allCheckedInPage);
+    }
+
+    function renderSummaryHTML() {
+        // --- 1. Hitung Total ALL (Semua baris yang tampil di tabel saat ini) ---
+        var sumsAll = {};
+        // Kita ambil semua data dari instance DataTable yang sedang tampil
+        var allData = $("#TableData").DataTable().rows().data();
+
+        allData.each(function (row) {
+            var curr = row.Currency_Id;
+            var amount = parseFloat(row.Amount) || 0;
+
+            if (!sumsAll[curr]) sumsAll[curr] = 0;
+            sumsAll[curr] += amount;
+        });
+
+        // --- 2. Hitung Total SELECTED (Dari array selected_details) ---
+        var sumsSelected = {};
+        for (var key in selected_details) {
+            var item = selected_details[key];
+            if (!sumsSelected[item.curr]) sumsSelected[item.curr] = 0;
+            sumsSelected[item.curr] += item.amount;
+        }
+
+        // --- 3. Generate Tampilan Perbandingan ---
+        var htmlParts = [];
+
+        // Kita looping berdasarkan Currency yang ditemukan di tabel
+        Object.keys(sumsAll).forEach(function (curr) {
+            var totalAll = sumsAll[curr];
+            var totalSelected = sumsSelected[curr] || 0;
+
+            var fmtAll = totalAll.toLocaleString('en-US', { minimumFractionDigits: 2 });
+            var fmtSelected = totalSelected.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+            // Tampilan Card Kecil
+            htmlParts.push(`
+            <div class="badge badge-light border border-secondary me-2 mb-2 p-3 text-start shadow-sm">
+                <div class="fw-bolder text-dark fs-6 border-bottom mb-1">${curr}</div>
+                <div class="text-primary">
+                    <i class="fas fa-check-square me-1"></i> Selected: <b>${fmtSelected}</b>
+                </div>
+                <div class="text-dark fs-8 mt-3">
+                    <i class="fas fa-list me-1"></i> Outstanding Balance: ${fmtAll}
+                </div>
+            </div>
+        `);
+        });
+
+        if (htmlParts.length > 0) {
+            $('#summary-text').html(htmlParts.join(''));
+            $('#summary-container').removeClass('d-none');
+        } else {
+            $('#summary-container').addClass('d-none');
+        }
+    }
 
     function Fn_Approve_Submission() {
         if ($('input[name="CBReq_No[]"]:checked').length == 0) {
@@ -370,16 +493,34 @@ $(document).ready(function () {
             }
         });
     }
-})
 
-function check_uncheck_checkbox(isChecked) {
-    if (isChecked) {
+
+    function check_uncheck_checkbox(isChecked) {
         $('input[name="CBReq_No[]"]').each(function () {
-            this.checked = true;
+            var id = $(this).val();
+
+            // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            // Update visual
+            $(this).prop('checked', isChecked);
+
+            // Update Logic Array
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = {
+                        curr: curr,
+                        amount: amount
+                    };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(item => item !== id);
+                delete selected_details[id];
+            }
         });
-    } else {
-        $('input[name="CBReq_No[]"]').each(function () {
-            this.checked = false;
-        });
+        renderSummaryHTML();
     }
-}
+
+})
