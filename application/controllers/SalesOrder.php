@@ -31,10 +31,41 @@ class SalesOrder extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
-    public function add($task)
+    public function add($task, $so_number = null) // Tambahkan parameter $so_number
     {
-        $this->data['page_title'] = "Add Sales Order";
+        $this->data['page_title'] = ($task == 'edit') ? "Edit Sales Order" : "Add Sales Order";
         $this->data['page_content'] = "SalesOrder/add";
+        $this->data['task'] = $task;
+        $this->data['so_number'] = $so_number;
+
+        if ($task == 'edit' && !empty($so_number)) {
+            // 1. Ambil Header
+            $this->data['header'] = $this->db->get_where('TAccSO_Header', ['SO_Number' => $so_number])->row();
+
+            // 2. Ambil Detail dengan Join Tabel sesuai Skema Mas Yana
+            $companyID = 2; // Sesuaikan dengan Company_ID yang aktif
+
+            $sqlDetail = "SELECT 
+                    D.*, 
+                    I.Item_name AS ItemName, 
+                    C.Color_Name AS Color, 
+                    I.Item_Size AS Brand, 
+                    I.customfield1 AS Type,
+                    CAST(ISNULL(I.Item_Length,0) AS VARCHAR) + ' x ' + CAST(ISNULL(I.Item_Width,0) AS VARCHAR) + ' x ' + CAST(ISNULL(I.Item_Height,0) AS VARCHAR) + ' mm' AS SizeInfo,
+                    U1.unit_name AS UnitName1,
+                    U2.unit_name AS UnitName2
+                  FROM TAccSO_Detail D
+                  LEFT JOIN TITEM I ON D.Item_Code = I.item_code
+                  LEFT JOIN TItemCompany IC ON IC.item_code = I.item_code AND IC.Company_ID = $companyID
+                  LEFT JOIN tgscolor C ON C.color_code = I.item_color
+                  LEFT JOIN taccunittype U1 ON D.Unit_Type = U1.unit_type_id
+                  LEFT JOIN taccunittype U2 ON D.Unit_Type2 = U2.unit_type_id
+                  WHERE D.SO_Number = ?
+                  ORDER BY D.config_order ASC";
+
+            $this->data['details'] = $this->db->query($sqlDetail, [$so_number])->result();
+        }
+
         $this->data['rdoAllocate'] = $this->input->post('rdoAllocate') ?? 1;
         $this->data['rbTypedoc'] = $this->input->post('rbTypedoc') ?? 0;
 
@@ -60,7 +91,6 @@ class SalesOrder extends CI_Controller
         $this->data['selProforma'] = "";
         $this->data['ddlSalesContract'] = "";
         $this->data['txtExpDelDate'] = "";
-        $this->data['task'] = $task;
 
         if ($task == 'new') {
             $sql = "SELECT T1.Emp_ID, 

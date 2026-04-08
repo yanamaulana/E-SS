@@ -39,9 +39,17 @@ $(document).ready(function () {
             name: "CheckBox",
             orderable: false,
             render: function (data, type, row, meta) {
+                var isChecked = selected_cbr.includes(row.CBReq_No) ? 'checked' : '';
+                // 🔥 TAMBAHKAN data-curr dan data-amount DI SINI
                 return `<div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="${row.CBReq_No}" id="${row.CBReq_No}" name="CBReq_No[]">
-                  </div>`
+            <input class="form-check-input row-checkbox" type="checkbox" 
+                value="${row.CBReq_No}" 
+                id="${row.CBReq_No}" 
+                name="CBReq_No[]" 
+                ${isChecked}
+                data-curr="${row.Currency_Id}" 
+                data-amount="${row.Amount}">
+          </div>`
             }
         },
         {

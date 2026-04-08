@@ -49,6 +49,9 @@ $(document).ready(function () {
             {
                 data: "SO_Number",
                 name: "SO_Number",
+                render: function (data) {
+                    return `<a href="${$('meta[name="base_url"]').attr('content')}SalesOrder/add/edit/${data}">${data}</a>`
+                }
             },
             {
                 data: "Account_Name",

@@ -438,7 +438,111 @@
                                     <th>CC</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="detail_body">
+                                <?php if ($task == 'edit' && !empty($details)): ?>
+                                    <?php foreach ($details as $i => $row): ?>
+                                        <tr class="text-nowrap">
+                                            <td><input type="checkbox" name="chk_item[]"></td>
+
+                                            <td>
+                                                <?= $row->Item_Code ?>
+                                                <input type="hidden" name="sodetail_id[]" value="<?= $row->SODEtail_ID ?>">
+                                                <input type="hidden" name="item_code[]" value="<?= $row->Item_Code ?>">
+                                                <input type="hidden" name="unit_id[]" value="<?= $row->Unit_Type ?>">
+                                                <input type="hidden" name="unit_id2[]" value="<?= $row->Unit_Type2 ?>">
+                                                <input type="hidden" name="dim_id[]" value="<?= $row->Dimension_ID ?>">
+                                            </td>
+
+                                            <td class="text-left">
+                                                <?= $row->ItemName ?>
+                                                <input type="hidden" name="item_name[]" value="<?= $row->ItemName ?>">
+                                                <input type="hidden" name="gen_flag[]" value="<?= $row->generate_flag ?>">
+                                                <input type="hidden" name="parent_item[]" value="<?= $row->parent_item ?>">
+                                                <input type="hidden" name="parent_path[]" value="<?= $row->parent_path ?>">
+                                            </td>
+
+                                            <td style="min-width: 120px;">
+                                                <input type="text" name="notes[]" class="form-control form-control-sm" value="<?= $row->Notes ?>">
+                                            </td>
+
+                                            <td style="display:none"><?= $row->SizeInfo ?></td>
+                                            <td><?= $row->Color ?></td>
+                                            <td><?= $row->Brand ?></td>
+                                            <td><?= $row->Type ?></td>
+
+                                            <td style="min-width: 85px;">
+                                                <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="<?= (float)$row->Qty ?>">
+                                            </td>
+                                            <td class="fw-bold text-muted"><?= $row->UnitName1 ?></td>
+
+                                            <td style="min-width: 85px;">
+                                                <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="<?= (float)$row->Qty2 ?>">
+                                            </td>
+                                            <td class="fw-bold text-muted"><?= $row->UnitName2 ?></td>
+
+                                            <td style="display:none">
+                                                <input type="hidden" name="cs_number[]" value="<?= $row->CS_Number ?>">
+                                                <input type="hidden" name="extra_price[]" value="<?= (float)$row->ExtraPrice ?>">
+                                                <input type="hidden" name="others[]" value="<?= $row->Others ?>">
+                                            </td>
+
+                                            <td style="min-width: 85px;">
+                                                <input type="text" name="price[]" class="form-control form-control-sm text-right price-trigger" value="<?= number_format($row->UnitPrice, 2) ?>">
+                                            </td>
+                                            <td style="min-width: 85px;">
+                                                <input type="text" name="disc_val[]" class="form-control form-control-sm text-right disc-trigger" value="<?= number_format($row->Disc_Value, 2) ?>">
+                                            </td>
+                                            <td style="min-width: 85px;">
+                                                <input type="text" name="disc_pct[]" class="form-control form-control-sm text-right disc-pct-trigger" value="<?= (float)$row->Disc_percentage ?>">
+                                            </td>
+
+                                            <td class="text-right fw-bold total-amount"><?= number_format($row->TotalPrice, 2) ?></td>
+
+                                            <td style="min-width: 110px;">
+                                                <select name="tax1[]" class="form-control form-control-sm tax-trigger">
+                                                    <option value="0">-- No Tax --</option>
+                                                    <?php foreach ($tax_list as $tax): ?>
+                                                        <option value="<?= $tax->tax_val ?>"
+                                                            data-rate="<?= $tax->tax_rate ?>"
+                                                            data-op="<?= $tax->tax_op ?>"
+                                                            <?= ($row->Tax_Code1 == $tax->tax_val) ? 'selected' : '' ?>>
+                                                            <?= $tax->tax_name ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+
+                                            <td style="min-width: 110px;">
+                                                <select name="tax2[]" class="form-control form-control-sm tax-trigger">
+                                                    <option value="0">-- No Tax --</option>
+                                                    <?php foreach ($tax_list as $tax): ?>
+                                                        <option value="<?= $tax->tax_val ?>"
+                                                            data-rate="<?= $tax->tax_rate ?>"
+                                                            data-op="<?= $tax->tax_op ?>"
+                                                            <?= ($row->Tax_Code2 == $tax->tax_val) ? 'selected' : '' ?>>
+                                                            <?= $tax->tax_name ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+
+                                            <td colspan="2" style="min-width: 110px;">
+                                                <input type="text" name="est_date[]" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d', strtotime($row->EstimateDate)) ?>">
+                                            </td>
+
+                                            <td style="min-width: 110px;">
+                                                <select name="cc[]" class="form-control form-control-sm select2-item">
+                                                    <option value="">-- No CC --</option>
+                                                    <?php foreach ($cc_list as $cc): ?>
+                                                        <option value="<?= $cc->Comp_ID ?>" <?= ($row->Comp_ID == $cc->Comp_ID) ? 'selected' : '' ?>>
+                                                            <?= $cc->Comp_Name ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -573,19 +677,17 @@
                                     <i class="fas fa-save mr-1"></i> Save
                                 </button>
 
-                                <button type="button"
+                                <!-- <button type="button"
                                     name="btnConfirm"
                                     class="btn btn-success px-4"
                                     onclick="passingVars('YES');">
                                     <i class="fas fa-check-circle mr-1"></i> Confirm
-                                </button>
+                                </button> -->
 
-                                <button type="button"
-                                    name="btnCancel"
-                                    class="btn btn-danger px-4"
-                                    onclick="window.location.href='/samickerp/erp/eaccounting/index.cfm?HelpCategory_id=eAccSales&Help_Id=SalesOrder&FID=ERSTD07854&FUID=ERSTD0785401&menu=1';">
+                                <a class="btn btn-danger px-4"
+                                    href="<?= base_url('SalesOrder/index') ?>">
                                     <i class="fas fa-times mr-1"></i> Cancel
-                                </button>
+                                </a>
                             </div>
                         </td>
                     </tr>
