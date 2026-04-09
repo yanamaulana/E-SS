@@ -502,11 +502,11 @@
                                                 <select name="tax1[]" class="form-control form-control-sm tax-trigger">
                                                     <option value="0">-- No Tax --</option>
                                                     <?php foreach ($tax_list as $tax): ?>
-                                                        <option value="<?= $tax->tax_val ?>"
-                                                            data-rate="<?= $tax->tax_rate ?>"
-                                                            data-op="<?= $tax->tax_op ?>"
-                                                            <?= ($row->Tax_Code1 == $tax->tax_val) ? 'selected' : '' ?>>
-                                                            <?= $tax->tax_name ?>
+                                                        <option value="<?= $tax->Tax_Code ?>"
+                                                            data-rate="<?= $tax->Tax_Rate ?>"
+                                                            data-op="<?= $tax->Tax_operator ?>"
+                                                            <?= ($row->Tax_Code1 == $tax->Tax_Code) ? 'selected' : '' ?>>
+                                                            <?= $tax->Tax_Name ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
@@ -516,11 +516,11 @@
                                                 <select name="tax2[]" class="form-control form-control-sm tax-trigger">
                                                     <option value="0">-- No Tax --</option>
                                                     <?php foreach ($tax_list as $tax): ?>
-                                                        <option value="<?= $tax->tax_val ?>"
-                                                            data-rate="<?= $tax->tax_rate ?>"
-                                                            data-op="<?= $tax->tax_op ?>"
-                                                            <?= ($row->Tax_Code2 == $tax->tax_val) ? 'selected' : '' ?>>
-                                                            <?= $tax->tax_name ?>
+                                                        <option value="<?= $tax->Tax_Code ?>"
+                                                            data-rate="<?= $tax->Tax_Rate ?>"
+                                                            data-op="<?= $tax->Tax_operator ?>"
+                                                            <?= ($row->Tax_Code2 == $tax->Tax_Code) ? 'selected' : '' ?>>
+                                                            <?= $tax->Tax_Name ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>

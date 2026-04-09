@@ -37,14 +37,10 @@ class SalesOrder extends CI_Controller
         $this->data['page_content'] = "SalesOrder/add";
         $this->data['task'] = $task;
         $this->data['so_number'] = $so_number;
+        $companyID = 2;
 
         if ($task == 'edit' && !empty($so_number)) {
-            // 1. Ambil Header
             $this->data['header'] = $this->db->get_where('TAccSO_Header', ['SO_Number' => $so_number])->row();
-
-            // 2. Ambil Detail dengan Join Tabel sesuai Skema Mas Yana
-            $companyID = 2; // Sesuaikan dengan Company_ID yang aktif
-
             $sqlDetail = "SELECT 
                     D.*, 
                     I.Item_name AS ItemName, 
@@ -68,10 +64,6 @@ class SalesOrder extends CI_Controller
             $this->data['tax_list'] = $this->db->query("SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
                                                         FROM TaccTax 
                                                         ORDER BY Tax_Name")->result();
-
-            // --- AMBIL MASTER COST CENTER ---
-            // Berdasarkan manual pick Anda, ini mengambil dari daftar Company/Dept
-            $companyID = 2; // Sesuai query Mas Yana
 
             $this->data['cc_list'] = $this->db->query("SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
                                                     FROM TAccCostCenter 
