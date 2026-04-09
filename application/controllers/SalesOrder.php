@@ -35,42 +35,201 @@ class SalesOrder extends CI_Controller
     {
         $this->data['page_title'] = ($task == 'edit') ? "Edit Sales Order" : "Add Sales Order";
         $this->data['page_content'] = "SalesOrder/add";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
         $this->data['task'] = $task;
         $this->data['so_number'] = $so_number;
         $companyID = 2;
 
         if ($task == 'edit' && !empty($so_number)) {
-            $this->data['header'] = $this->db->get_where('TAccSO_Header', ['SO_Number' => $so_number])->row();
-            $sqlDetail = "SELECT 
-                    D.*, 
-                    I.Item_name AS ItemName, 
-                    C.Color_Name AS Color, 
-                    I.Item_Size AS Brand, 
-                    I.customfield1 AS Type,
-                    CAST(ISNULL(I.Item_Length,0) AS VARCHAR) + ' x ' + CAST(ISNULL(I.Item_Width,0) AS VARCHAR) + ' x ' + CAST(ISNULL(I.Item_Height,0) AS VARCHAR) + ' mm' AS SizeInfo,
-                    U1.unit_name AS UnitName1,
-                    U2.unit_name AS UnitName2
-                  FROM TAccSO_Detail D
-                  LEFT JOIN TITEM I ON D.Item_Code = I.item_code
-                  LEFT JOIN TItemCompany IC ON IC.item_code = I.item_code AND IC.Company_ID = $companyID
-                  LEFT JOIN tgscolor C ON C.color_code = I.item_color
-                  LEFT JOIN taccunittype U1 ON D.Unit_Type = U1.unit_type_id
-                  LEFT JOIN taccunittype U2 ON D.Unit_Type2 = U2.unit_type_id
-                  WHERE D.SO_Number = ?
-                  ORDER BY D.config_order ASC";
+            $this->data['header'] = $this->db->query("SELECT isNULL(TAccSO_Header.Revision_Number,0) as Revision_Number,
+                                                    TAccSO_Header.SO_Number,TAccSO_Header.Tax_Code AS VAT_Tax_Code,
+                                                    TAccSO_Header.Quotation_Number,
+                                                    TAccSO_Header.project_code, 	
+                                                    TAccSO_Header.PO_NumCustomer,
+                                                    TAccSO_Header.PO_DateCustomer,			
+                                                    TAccSO_Header.SO_Date,
+                                                    TAccSO_Header.automaticsn,				
+                                                    TAccSO_Header.SO_Notes, 			
+                                                    TAccSO_Header.Account_ID, 		
+                                                    TAccSO_Header.Payment_Type, 					                                     
+                                                    TAccSO_Header.Company_ID, 			
+                                                    TAccSO_Header.Currency_ID,
+                                                    TAccSO_Header.Tax_Currency_ID, 
+                                                    TAccSO_Header.Approval_Status, 	
+                                                    TAccSO_Header.SO_Status, 	
+                                                    TAccSO_Header.SN_Status,
+                                                    TAccSO_Header.Invoice_Status,
+                                                    TAccSO_Header.Invoice_Amount,
+                                                    TAccSO_Header.Base_Invoice_Amount,   
+                                                    TAccSO_Header.Tax_Amount,
+                                                    TAccSO_Header.Base_Tax_Amount,
+                                                    TAccSO_Header.Due_Date,
+                                                    TAccSO_Header.Emp_ID,
+                                                    TAccSO_Header.Contact_ID,
+                                                    TAccSO_Header.SOType,  				
+                                                    TAccSO_Header.Terms,
+                                                    TAccSO_Header.DeliveryTerms,
+                                                    TAccSO_Header.Proforma_Number,
+                                                    isnull(TAccSO_Header.isSisterCompany,0) as isSisterCompany,
+                                                    isnull(TAccSO_Header.SisterCompany,0) as SisterCompany,
+                                                    Taccount.AccountTitle_Code,
+                                                    isnull(TAccSO_Header.ReviseCounter,0) as ReviseCounter,
+                                                    TAccount.Account_Name, 
+                                                    TAccSO_Header.sn_account_id,
+                                                    TAccSO_Header.si_account_id,
+                                                    isnull(TAccount.GroupID,0) as GroupID,
+                                                    TAccount.account_address1,
+                                                    TAccount.taxfilenumber,
+                                                    TContact.Contact_FirstName, 
+                                                    TContact.Contact_HomeAddress,
+                                                    TAccSO_Header.KawasanBerikat as KawasanBerikat,
+                                                    TAccSO_Header.CurrencyRateList,
+                                                    TAccSO_Header.Tax_CurrencyRateList,
+                                                    TAccSO_Header.Project_ID,
+                                                    TAccSO_Header.AllocateTo,
+                                                    isnull(TAccSO_Header.isOutlet,0) as isOutlet,
+                                                    isnull(TAccSO_Header.outlet_wh,0) as outlet_wh,
+                                                    isnull(Taccount.GroupID,0) as GroupID,	
+                                                    isNull(THRMEmpPersonalData.First_Name,'') + ' ' + isNull(.THRMEmpPersonalData.Middle_Name,'') + ' ' + isNull(THRMEmpPersonalData.Last_Name,'') AS Emp_name,
+                                                    CONVERT(varchar(50),TAccSO_Header.Creation_DateTime) AS Creation_DateTime_Display,
+                                                    CONVERT(varchar(50),TAccSO_Header.Last_Update) AS Last_Update_Display,
+                                                    (SELECT isNull(Emp.First_Name,'') + ' ' + isNull(Emp.Middle_Name,'') + ' ' + isNull(Emp.Last_Name,'') FROM THRMEmpPersonalData AS Emp WHERE Emp.User_ID=TAccSO_Header.Created_By) AS Created_By_Name,
+                                                    (SELECT isNull(Emp.First_Name,'') + ' ' + isNull(Emp.Middle_Name,'') + ' ' + isNull(Emp.Last_Name,'') FROM THRMEmpPersonalData AS Emp WHERE Emp.User_ID=TAccSO_Header.Update_By) AS Update_By_Name,
+                                                    TAccSO_Header.TransactionDiscountRate,
+                                                    TAccSO_Header.TransactionDiscountAmount ,
+                                                    TAccSO_Header.TransactionDiscountBaseAmount,
+                                                    TAccSO_Header.directpo,
+                                                    TAccSO_Header.isDonation,
+                                                    TAccSO_Header.isDP, 
+                                                    TAccSO_Header.SC_Number,
+                                                    TAccSO_Header.paymentterm_code,
+                                                    TAccSO_Header.PriceType,
+                                                    TAccSO_Header.reason_revision,
+                                                    isNull(TAccSO_Header.claim_deduction_amount, 0.00) as claim_deduction_amount,
+                                                    TAccSO_Header.claim_deduction_desc,
+                                                    TAccSO_Header.pi_number,
+                                                    TAccSO_Header.Production_month,
+                                                    TAccSO_Header.Production_year
+                                            FROM 	TAccSO_Header
+                                                Left Join TAccount On TAccount.Account_ID = TAccSO_Header.Account_ID
+                                                Left Join TContact On TContact.Contact_ID = TAccSO_Header.Contact_ID
+                                                Left Join THRMEmpPersonalData On THRMEmpPersonalData.Emp_ID = TAccSO_Header.Emp_ID 
+                                            WHERE 	TAccSO_Header.Company_id = ?
+                                            AND 	SO_Number = ?", [$companyID, $so_number])->row();
 
-            $this->data['details'] = $this->db->query($sqlDetail, [$so_number])->result();
+
+            $this->data['details'] = $this->db->query("SELECT TAccSO_Detail.*, 
+                                                    (SELECT Unit_Name FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type) AS Unit_Desc,
+                                                    (SELECT Unit_Name FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type2) AS Unit_Desc2,
+                                                    (SELECT Unit_Type_ID FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type) AS UnitType,
+                                                    (SELECT Unit_Type_ID FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type2) AS UnitType2,
+                                                    TItem.Item_Name,Titem.pricetype,TItem.Item_Code, ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
+                                                    TItem.customfield1 AS item_description,
+                                                    TItem.Item_Color,
+                                                    TItem.Item_Size
+                                                    FROM  TAccSO_Detail
+                                                    INNER JOIN 	TItem 	ON 	TAccSO_Detail.Item_Code = TItem.Item_Code
+                                                    INNER JOIN 	TAccSO_Header ON TAccSO_Header.SO_Number = TAccSO_Detail.SO_Number AND TAccSO_Header.Company_ID = ?
+                                                    LEFT JOIN TITEMDIMENSION itd ON itd.Dimension_ID = TAccSO_Detail.Dimension_ID 
+                                                    WHERE 		TAccSO_Detail.SO_Number = ?
+                                                    AND TAccSO_Detail.IsFreeItem = 0
+                                                    ORDER BY 	TAccSO_Detail.SODetail_ID", [$companyID, $so_number])->result();
 
             $this->data['tax_list'] = $this->db->query("SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
                                                         FROM TaccTax 
                                                         ORDER BY Tax_Name")->result();
-
             $this->data['cc_list'] = $this->db->query("SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
                                                     FROM TAccCostCenter 
                                                     WHERE Company_ID = $companyID 
                                                     AND CC_Type = 'CC'
                                                     ORDER BY CostCenter_Name_en ASC")->result();
+
+            $AccountID = $this->data['header']->Account_ID;
+            $this->data['sales_person'] = $this->db->query("select account_ID,account_name,GroupID from taccount where account_id = $AccountID")->row();
+            //query get free item
+            $this->data['get_freeitem'] = $this->db->query("SELECT TAccSO_Detail.*, TItem.Item_Name,Titem.pricetype,TItem.Item_Code, 
+                                                            ISNULL(itd.Dimension_Name, '') AS Dimension_Name FROM TAccSO_Detail
+                                                            INNER JOIN TItem ON TAccSO_Detail.Item_Code = TItem.Item_Code
+                                                            INNER JOIN TAccSO_Header ON TAccSO_Header.SO_Number = TAccSO_Detail.SO_Number AND TAccSO_Header.Company_ID = 2 
+                                                            LEFT JOIN TITEMDIMENSION itd ON itd.Dimension_ID = TAccSO_Detail.Dimension_ID 
+                                                            WHERE TAccSO_Detail.SO_Number = '$so_number'
+                                                            AND TAccSO_Detail.IsFreeItem = 1
+                                                            ORDER BY TAccSO_Detail.SODetail_ID")->result();
+
+            //MENDAPATKAN TOTAL QTY 1 detail SO            
+            $this->data['qGetTotalQty'] = $this->db->query("SELECT sum(Qty) as TotQty from TAccSO_Detail where SO_Number = '$so_number'")->row();
+            // 1. qGetCreditLimit
+            $this->data['qGetCreditLimit'] = $this->db->query("SELECT Credit_Limit
+                                                FROM TAccTermsDefault
+                                                WHERE TAccTermsDefault.Company_ID = ?
+                                                AND TAccTermsDefault.Account_ID = ?
+                                            ", [$companyID, $AccountID])->row();
+
+            // 2. qGetNotPaidSalInvoice
+            $this->data['qGetNotPaidSalInvoice'] = $this->db->query("SELECT sum(base_invoice_amount + dbo.func_calculateByDelimiter(List_Base_TaxAmount)) - 
+                                                            sum(base_dp_Amount + dbo.func_calculateByDelimiter(List_Base_DP_TaxAmount)) as TotalInvoiceNotPaid
+                                                        FROM TAccSI_Header
+                                                        WHERE invoice_status != 'FP'
+                                                        AND isvoid = 0
+                                                        AND account_id = ?
+                                                    ", [$AccountID])->row();
+
+            // 3. qGetNotPaidProInvoice
+            $this->data['qGetNotPaidProInvoice'] = $this->db->query("SELECT sum(base_invoice_amount + dbo.func_calculateByDelimiter(List_Base_TaxAmount)) - 
+                                                    sum(base_dp_Amount + dbo.func_calculateByDelimiter(List_Base_DP_TaxAmount)) as TotalInvoiceNotPaid
+                                                        FROM TAccProjectInvoice_Header
+                                                        WHERE invoice_status != 'FP'
+                                                        AND isvoid = 0
+                                                        AND account_id = ?
+                                                    ", [$AccountID])->row();
+
+            // 4. qGetSOSalApproved
+            $this->data['qGetSOSalApproved'] = $this->db->query("SELECT sum(Base_Invoice_Amount + Base_Tax_Amount) as TotalAmountSOApproved
+                                                    FROM TAccSO_Header
+                                                    WHERE approval_status = 3
+                                                    AND isclose = 0 
+                                                    AND isnull(isnotactive, 0) = 0
+                                                    AND NOT EXISTS (
+                                                        SELECT 1 FROM TAccSI_Header 
+                                                        WHERE SO_Number = TAccSO_Header.SO_Number 
+                                                        AND TAccSI_Header.IsVoid = 0
+                                                    )
+                                                    AND Account_ID = ?
+                                                ", [$AccountID])->row();
+
+            // 5. qGetSOProApproved
+            // Note: Query ini menggunakan GROUP BY, jika Mas ingin total keseluruhan, 
+            // pastikan mengolah hasil array-nya atau hapus GROUP BY jika hanya untuk 1 SO.
+            $this->data['qGetSOProApproved'] = $this->db->query("SELECT sum(Stage_BaseAmount + Tax_Amount1 * (Base_Tax_Amount/CASE Tax_Amount WHEN 0 THEN 1 ELSE Tax_Amount END) + 
+                                                    Tax_Amount2 * (Base_Tax_Amount/CASE Tax_Amount WHEN 0 THEN 1 ELSE Tax_Amount END))
+                                                    - (SELECT sum(Base_Invoice_Amount + dbo.func_calculateByDelimiter(list_base_taxamount))
+                                                        FROM TAccProjectInvoice_Header 
+                                                        WHERE SO_Number = TAccSOProject_Header.SO_Number 
+                                                        AND (TAccProjectInvoice_Header.IsVoid = 0 OR TAccProjectInvoice_Header.IsVoid IS NULL)) as qGetSOApproved 
+                                                FROM TAccSOProject_Header, TAccSOProject_Detail, TAccProjectStageHeader
+                                                WHERE approval_status = 3
+                                                AND Account_ID = ? 
+                                                AND isnull(isnotactive,0) = 0
+                                                AND TAccSOProject_Header.SO_Number = TAccSOProject_Detail.SO_Number
+                                                AND TAccProjectStageHeader.StageCode = TAccSOProject_Detail.Stage_Code
+                                                AND TAccProjectStageHeader.CompanyID = ?
+                                                AND TAccProjectStageHeader.IsMilestone = 1
+                                                GROUP BY TAccSOProject_Header.SO_Number
+                                            ", [$AccountID, $companyID])->result();
         }
+
+
+        $this->data['sales_person'] = $this->db->query("SELECT T1.Emp_ID, ISNULL(T1.First_Name, '') + ' ' + ISNULL(T1.Middle_Name, '') + ' ' + ISNULL(T1.Last_Name, '') AS name 
+                                                        FROM THRMEmpPersonalData AS T1 
+                                                        WHERE EXISTS (SELECT 1 FROM thrmEmpCompany AS T2 
+                                                        WHERE T2.Emp_ID = T1.Emp_ID AND T2.Company_ID = 2) 
+                                                        AND (T1.Terminate_Date >= GETDATE() OR T1.Terminate_Date IS NULL) 
+                                                        AND isnull(T1.isSalesPerson,0) = 1
+                                                        ORDER BY T1.First_Name ASC")->result();
+
+
+
+        //---- batas Query --------------//
 
         $this->data['rdoAllocate'] = $this->input->post('rdoAllocate') ?? 1;
         $this->data['rbTypedoc'] = $this->input->post('rbTypedoc') ?? 0;
@@ -86,8 +245,6 @@ class SalesOrder extends CI_Controller
             $q = $this->db->get_where('TACCQUOTATION_HEADER', [
                 'quotation_number' => $selQuotation
             ])->row();
-
-            // Format tanggal jika data ditemukan
             $sourceDate = $q ? date('d M Y', strtotime($q->Quotation_Date)) : "";
         }
 
@@ -97,24 +254,6 @@ class SalesOrder extends CI_Controller
         $this->data['selProforma'] = "";
         $this->data['ddlSalesContract'] = "";
         $this->data['txtExpDelDate'] = "";
-
-        if ($task == 'new') {
-            $sql = "SELECT T1.Emp_ID, 
-                   ISNULL(T1.First_Name, '') + ' ' + ISNULL(T1.Middle_Name, '') + ' ' + ISNULL(T1.Last_Name, '') AS name 
-            FROM THRMEmpPersonalData AS T1 
-            WHERE EXISTS ( 
-                SELECT 1 FROM thrmEmpCompany AS T2 
-                WHERE T2.Emp_ID = T1.Emp_ID AND T2.Company_ID = 2 
-            ) 
-            AND (T1.Terminate_Date >= GETDATE() OR T1.Terminate_Date IS NULL) 
-            AND isnull(T1.isSalesPerson,0) = 1
-            ORDER BY T1.First_Name ASC";
-
-            $this->data['sales_person'] = $this->db->query($sql)->result();
-        }
-
-
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/salesorder/add.js?v=' . time() . '""></script>';
 
         $this->load->view($this->layout, $this->data);
     }
