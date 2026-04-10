@@ -4261,113 +4261,115 @@ function setCurr(){
                            
 
 						<cfif task eq "save">
-							<input type="Radio" name="rbTypedoc" value="0" <cfif rbTypedoc eq 0>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['Quotation']#
-							<input type="Radio" name="rbTypedoc" value="2" <cfif rbTypedoc eq 2>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['ProformaInvoice']#
-                            <input type="Radio" name="rbTypedoc" value="3" <cfif rbTypedoc eq 3>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['SalesContract']#
-							
-							<cfif rbTypedoc eq 0>
-								<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
+								<input type="Radio" name="rbTypedoc" value="0" <cfif rbTypedoc eq 0>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['Quotation']#
+								<input type="Radio" name="rbTypedoc" value="2" <cfif rbTypedoc eq 2>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['ProformaInvoice']#
+								<input type="Radio" name="rbTypedoc" value="3" <cfif rbTypedoc eq 3>checked</cfif> onClick="cleardata();document.frmNew.submit();"> #DO_VAR['SalesContract']#
+								
+								<cfif rbTypedoc eq 0>
+									<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
 
-									SELECT * from TACCQUOTATION_HEADER
-									WHERE quotation_number = '#selQuotation#'
-								</cfquery>
-			    				 <cfset SourceDate = "#DateFormat(qGetDocSourceDate.Quotation_Date, 'mm/dd/yyyy')#">
-							<cfelseif rbTypedoc eq 2>
-								<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
-									SELECT * from taccpi_header
-									WHERE pi_number = '#selProforma#'
-								</cfquery>
-			    				<cfset SourceDate = "#DateFormat(qGetDocSourceDate.PI_Date, 'mm/dd/yyyy')#">
-							<cfelseif rbTypedoc eq 3>
-								<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
-									SELECT * from TACCSALESCONTRACT_HEADER
-									WHERE sc_number = '#local.tmpSCNumber#'
-								</cfquery>
-			    				<cfset SourceDate = "#DateFormat(qGetDocSourceDate.SC_Date, 'mm/dd/yyyy')#">
-							</cfif>
+										SELECT * from TACCQUOTATION_HEADER
+										WHERE quotation_number = '#selQuotation#'
+									</cfquery>
+									<cfset SourceDate = "#DateFormat(qGetDocSourceDate.Quotation_Date, 'mm/dd/yyyy')#">
+								<cfelseif rbTypedoc eq 2>
+									<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
+										SELECT * from taccpi_header
+										WHERE pi_number = '#selProforma#'
+									</cfquery>
+									<cfset SourceDate = "#DateFormat(qGetDocSourceDate.PI_Date, 'mm/dd/yyyy')#">
+								<cfelseif rbTypedoc eq 3>
+									<cfquery name="qGetDocSourceDate" datasource="#iif(isdefined('DSN'),'DSN','Attributes.DSN')#">
+										SELECT * from TACCSALESCONTRACT_HEADER
+										WHERE sc_number = '#local.tmpSCNumber#'
+									</cfquery>
+									<cfset SourceDate = "#DateFormat(qGetDocSourceDate.SC_Date, 'mm/dd/yyyy')#">
+								</cfif>
 
-							<br>
-							<br> <!--- after reload calcAmountAll() may not be loaded --->
+								<br>
+								<br> <!--- after reload calcAmountAll() may not be loaded --->
 
-                            <DIV id="DivQuotation" <cfif rbTypedoc eq 0>style="display: ;"<cfelse>style="display: none;"</cfif>>
-                                <input name="selQuotation" id="selQuotation" type="text" 
-                                onKeyUp="switched('Quo',this)" size="25" 
-                                maxlength="25" onClick="switched('Quo',this)" 
-                                onKeyPress="return onEnter(event);" value="#selQuotation#">
-                                <a style="cursor:pointer" onClick="setObjField('selQuotation','divAjaxLookupQuo'); onEvent();" title="GO">
-                                    <IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
-                                    alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
-                                </a>
-                                <br>
-                                <DIV id="divAjaxLookupQuo" 
-								style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto">
+								<DIV id="DivQuotation" <cfif rbTypedoc eq 0>style="display: ;"<cfelse>style="display: none;"</cfif>>
+									<input name="selQuotation" id="selQuotation" type="text" 
+									onKeyUp="switched('Quo',this)" size="25" 
+									maxlength="25" onClick="switched('Quo',this)" 
+									onKeyPress="return onEnter(event);" value="#selQuotation#">
+									<a style="cursor:pointer" onClick="setObjField('selQuotation','divAjaxLookupQuo'); onEvent();" title="GO">
+										<IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
+										alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
+									</a>
+									<br>
+									<DIV id="divAjaxLookupQuo" 
+									style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto">
+									</DIV>
 								</DIV>
-                            </DIV>
-						<cfif selQuotation neq ""><font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font></cfif>			
-                            
-							
-							<!--- <select id="selQuotation" name="selQuotation" onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 0>style="display: ;"<cfelse>style="display: none;"</cfif>>
-								<option value="0"<cfif selQuotation eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
-								<cfloop query="qQuotation">
-									<option title="#Quotation_Number# #CHR(13)# #DateFormat(Quotation_Date,'mm/dd/yyyy')# #CHR(13)# #Account_Name#" value="#Quotation_Number#" <cfif selQuotation eq Quotation_Number>Selected</cfif>>#Quotation_Number# (#Account_name#)
-								</cfloop>
-							</select> --->
-							
-							<select id="selPro" name="selPro" onChange="if(eval('document.forms[0].btnSubmit'))document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 1>style="display: ;"<cfelse>style="display: none;"</cfif>>
-								<option value="0"<cfif selPro eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
-								<cfloop query="qPro">
-									<option title="#project_Code# #CHR(13)# #project_Name# #CHR(13)# #Account_Name#" value="#project_Code#" <cfif selPro eq project_Code>Selected</cfif>>#project_Code# - #project_Name#
-								</cfloop>
-							</select>
-							
-							<DIV id="DivProforma" <cfif rbTypedoc eq 2>style="display: ;"<cfelse>style="display: none;"</cfif>>
-                                <input name="selProforma" id="selProforma" type="text" 
-                                onKeyUp="switched('Proforma',this)" 
-                                size="25" maxlength="25" 
-                                onClick="switched('Proforma',this)" 
-                                onKeyPress="return onEnter(event);" value="#selProforma#">
-                                <a style="cursor:pointer" onClick="setObjField('selProforma','divAjaxLookupProforma'); onEvent();" title="GO">
-                                    <IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
-                                    alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
-                                </a>
-                                <br>
-                                <DIV id="divAjaxLookupProforma" style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto"></DIV>
-                            </DIV>
-                              <cfif selProforma neq ""><font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font></cfif>							
-							<!--- <select id="selProforma" name="selProforma" onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 2>style="display: ;"<cfelse>style="display: none;"</cfif>>
-								<option value="0"<cfif selProforma eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
+							<cfif selQuotation neq "">
+								<font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font>
+							</cfif>			
+								
+								
+								<!--- <select id="selQuotation" name="selQuotation" onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 0>style="display: ;"<cfelse>style="display: none;"</cfif>>
+									<option value="0"<cfif selQuotation eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
+									<cfloop query="qQuotation">
+										<option title="#Quotation_Number# #CHR(13)# #DateFormat(Quotation_Date,'mm/dd/yyyy')# #CHR(13)# #Account_Name#" value="#Quotation_Number#" <cfif selQuotation eq Quotation_Number>Selected</cfif>>#Quotation_Number# (#Account_name#)
+									</cfloop>
+								</select> --->
+								
+								<select id="selPro" name="selPro" onChange="if(eval('document.forms[0].btnSubmit'))document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 1>style="display: ;"<cfelse>style="display: none;"</cfif>>
+									<option value="0"<cfif selPro eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
+									<cfloop query="qPro">
+										<option title="#project_Code# #CHR(13)# #project_Name# #CHR(13)# #Account_Name#" value="#project_Code#" <cfif selPro eq project_Code>Selected</cfif>>#project_Code# - #project_Name#
+									</cfloop>
+								</select>
+								
+								<DIV id="DivProforma" <cfif rbTypedoc eq 2>style="display: ;"<cfelse>style="display: none;"</cfif>>
+									<input name="selProforma" id="selProforma" type="text" 
+									onKeyUp="switched('Proforma',this)" 
+									size="25" maxlength="25" 
+									onClick="switched('Proforma',this)" 
+									onKeyPress="return onEnter(event);" value="#selProforma#">
+									<a style="cursor:pointer" onClick="setObjField('selProforma','divAjaxLookupProforma'); onEvent();" title="GO">
+										<IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
+										alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
+									</a>
+									<br>
+									<DIV id="divAjaxLookupProforma" style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto"></DIV>
+								</DIV>
+								<cfif selProforma neq ""><font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font></cfif>							
+								<!--- <select id="selProforma" name="selProforma" onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" <cfif rbTypedoc eq 2>style="display: ;"<cfelse>style="display: none;"</cfif>>
+									<option value="0"<cfif selProforma eq 0>selected</cfif>>..::[#DO_VAR['eHRMNone']#]::..
+									<cfset n=0>
+									<cfloop query="qProformaInvoice">
+										<option title="#pi_number# #CHR(13)# #pi_Date# #CHR(13)# #Account_Name#" value="#pi_number#" <cfif selProforma eq pi_number>Selected</cfif>>#pi_number# (#Account_Name#)
+									</cfloop>
+								</select> --->
+								
+								<DIV id="DivSalesContract" style="display: #Iif(rbTypedoc eq 3, DE(''), DE('none'))#;">
+									<input name="ddlSalesContract" id="ddlSalesContract" type="text" 
+									onKeyUp="switched('SalesContract',this)" size="25" maxlength="25" 
+									onClick="switched('SalesContract',this)" 
+									onKeyPress="return onEnter(event);" value="#local.tmpSCNumber#">
+									<a style="cursor:pointer" onClick="setObjField('ddlSalesContract','divAjaxLookupSalesContract'); 
+									onEvent();" title="GO">
+										<IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
+										alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
+									</a>
+									<br>
+									<DIV id="divAjaxLookupSalesContract" style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto"></DIV>
+								</DIV>
+							<cfif ddlSalesContract neq ""><font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font></cfif>
+								<!--- <select name="ddlSalesContract" id="ddlSalesContract"
+								onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" 
+								style="display: #Iif(rbTypedoc eq 3, DE(''), DE('none'))#;">
+								<option value="0" #Iif(local.tmpSCNumber EQ 0 OR local.tmpSCNumber EQ "", DE('selected'), DE(''))#>..::[#DO_VAR['eHRMNone']#]::..</option>
 								<cfset n=0>
-								<cfloop query="qProformaInvoice">
-									<option title="#pi_number# #CHR(13)# #pi_Date# #CHR(13)# #Account_Name#" value="#pi_number#" <cfif selProforma eq pi_number>Selected</cfif>>#pi_number# (#Account_Name#)
+								
+								<cfloop index="xtc" from="1" to="#qSelectSalesContract.recordcount#">
+									<option value="#qSelectSalesContract.SC_Number[xtc]#"
+									#Iif(local.tmpSCNumber EQ qSelectSalesContract.SC_Number[xtc], DE('selected'), DE(''))#
+									>#qSelectSalesContract.SC_Number[xtc]#&nbsp;(#qSelectSalesContract.Account_Name[xtc]#)						
 								</cfloop>
-							</select> --->
-                            
-                            <DIV id="DivSalesContract" style="display: #Iif(rbTypedoc eq 3, DE(''), DE('none'))#;">
-                                <input name="ddlSalesContract" id="ddlSalesContract" type="text" 
-                                onKeyUp="switched('SalesContract',this)" size="25" maxlength="25" 
-                                onClick="switched('SalesContract',this)" 
-                                onKeyPress="return onEnter(event);" value="#local.tmpSCNumber#">
-                                <a style="cursor:pointer" onClick="setObjField('ddlSalesContract','divAjaxLookupSalesContract'); 
-                                onEvent();" title="GO">
-                                    <IMG src="#Application.stApp.Web_Path[1]#/images/quicksearch.jpg" 
-                                    alt="#DO_VAR['SEARCH']#" border="0" width="18" height="18" />
-                                </a>
-                                <br>
-                                <DIV id="divAjaxLookupSalesContract" style="width:500px;height:200px;position:absolute;display:none;border:2px solid black;background-color:white;z-index:1000;overflow:auto"></DIV>
-                            </DIV>
- 						<cfif ddlSalesContract neq ""><font color="red"><i>[#DO_VAR['DocSourceDate']# : #DateFormat(SourceDate, 'dd mmm yyyy')#]</i></font></cfif>
-                            <!--- <select name="ddlSalesContract" id="ddlSalesContract"
-                             onChange="document.frmNew.btnSubmit.disabled=true;reload_page();calcAmountAll();" 
-							 style="display: #Iif(rbTypedoc eq 3, DE(''), DE('none'))#;">
-                              <option value="0" #Iif(local.tmpSCNumber EQ 0 OR local.tmpSCNumber EQ "", DE('selected'), DE(''))#>..::[#DO_VAR['eHRMNone']#]::..</option>
-                              <cfset n=0>
-                              
-                              <cfloop index="xtc" from="1" to="#qSelectSalesContract.recordcount#">
-                                <option value="#qSelectSalesContract.SC_Number[xtc]#"
-                                 #Iif(local.tmpSCNumber EQ qSelectSalesContract.SC_Number[xtc], DE('selected'), DE(''))#
-                                 >#qSelectSalesContract.SC_Number[xtc]#&nbsp;(#qSelectSalesContract.Account_Name[xtc]#)						
-                              </cfloop>
-							</select> --->
+								</select> --->
 						<cfelse>
 						
 							<cfif qSales.Quotation_number neq 0 AND len(trim(qSales.Quotation_number))>

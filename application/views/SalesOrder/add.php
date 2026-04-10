@@ -6,7 +6,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="SO_NUMBER">SO Number :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm" placeholder="SOL209<?= date('ym') ?>-XXXXXXX" readonly>
+                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm" placeholder="SOL209<?= date('ym') ?>-XXXXXXX" value="<?= $header->SO_Number ?? null; ?>" readonly>
                             <input type="hidden" id="task" name="task" value="<?= $task ?>">
                         </div>
                     </div>
@@ -15,11 +15,13 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSOtype">So Tax Type :</label>
                         <div class="col-sm-8 pt-1">
                             <div class="custom-control custom-radio custom-control-inline custom-control-sm">
-                                <input type="radio" name="txtSOtype" id="taxNormal" value="1" class="custom-control-input" checked="">
+                                <input type="radio" name="txtSOtype" id="taxNormal" value="1" class="custom-control-input"
+                                    <?= (isset($header->SOType) && $header->SOType == 1) || $task == 'new' ? 'checked' : '' ?>>
                                 <label class="custom-control-label small" for="taxNormal">Normal</label>
                             </div>
                             <div class="custom-control custom-radio custom-control-inline custom-control-sm">
-                                <input type="radio" name="txtSOtype" id="taxVAT" value="0" class="custom-control-input">
+                                <input type="radio" name="txtSOtype" id="taxVAT" value="0" class="custom-control-input"
+                                    <?= (isset($header->SOType) && $header->SOType == 0) ? 'checked' : '' ?>>
                                 <label class="custom-control-label small" for="taxVAT">VAT Include</label>
                             </div>
                         </div>
@@ -27,9 +29,11 @@
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selProject">Project Name :</label>
-                        <div class="col-sm-8">
-                            <input type="text" id="selProject" name="selProject" class="form-control form-control-sm" placeholder="Project Name...">
-                        </div>
+                        <?php if ($task == 'new') : ?>
+                            <div class="col-sm-8">
+                                <input type="text" id="selProject" name="selProject" class="form-control form-control-sm" placeholder="Project Name...">
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="form-group row">
@@ -52,107 +56,122 @@
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label col-form-label-sm font-weight-bold">Document Source :</label>
                         <div class="col-sm-8 pt-1">
-                            <div class="custom-control custom-radio custom-control-inline custom-control-sm">
-                                <input type="radio" name="rbTypedoc" id="docQuo" value="0" class="custom-control-input" checked>
-                                <label class="custom-control-label small" for="docQuo">Quotation</label>
-                            </div>
-
-                            <div class="custom-control custom-radio custom-control-inline custom-control-sm">
-                                <input type="radio" name="rbTypedoc" id="docPI" value="2" class="custom-control-input" disabled>
-                                <label class="custom-control-label small text-muted" for="docPI">Proforma Invoice</label>
-                            </div>
-
-                            <div class="custom-control custom-radio custom-control-inline custom-control-sm">
-                                <input type="radio" name="rbTypedoc" id="docSC" value="3" class="custom-control-input" disabled>
-                                <label class="custom-control-label small text-muted" for="docSC">Sales Contract</label>
-                            </div>
-
-                            <div class="mt-2">
-                                <div id="DivQuotation" class="mb-2">
-                                    <input type="text" name="selQuotation" id="selQuotation"
-                                        class="form-control form-control-sm"
-                                        value="<?= $selQuotation ?>"
-                                        placeholder="Input Quotation Number...">
-
-                                    <?php if (!empty($SourceDate)): ?>
-                                        <div class="mt-1 small text-danger font-italic">
-                                            [Doc Source Date : <?= $SourceDate ?>]
-                                        </div>
-                                    <?php endif; ?>
+                            <?php if ($task == 'new'): ?>
+                                <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                                    <input type="radio" name="rbTypedoc" id="docQuo" value="0" class="custom-control-input" checked>
+                                    <label class="custom-control-label small" for="docQuo">Quotation</label>
                                 </div>
 
-                                <div id="DivProforma" class="mb-2" style="display: none;">
-                                    <input type="text" name="selProforma" class="form-control form-control-sm bg-light"
-                                        placeholder="Proforma Number (Disabled)" disabled>
+                                <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                                    <input type="radio" name="rbTypedoc" id="docPI" value="2" class="custom-control-input" disabled>
+                                    <label class="custom-control-label small text-muted" for="docPI">Proforma Invoice</label>
                                 </div>
 
-                                <div id="DivSalesContract" style="display: none;">
-                                    <input type="text" name="ddlSalesContract" class="form-control form-control-sm bg-light"
-                                        placeholder="Contract Number (Disabled)" disabled>
+                                <div class="custom-control custom-radio custom-control-inline custom-control-sm">
+                                    <input type="radio" name="rbTypedoc" id="docSC" value="3" class="custom-control-input" disabled>
+                                    <label class="custom-control-label small text-muted" for="docSC">Sales Contract</label>
                                 </div>
-                            </div>
+
+                                <div class="mt-2">
+                                    <div id="DivQuotation" class="mb-2">
+                                        <input type="text" name="selQuotation" id="selQuotation"
+                                            class="form-control form-control-sm"
+                                            value="<?= $selQuotation ?>"
+                                            placeholder="Input Quotation Number...">
+
+                                        <?php if (!empty($SourceDate)): ?>
+                                            <div class="mt-1 small text-danger font-italic">
+                                                [Doc Source Date : <?= $SourceDate ?>]
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div id="DivProforma" class="mb-2" style="display: none;">
+                                        <input type="text" name="selProforma" class="form-control form-control-sm bg-light"
+                                            placeholder="Proforma Number (Disabled)" disabled>
+                                    </div>
+
+                                    <div id="DivSalesContract" style="display: none;">
+                                        <input type="text" name="ddlSalesContract" class="form-control form-control-sm bg-light"
+                                            placeholder="Contract Number (Disabled)" disabled>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                -- No Quotation --
+                                <input type="Hidden" name="SelQuotation" value="">
+                                <input type="Hidden" name="SelPro" value="0">
+                                <input type="Hidden" name="selProforma" value="">
+                                <input type="Hidden" name="ddlSalesContract" value="">
+                                <?php $SourceDate = ''; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustName">Customer * :</label>
                         <div class="col-sm-8">
-                            <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm" placeholder="Customer...." readonly>
-                            <input type="hidden" name="txtCustCode" id="txtCustCode" value="">
+                            <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm" placeholder="Customer...." readonly value="<?= $header->Account_Name ?? '' ?>">
+                            <input type="hidden" name="txtCustCode" id="txtCustCode" value="<?= $header->Account_ID ?? '' ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustAddress">Address :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3" placeholder="Address..." readonly></textarea>
+                            <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3" placeholder="Address..." readonly><?= $header->account_address1 ?? '' ?></textarea>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm">Tax File Number :</label>
                         <div class="col-sm-8 pt-2">
-                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="" placeholder="Tax File Number..." readonly>
-                            <span id="CPTaxFileNumber" class="fw-bold text-dark" style="font-size: 0.85rem;">-</span>
+                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="<?= $header->TaxFileNumber ?>" placeholder="Tax File Number..." readonly>
+                            <span id="CPTaxFileNumber" class="fw-bold text-dark" style="font-size: 0.85rem;"><?= $header->TaxFileNumber ?? '-' ?></span>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPName">Contact Person :</label>
                         <div class="col-sm-8">
-                            <input type="hidden" name="txtCPCode" id="txtCPCode" value="">
-                            <input type="text" name="txtCPName" id="txtCPName" class="form-control form-control-sm" value="" placeholder="Contact Person..." readonly>
+                            <input type="hidden" name="txtCPCode" id="txtCPCode" value="<?= $header->Contact_ID ?? '' ?>">
+                            <input type="text" name="txtCPName" id="txtCPName" class="form-control form-control-sm" value="<?= $header->Contact_FirstName ?? '' ?>" placeholder="Contact Person..." readonly>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPAddress">Contact Address :</label>
                         <div class="col-sm-8">
-                            <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="" placeholder="Contact Address..." readonly>
+                            <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="<?= $header->Contact_HomeAddress ?? '' ?>" placeholder="Contact Address..." readonly>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSPCode">Sales Person * :</label>
                         <div class="col-sm-8">
-                            <select name="txtSPCode" id="txtSPCode" class="form-control form-control-sm select2-item" data-control="select2">
-                                <option value="">-- Select Sales Person --</option>
-                                <?php if (!empty($sales_person)): ?>
-                                    <?php foreach ($sales_person as $sp): ?>
-                                        <option value="<?= $sp->Emp_ID ?>"
-                                            <?= (isset($qSales->Emp_ID) && $qSales->Emp_ID == $sp->Emp_ID) ? 'selected' : '' ?>>
-                                            <?= $sp->name ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                            <?php if ($task == 'new') : ?>
+                                <select name="txtSPCode" id="txtSPCode" class="form-control form-control-sm">
+                                    <option value="">-- Select Sales Person --</option>
+                                    <?php if (!empty($sales_person)): ?>
+                                        <?php foreach ($sales_person as $sp): ?>
+                                            <option value="<?= $sp->Emp_ID ?>"
+                                                <?= (isset($header->Emp_ID) && $header->Emp_ID == $sp->Emp_ID) ? 'selected' : '' ?>>
+                                                <?= $sp->name ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                </select>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <select name="txtSPCode" id="txtSPCode" class="form-control form-control-sm">
+                                <option value="<?= $header->Emp_ID ?>"><?= $header->Emp_name ?></option>
                             </select>
+                        <?php endif; ?>
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtMemo">Remarks :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtMemo" class="form-control form-control-sm" rows="3" placeholder="Remarks..."></textarea>
+                            <textarea name="txtMemo" class="form-control form-control-sm" rows="3" placeholder="Remarks..."><?= $header->SO_Notes ?? '' ?></textarea>
                         </div>
                     </div>
 
@@ -160,26 +179,48 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm">Bonded Area :</label>
                         <div class="col-sm-8 pt-1">
                             <div class="custom-control custom-checkbox custom-control-sm">
-                                <input type="checkbox" name="chkKawasan" id="chkKawasan" value="1" class="custom-control-input">
+                                <input type="checkbox" name="chkKawasan" id="chkKawasan" value="1" class="custom-control-input" <?= (isset($header->KawasanBerikat) && $header->KawasanBerikat == 1) ? 'checked' : '' ?>>
                                 <label class="custom-control-label small" for="chkKawasan">Yes</label>
                             </div>
                         </div>
                     </div>
 
+                    <?php
+                    if ($task == 'edit') {
+                        $qSnAccount = $this->db->query("SELECT Account_Id, Account_Name
+                        from taccount
+                        where account_id = '$header->sn_account_id'")->row();
+                    }
+                    ?>
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSNGroup">SN Account :</label>
                         <div class="col-sm-8">
                             <select name="selSNGroup" class="form-control form-control-sm">
-                                <option value="-1" disabled selected>NONE</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="-1" disabled selected>NONE</option>
+                                <?php else: ?>
+                                    <option value="<?= $header->sn_account_id ?? '-1' ?>" disabled selected><?= $qSnAccount->Account_Name ?? 'NONE' ?></option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
 
+                    <?php
+                    if ($task == 'edit') {
+                        $qSiAccount = $this->db->query("SELECT Account_Id, Account_Name
+                        from taccount
+                        where account_id = '$header->si_account_id'")->row();
+                    }
+                    ?>
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSIGroup">SI Account :</label>
                         <div class="col-sm-8">
                             <select name="selSIGroup" class="form-control form-control-sm">
-                                <option value="-1" disabled selected>NONE</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="-1" disabled selected>NONE</option>
+                                <?php else: ?>
+                                    <option value="<?= $header->si_account_id ?? '-1' ?>" disabled selected><?= $qSiAccount->Account_Name ?? 'NONE' ?></option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -187,7 +228,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtRevisionReason">Revision Reason :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3" placeholder="Revision Reason..."></textarea>
+                            <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3" placeholder="Revision Reason..."><?= $header->reason_revision ?? '' ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -196,28 +237,28 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSODate">SO Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
+                            <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm date-picker" value="<?= isset($header->SO_Date) ? date('Y-m-d', strtotime($header->SO_Date)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtInvDueDate">Due Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
+                            <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm date-picker" value="<?= isset($header->Due_Date) ? date('Y-m-d', strtotime($header->Due_Date)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPONum">Cust PO Num :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm" placeholder="Customer PO Number...">
+                            <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm" placeholder="Customer PO Number..." value="<?= $header->PO_NumCustomer ?? '' ?>">
                         </div>
                     </div>
 
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPODate">Cust PO Date :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
+                            <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm date-picker" value="<?= isset($header->PO_DateCustomer) ? date('Y-m-d', strtotime($header->PO_DateCustomer)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
@@ -227,24 +268,24 @@
                             <div class="row no-gutters">
                                 <div class="col-6 pr-1">
                                     <select name="txtProMonth" id="txtProMonth" class="form-control form-control-sm">
-                                        <option value="" selected disabled>-- Month --</option>
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
+                                        <option value="" <?= ($header->Production_month ?? '') == '' ? 'selected' : '' ?> disabled>-- Month --</option>
+                                        <option value="1" <?= ($header->Production_month ?? '') == '1' ? 'selected' : '' ?>>January</option>
+                                        <option value="2" <?= ($header->Production_month ?? '') == '2' ? 'selected' : '' ?>>February</option>
+                                        <option value="3" <?= ($header->Production_month ?? '') == '3' ? 'selected' : '' ?>>March</option>
+                                        <option value="4" <?= ($header->Production_month ?? '') == '4' ? 'selected' : '' ?>>April</option>
+                                        <option value="5" <?= ($header->Production_month ?? '') == '5' ? 'selected' : '' ?>>May</option>
+                                        <option value="6" <?= ($header->Production_month ?? '') == '6' ? 'selected' : '' ?>>June</option>
+                                        <option value="7" <?= ($header->Production_month ?? '') == '7' ? 'selected' : '' ?>>July</option>
+                                        <option value="8" <?= ($header->Production_month ?? '') == '8' ? 'selected' : '' ?>>August</option>
+                                        <option value="9" <?= ($header->Production_month ?? '') == '9' ? 'selected' : '' ?>>>September</option>
+                                        <option value="10" <?= ($header->Production_month ?? '') == '10' ? 'selected' : '' ?>>>October</option>
+                                        <option value="11" <?= ($header->Production_month ?? '') == '11' ? 'selected' : '' ?>>>November</option>
+                                        <option value="12" <?= ($header->Production_month ?? '') == '12' ? 'selected' : '' ?>>>December</option>
                                     </select>
                                 </div>
                                 <div class="col-6 pl-1">
                                     <select name="txtProYear" id="txtProYear" class="form-control form-control-sm">
-                                        <option value="" selected disabled>-- Year --</option>
+                                        <option value="" <?= ($header->Production_year ?? '') == '1' ? 'selected' : '' ?> disabled>-- Year --</option>
                                         <?php
                                         $startYear   = 2024;
                                         $currentYear = (int)date('Y');
@@ -252,9 +293,15 @@
                                         $savedYear = $this->input->post('txtProYear') ?? ($qSales->pro_year ?? "");
                                         for ($y = $startYear; $y <= $endYear; $y++) :
                                         ?>
-                                            <option value="<?= $y ?>" <?= ($savedYear == $y) ? 'selected' : '' ?>>
-                                                <?= $y ?>
-                                            </option>
+                                            <?php if ($task == 'new') : ?>
+                                                <option value="<?= $y ?>" <?= ($savedYear == $y) ? 'selected' : '' ?>>
+                                                    <?= $y ?>
+                                                </option>
+                                            <?php else: ?>
+                                                <option value="<?= $y ?>" <?= ($header->Production_year ?? '') == $y ? 'selected' : '' ?>>
+                                                    <?= $y ?>
+                                                </option>
+                                            <?php endif; ?>
                                         <?php endfor; ?>
                                     </select>
                                 </div>
@@ -266,14 +313,25 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selCurrency">SO Currency :</label>
                         <div class="col-sm-8">
                             <select name="selCurrency" id="selCurrency" class="form-control form-control-sm">
-                                <option value="AUD">AUD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="GBP">GBP</option>
-                                <option value="IDR" selected>IDR</option>
-                                <option value="JPY">JPY</option>
-                                <option value="KRW">KRW</option>
-                                <option value="SGD">SGD</option>
-                                <option value="USD">USD</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="IDR" selected>IDR</option>
+                                    <option value="AUD">AUD</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                    <option value="JPY">JPY</option>
+                                    <option value="KRW">KRW</option>
+                                    <option value="SGD">SGD</option>
+                                    <option value="USD">USD</option>
+                                <?php else: ?>
+                                    <option value="IDR" <?= ($header->Currency_ID ?? '') == 'IDR' ? 'selected' : '' ?>>IDR</option>
+                                    <option value="AUD" <?= ($header->Currency_ID ?? '') == 'AUD' ? 'selected' : '' ?>>AUD</option>
+                                    <option value="EUR" <?= ($header->Currency_ID ?? '') == 'EUR' ? 'selected' : '' ?>>EUR</option>
+                                    <option value="GBP" <?= ($header->Currency_ID ?? '') == 'GBP' ? 'selected' : '' ?>>GBP</option>
+                                    <option value="JPY" <?= ($header->Currency_ID ?? '') == 'JPY' ? 'selected' : '' ?>>JPY</option>
+                                    <option value="KRW" <?= ($header->Currency_ID ?? '') == 'KRW' ? 'selected' : '' ?>>KRW</option>
+                                    <option value="SGD" <?= ($header->Currency_ID ?? '') == 'SGD' ? 'selected' : '' ?>>SGD</option>
+                                    <option value="USD" <?= ($header->Currency_ID ?? '') == 'USD' ? 'selected' : '' ?>>USD</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -282,8 +340,13 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selTaxCurrency">Tax Currency :</label>
                         <div class="col-sm-8">
                             <select name="selTaxCurrency" id="selTaxCurrency" class="form-control form-control-sm">
-                                <option value="IDR" selected="">IDR</option>
-                                <option value="USD">USD</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="IDR" selected="">IDR</option>
+                                    <option value="USD">USD</option>
+                                <?php else: ?>
+                                    <option value="IDR" <?= ($header->Tax_CurrID ?? '') == 'IDR' ? 'selected' : '' ?>>IDR</option>
+                                    <option value="USD" <?= ($header->Tax_CurrID ?? '') == 'USD' ? 'selected' : '' ?>>USD</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -296,7 +359,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTerms">Payment Schedule :</label>
                         <div class="col-sm-8">
@@ -306,14 +368,18 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTermsNew">Payment Terms :</label>
                         <div class="col-sm-8">
                             <input type="hidden" name="txtTermsNew">
                             <select name="cboTermsNew" id="cboTermsNew" class="form-control form-control-sm" onchange="lpage();">
-                                <option value="" selected="">None - 1 month (default)</option>
-                                <option value="Term001">Cash - 30 days</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="" selected="">None - 1 month (default)</option>
+                                    <option value="Term001">Cash - 30 days</option>
+                                <?php else: ?>
+                                    <option value="" <?= ($header->paymentterm_code ?? '') == '' ? 'selected' : '' ?>>None - 1 month (default)</option>
+                                    <option value="Term001" <?= ($header->paymentterm_code ?? '') == 'Term001' ? 'selected' : '' ?>>Cash - 30 days</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -321,7 +387,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtDeliveryTerms">Delivery Terms :</label>
                         <div class="col-sm-8">
-                            <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2" placeholder="Delivery Terms..."></textarea>
+                            <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2" placeholder="Delivery Terms..."><?= $header->Delivery_Terms ?? '' ?></textarea>
                         </div>
                     </div>
 
@@ -349,9 +415,15 @@
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboPriceType">Price Type :</label>
                         <div class="col-sm-8">
                             <select name="cboPriceType" id="cboPriceType" class="form-control form-control-sm">
-                                <option value="FOB" selected="">Freight on Board</option>
-                                <option value="CIF">Cost Insurance Freight</option>
-                                <option value="CFR">Cost and Freight</option>
+                                <?php if ($task == 'new') : ?>
+                                    <option value="FOB" selected="">Freight on Board</option>
+                                    <option value="CIF">Cost Insurance Freight</option>
+                                    <option value="CFR">Cost and Freight</option>
+                                <?php else: ?>
+                                    <option value="FOB" <?= ($header->PriceType ?? '') == 'FOB' ? 'selected' : '' ?>>Freight on Board</option>
+                                    <option value="CIF" <?= ($header->PriceType ?? '') == 'CIF' ? 'selected' : '' ?>>Cost Insurance Freight</option>
+                                    <option value="CFR" <?= ($header->PriceType ?? '') == 'CFR' ? 'selected' : '' ?>>Cost and Freight</option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -359,7 +431,7 @@
                     <div class="form-group row mt-2">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPiNumber">Pi Number * :</label>
                         <div class="col-sm-8">
-                            <input name="txtPiNumber" id="txtPiNumber" class="form-control form-control-sm" value="" placeholder="PI Number...">
+                            <input name="txtPiNumber" id="txtPiNumber" class="form-control form-control-sm" value="<?= $header->pi_number ?? '' ?>" placeholder="PI Number...">
                         </div>
                     </div>
                 </div>
@@ -386,7 +458,7 @@
                     </fieldset>
                 </div>
             </div>
-            <input type="hidden" name="CurrencyRateList" id="CurrencyRateList" value="">
+            <input type="hidden" name="CurrencyRateList" id="CurrencyRateList" value="" <?= $header->CurrencyRateList ?? '' ?>>
 
             <input type="hidden" name="txtCurr_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
             <input type="hidden" name="txtTax_<?= $_COOKIE['currencyid'] ?? 'IDR' ?>" value="1">
@@ -414,7 +486,7 @@
                         <table class="table table-sm table-striped border mb-0 text-center" id="tbl_ID" style="font-size: 0.8rem;">
                             <thead style="background-color: #3B6D8C;">
                                 <tr class="text-nowrap font-weight-bold text-white">
-                                    <th><input type="Checkbox" name="chkAll" id="chkAll"></th>
+                                    <th>&nbsp;&nbsp;&nbsp;<input type="Checkbox" name="chkAll" id="chkAll" class="form-check-input"></th>
                                     <th>Item Code</th>
                                     <th>Description</th>
                                     <th>Notes</th>
@@ -442,7 +514,7 @@
                                 <?php if ($task == 'edit' && !empty($details)): ?>
                                     <?php foreach ($details as $i => $row): ?>
                                         <tr class="text-nowrap">
-                                            <td><input type="checkbox" name="chk_item[]"></td>
+                                            <td class="text-center">&nbsp;&nbsp;&nbsp;<input type="checkbox" name="chk_item[]" class="form-check-input"></td>
 
                                             <td>
                                                 <?= $row->Item_Code ?>
@@ -454,8 +526,8 @@
                                             </td>
 
                                             <td class="text-left">
-                                                <?= $row->ItemName ?>
-                                                <input type="hidden" name="item_name[]" value="<?= $row->ItemName ?>">
+                                                <?= $row->Item_Description ?>
+                                                <input type="hidden" name="item_name[]" value="<?= $row->Item_Description ?>">
                                                 <input type="hidden" name="gen_flag[]" value="<?= $row->generate_flag ?>">
                                                 <input type="hidden" name="parent_item[]" value="<?= $row->parent_item ?>">
                                                 <input type="hidden" name="parent_path[]" value="<?= $row->parent_path ?>">
@@ -466,19 +538,19 @@
                                             </td>
 
                                             <td style="display:none"><?= $row->SizeInfo ?></td>
-                                            <td><?= $row->Color ?></td>
-                                            <td><?= $row->Brand ?></td>
+                                            <td><?= $row->Item_Color ?></td>
+                                            <td><?= $row->Item_Size ?></td>
                                             <td><?= $row->Type ?></td>
 
                                             <td style="min-width: 85px;">
                                                 <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="<?= (float)$row->Qty ?>">
                                             </td>
-                                            <td class="fw-bold text-muted"><?= $row->UnitName1 ?></td>
+                                            <td class="fw-bold text-muted"><?= $row->Unit_Desc ?></td>
 
                                             <td style="min-width: 85px;">
                                                 <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="<?= (float)$row->Qty2 ?>">
                                             </td>
-                                            <td class="fw-bold text-muted"><?= $row->UnitName2 ?></td>
+                                            <td class="fw-bold text-muted"><?= $row->Unit_Desc2 ?></td>
 
                                             <td style="display:none">
                                                 <input type="hidden" name="cs_number[]" value="<?= $row->CS_Number ?>">
@@ -565,19 +637,42 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td class="text-center align-middle">1</td>
-                                        <td>
-                                            <input type="text" name="txtInvoiceDate1" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
-                                        </td>
-                                        <td>
-                                            <input type="text" name="txtDueDate1" class="form-control form-control-sm date-picker" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
-                                        </td>
-                                        <td>
-                                            <input type="text" name="txtAmount1" id="txtAmount1" class="form-control form-control-sm text-end bg-light" readonly value="0.0000">
-                                            <input type="hidden" name="hidPercentage1" id="hidPercentage1" value="100">
-                                        </td>
-                                    </tr>
+                                    <?php if ($task == 'new') : ?>
+                                        <tr>
+                                            <td class="text-center align-middle">1</td>
+                                            <td>
+                                                <input type="text" name="txtInvoiceDate1" class="form-control text-center form-control-sm date-picker" value="<?= date('Y-m-d') ?>">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="txtDueDate1" class="form-control text-center form-control-sm date-picker" value="<?= date('Y-m-d', strtotime('+30 days')) ?>">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="txtAmount1" id="txtAmount1" class="form-control form-control-sm text-end bg-light" readonly value="0.0000">
+                                                <input type="hidden" name="hidPercentage1" id="hidPercentage1" value="100">
+                                            </td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php
+                                        $i = 1;
+                                        $sql = $this->db->get_where('TACCCUSTOMERPAYMENT', ['TRX_NUMBER' => $header->SO_Number])->result();
+                                        ?>
+                                        <?php foreach ($sql as $row) : ?>
+                                            <!-- TRX_NUMBER,DOC_TYPE,COMPANY_ID,PAYMENT_PERIOD,DUE_DATE,PAYDATE,AMOUNT,PAID_AMOUNT,UPDATED_BY,LAST_UPDATE,TOP_CODE,PRINT_DATE,PAYMENT_STATUS,INVOICE_DATE -->
+                                            <tr>
+                                                <td class="text-center align-middle"><?= $i++ ?></td>
+                                                <td>
+                                                    <input type="text" name="txtInvoiceDate1" class="form-control text-center form-control-sm date-picker" value="<?= date('Y-m-d', strtotime($row->INVOICE_DATE)) ?>">
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="txtDueDate1" class="form-control text-center form-control-sm date-picker" value="<?= date('Y-m-d', strtotime($row->DUE_DATE)) ?>">
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="txtAmount1" id="txtAmount1" class="form-control form-control-sm text-end bg-light" readonly value="<?= number_format($row->AMOUNT, 4) ?>">
+                                                    <input type="hidden" name="hidPercentage1" id="hidPercentage1" value="100">
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>

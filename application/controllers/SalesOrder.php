@@ -8,6 +8,7 @@ class SalesOrder extends CI_Controller
 {
     private $Date;
     private $DateTime;
+    private $companyID = 2;
     private $layout = 'layout';
 
     public function __construct()
@@ -79,7 +80,7 @@ class SalesOrder extends CI_Controller
                                                     TAccSO_Header.si_account_id,
                                                     isnull(TAccount.GroupID,0) as GroupID,
                                                     TAccount.account_address1,
-                                                    TAccount.taxfilenumber,
+                                                    TAccount.TaxFileNumber,
                                                     TContact.Contact_FirstName, 
                                                     TContact.Contact_HomeAddress,
                                                     TAccSO_Header.KawasanBerikat as KawasanBerikat,
@@ -123,8 +124,9 @@ class SalesOrder extends CI_Controller
                                                     (SELECT Unit_Name FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type2) AS Unit_Desc2,
                                                     (SELECT Unit_Type_ID FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type) AS UnitType,
                                                     (SELECT Unit_Type_ID FROM TAccUnitType WHERE Unit_Type_ID = TAccSO_Detail.Unit_Type2) AS UnitType2,
-                                                    TItem.Item_Name,Titem.pricetype,TItem.Item_Code, ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
-                                                    TItem.customfield1 AS item_description,
+                                                    TItem.Item_Name,Titem.pricetype,
+                                                    TItem.Item_Code, ISNULL(itd.Dimension_Name, '') AS Dimension_Name,
+                                                    TItem.customfield1 AS Type,
                                                     TItem.Item_Color,
                                                     TItem.Item_Size
                                                     FROM  TAccSO_Detail
@@ -349,6 +351,7 @@ class SalesOrder extends CI_Controller
     {
         // Ambil data dari input AJAX
         $selectedCurr = $this->input->get('curr'); // Misal: USD
+        $SOdate = $this->input->get('sodate'); // rate di drive ole SO date, format: YYYY-MM-DD
         $baseCurrency = $this->input->cookie('currencyid') ?? 'IDR';
         $companyId    = 2; // Sesuai data uat Anda
 
@@ -362,8 +365,8 @@ class SalesOrder extends CI_Controller
         $this->db->where('company_id', $companyId);
 
         // Logic Tanggal: Hari ini harus di antara start dan end date
-        $today = date('Y-m-d H:i:s');
-        $this->db->where("'$today' BETWEEN start_date AND end_date");
+
+        $this->db->where("'$SOdate' BETWEEN start_date AND end_date");
 
         // Ambil yang paling update
         $this->db->order_by('last_update', 'DESC');
@@ -614,6 +617,20 @@ class SalesOrder extends CI_Controller
                     $this->db->insert('TAccSO_Detail', $dataDetail);
                 }
             }
+
+            $dataInsCust = [
+                'TRX_NUMBER'     => $SoNum,
+                'DOC_TYPE'       => 'SO',
+                'COMPANY_ID'     => $this->companyID, // Mengambil dari cookie atau default
+                'PAYMENT_PERIOD' => 1,
+                'INVOICE_DATE'   => date('Y-m-d', strtotime($this->input->post('txtInvoiceDate1'))),
+                'DUE_DATE'       => date('Y-m-d', strtotime($this->input->post('txtDueDate1'))),
+                'AMOUNT'         => (float) str_replace(',', '', $this->input->post('txtAmount1')),
+                'UPDATED_BY'     => $this->session->userdata('sys_sba_userid'), // Biasanya CKSATRIADEVID di CF itu UserID
+                'LAST_UPDATE'    => date('Y-m-d H:i:s'),
+                'TOP_CODE'       => $this->input->post('cboTerms')
+            ];
+            $this->db->insert('TACCCUSTOMERPAYMENT', $dataInsCust);
 
             // 4. SELESAIKAN TRANSAKSI
             if ($this->db->trans_status() === FALSE) {

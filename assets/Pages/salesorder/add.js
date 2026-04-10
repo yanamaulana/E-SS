@@ -125,7 +125,7 @@ $(document).ready(function () {
         if (!val || val == '') return;
 
         // Gunakan site_url yang di-define di view
-        fetch($('meta[name="base_url"]').attr('content') + 'SalesOrder/get_currency_rate?curr=' + val)
+        fetch($('meta[name="base_url"]').attr('content') + 'SalesOrder/get_currency_rate?curr=' + val + '&sodate=' + $('#txtSODate').val())
             .then(response => response.text())
             .then(data => {
                 if (data != "") {
