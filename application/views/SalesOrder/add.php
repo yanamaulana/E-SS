@@ -3,15 +3,15 @@
         <div class="container-fluid py-3">
             <div class="row">
                 <div class="col-md-6">
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="SO_NUMBER">SO Number :</label>
                         <div class="col-sm-8">
-                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm" placeholder="SOL209<?= date('ym') ?>-XXXXXXX" value="<?= $header->SO_Number ?? null; ?>" readonly>
+                            <input type="text" id="SO_NUMBER" name="SO_NUMBER" class="form-control form-control-sm" placeholder="SOL209<?= date('ym') ?>-XXXXXXX" value="<?= $header->SO_Number ?? ''; ?>" readonly>
                             <input type="hidden" id="task" name="task" value="<?= $task ?>">
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSOtype">So Tax Type :</label>
                         <div class="col-sm-8 pt-1">
                             <div class="custom-control custom-radio custom-control-inline custom-control-sm">
@@ -27,7 +27,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selProject">Project Name :</label>
                         <?php if ($task == 'new') : ?>
                             <div class="col-sm-8">
@@ -107,7 +107,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustName">Customer * :</label>
                         <div class="col-sm-8">
                             <input type="text" name="txtCustName" id="txtCustName" class="form-control form-control-sm" placeholder="Customer...." readonly value="<?= $header->Account_Name ?? '' ?>">
@@ -115,22 +115,22 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCustAddress">Address :</label>
                         <div class="col-sm-8">
                             <textarea name="txtCustAddress" id="txtCustAddress" class="form-control form-control-sm" rows="3" placeholder="Address..." readonly><?= $header->account_address1 ?? '' ?></textarea>
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm">Tax File Number :</label>
                         <div class="col-sm-8 pt-2">
-                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="<?= $header->TaxFileNumber ?>" placeholder="Tax File Number..." readonly>
+                            <input type="hidden" name="txtnpwp" id="txtnpwp" value="<?= $header->TaxFileNumber ?? '' ?>" placeholder="Tax File Number..." readonly>
                             <span id="CPTaxFileNumber" class="fw-bold text-dark" style="font-size: 0.85rem;"><?= $header->TaxFileNumber ?? '-' ?></span>
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPName">Contact Person :</label>
                         <div class="col-sm-8">
                             <input type="hidden" name="txtCPCode" id="txtCPCode" value="<?= $header->Contact_ID ?? '' ?>">
@@ -138,14 +138,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtCPAddress">Contact Address :</label>
                         <div class="col-sm-8">
                             <input type="text" name="txtCPAddress" class="form-control form-control-sm" value="<?= $header->Contact_HomeAddress ?? '' ?>" placeholder="Contact Address..." readonly>
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSPCode">Sales Person * :</label>
                         <div class="col-sm-8">
                             <?php if ($task == 'new') : ?>
@@ -168,14 +168,14 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtMemo">Remarks :</label>
                         <div class="col-sm-8">
                             <textarea name="txtMemo" class="form-control form-control-sm" rows="3" placeholder="Remarks..."><?= $header->SO_Notes ?? '' ?></textarea>
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm">Bonded Area :</label>
                         <div class="col-sm-8 pt-1">
                             <div class="custom-control custom-checkbox custom-control-sm">
@@ -192,7 +192,7 @@
                         where account_id = '$header->sn_account_id'")->row();
                     }
                     ?>
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSNGroup">SN Account :</label>
                         <div class="col-sm-8">
                             <select name="selSNGroup" class="form-control form-control-sm">
@@ -212,7 +212,7 @@
                         where account_id = '$header->si_account_id'")->row();
                     }
                     ?>
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selSIGroup">SI Account :</label>
                         <div class="col-sm-8">
                             <select name="selSIGroup" class="form-control form-control-sm">
@@ -225,7 +225,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtRevisionReason">Revision Reason :</label>
                         <div class="col-sm-8">
                             <textarea name="txtRevisionReason" class="form-control form-control-sm" rows="3" placeholder="Revision Reason..."><?= $header->reason_revision ?? '' ?></textarea>
@@ -234,35 +234,35 @@
                 </div>
 
                 <div class="col-md-6 border-left">
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtSODate">SO Date :</label>
                         <div class="col-sm-8">
                             <input type="text" id="txtSODate" name="txtSODate" class="form-control form-control-sm date-picker" value="<?= isset($header->SO_Date) ? date('Y-m-d', strtotime($header->SO_Date)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtInvDueDate">Due Date :</label>
                         <div class="col-sm-8">
                             <input type="text" id="txtInvDueDate" name="txtInvDueDate" class="form-control form-control-sm date-picker" value="<?= isset($header->Due_Date) ? date('Y-m-d', strtotime($header->Due_Date)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPONum">Cust PO Num :</label>
                         <div class="col-sm-8">
                             <input type="text" id="txtPONum" name="txtPONum" class="form-control form-control-sm" placeholder="Customer PO Number..." value="<?= $header->PO_NumCustomer ?? '' ?>">
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPODate">Cust PO Date :</label>
                         <div class="col-sm-8">
                             <input type="text" id="txtPODate" name="txtPODate" class="form-control form-control-sm date-picker" value="<?= isset($header->PO_DateCustomer) ? date('Y-m-d', strtotime($header->PO_DateCustomer)) : date('Y-m-d') ?>">
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm">Prod Month/Year :</label>
                         <div class="col-sm-8">
                             <div class="row no-gutters">
@@ -309,7 +309,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selCurrency">SO Currency :</label>
                         <div class="col-sm-8">
                             <select name="selCurrency" id="selCurrency" class="form-control form-control-sm">
@@ -336,7 +336,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="selTaxCurrency">Tax Currency :</label>
                         <div class="col-sm-8">
                             <select name="selTaxCurrency" id="selTaxCurrency" class="form-control form-control-sm">
@@ -351,7 +351,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="BaseCurr">Base Currency :</label>
                         <div class="col-sm-8">
                             <select name="BaseCurr" id="BaseCurr" class="form-control form-control-sm">
@@ -359,7 +359,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTerms">Payment Schedule :</label>
                         <div class="col-sm-8">
                             <input type="hidden" name="txtTerms" value="0">
@@ -368,7 +368,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboTermsNew">Payment Terms :</label>
                         <div class="col-sm-8">
                             <input type="hidden" name="txtTermsNew">
@@ -384,7 +384,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtDeliveryTerms">Delivery Terms :</label>
                         <div class="col-sm-8">
                             <textarea name="txtDeliveryTerms" class="form-control form-control-sm" rows="2" placeholder="Delivery Terms..."><?= $header->Delivery_Terms ?? '' ?></textarea>
@@ -411,7 +411,7 @@
                     </div>
                 </div> -->
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="cboPriceType">Price Type :</label>
                         <div class="col-sm-8">
                             <select name="cboPriceType" id="cboPriceType" class="form-control form-control-sm">
@@ -428,7 +428,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group row mt-2">
+                    <div class="form-group row mt-2 mx-4" style="border-bottom: solid #B5B5C3 1px;">
                         <label class="col-sm-4 col-form-label col-form-label-sm" for="txtPiNumber">Pi Number * :</label>
                         <div class="col-sm-8">
                             <input name="txtPiNumber" id="txtPiNumber" class="form-control form-control-sm" value="<?= $header->pi_number ?? '' ?>" placeholder="PI Number...">

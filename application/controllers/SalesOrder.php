@@ -220,7 +220,6 @@ class SalesOrder extends CI_Controller
                                             ", [$AccountID, $companyID])->result();
         }
 
-
         $this->data['sales_person'] = $this->db->query("SELECT T1.Emp_ID, ISNULL(T1.First_Name, '') + ' ' + ISNULL(T1.Middle_Name, '') + ' ' + ISNULL(T1.Last_Name, '') AS name 
                                                         FROM THRMEmpPersonalData AS T1 
                                                         WHERE EXISTS (SELECT 1 FROM thrmEmpCompany AS T2 
