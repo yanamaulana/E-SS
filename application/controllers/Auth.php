@@ -139,10 +139,18 @@ class Auth extends CI_Controller
             set_cookie([
                 'name'   => 'currencyid',
                 'value'  => 'IDR',
-                'expire' => '86400 * 30', // Berlaku 30 hari
+                'expire' => 86400 * 30, // Berlaku 30 hari
                 'path'   => '/',
                 'secure' => FALSE,     // Set TRUE jika web Anda sudah HTTPS
                 'httponly' => FALSE    // Set FALSE agar bisa dibaca oleh JavaScript (jika butuh)
+            ]);
+            set_cookie([
+                'name'     => 'companyid',    // Nama cookie
+                'value'    => '2',            // Isi value dengan ID perusahaan (misal: 2)
+                'expire'   => 86400 * 30,     // TANPA tanda kutip, 86400 detik x 30 = 30 hari
+                'path'     => '/',
+                'secure'   => FALSE,          // Ubah ke TRUE jika server Mas sudah HTTPS (SSL)
+                'httponly' => FALSE           // FALSE agar nilai cookie bisa dibaca oleh JavaScript di frontend
             ]);
             $response = [
                 "code" => 200,

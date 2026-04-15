@@ -8254,49 +8254,7 @@ function setCurr(){
 							<input type="Button" name="btnConfirm" value="#DO_VAR['eHRMconfirm']#" onClick="passingVars('YES');" style="width:100px">
 						</cfif>
 					</cfif>
-                      
-					<!--- Erica: START ENC50311-02068 - for SO edit features --->
 					<cfif task eq "Edit" and SO_Status eq 3 and qSetting.EnableSORevision eq 1>
-						<!---
-						<cfquery name="qIsJO" datasource="#iif(isdefined('DSN'),'DSN','ATTRIBUTES.DSN')#">
-							Select * from TPPICJO_Header 
-							JOIN TPPICJO_Detail ON TPPICJO_Detail.JO_Code = TPPICJO_Header.JO_Code
-							Where Approval_Status <> 4
-							AND SO_Number ='#SONum#'
-						</cfquery>
-
-						<cfif qIsJO.recordcount eq 0>
-							<cfquery name="qSNExist" datasource="#iif(isdefined('DSN'),'DSN','ATTRIBUTES.DSN')#">
-								Select Ref_Number from TAccSN_Header
-								Where Approval_Status <> 4 AND isVoid = 0 
-								And Ref_Number = '#SONum#'
-							</cfquery>
-
-							<cfif qSNExist.recordcount eq 0>
-								<cfset flag = 1>
-							<cfelse>
-								<cfset flag = 0>
-							</cfif>
-						<cfelse>
-							<cfset flag = 0>
-						</cfif>
-						--->
-						
-						<!---- SO bisa direvisi meskipun sudah ada Ship Instructionya --->
-						<!---- 
-						<cfquery name="qSHPExist" datasource="#iif(isdefined('DSN'),'DSN','ATTRIBUTES.DSN')#">
-							select *
-							from TAccShippingInst_Detail
-							where so_number='#SONum#'
-						</cfquery>
-						
-						<cfif qSHPExist.recordcount eq 0>
-							<cfset flag = 1>
-						<cfelse>
-							<cfset flag = 0>	
-						</cfif>
-						--->
-						<!---<cfif flag eq 1>--->
 							<input type="Hidden" name="hidRevision" value="#(qSales.Revision_Number+1)#">
 							<cfset varStatusAccess = REQUEST.SFSecAccess.SecStatusAccess(FILEACCESSCODE="ERSTD0785412", 
 													 USERID="#evaluate("cookie.#Application.stApp.Cookie_Name[1]#")#")>

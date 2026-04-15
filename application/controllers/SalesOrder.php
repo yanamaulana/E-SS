@@ -20,6 +20,7 @@ class SalesOrder extends CI_Controller
         $this->DateTime = date("Y-m-d H:i:s");
         $this->load->model('m_helper', 'help');
         $this->load->model('m_DataTable', 'M_Datatables');
+        $this->load->model('RequestApprovalSO', 'ReqApprovalSO');
     }
 
     public function index()
@@ -631,7 +632,25 @@ class SalesOrder extends CI_Controller
             ];
             $this->db->insert('TACCCUSTOMERPAYMENT', $dataInsCust);
 
-            // 4. SELESAIKAN TRANSAKSI
+
+            if ($isConfirm == 'YES') {
+                $ReqApproval = $this->ReqApprovalSO->generate_new_route([
+                    'ReqApproval_ID'       => $SoNum,
+                    'RequestApproval_Name' => 'eACCSalesOrder',
+                    'Employee_ID'          => $this->session->userdata('sys_sba_userid'),
+                    'Company_ID'           => $this->input->cookie('companyid', TRUE),
+                    'Amount'               => (float) str_replace(',', '', $this->input->post('txtAmount1'))
+                ]);
+
+                if ($ReqApproval['valid'] === false) {
+                    throw new Exception("Approval Error: " . $ReqApproval['message']);
+                } else {
+                    $statusApprove = $ReqApproval['auto_approval'] ? 3 : 2;
+                    $this->db->where('SO_Number', $SoNum)->update('TAccSO_Header', ['Approval_Status' => $statusApprove]);
+                }
+            }
+
+
             if ($this->db->trans_status() === FALSE) {
                 $this->db->trans_rollback();
                 echo json_encode(["code" => 500, "msg" => "Error Database: Gagal menyimpan data."]);
