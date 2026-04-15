@@ -21,7 +21,7 @@ class RequestApprovalSO extends CI_Model
     {
         $reqApprovalID   = $data['ReqApproval_ID'] ?? '';
         $reqApprovalName = $data['RequestApproval_Name'] ?? 'eACCSalesOrder';
-        $empID           = $data['Employee_ID'] ?? $this->session->userdata('sys_sba_userid');
+        $empID           = $data['Employee_ID'] ?? $this->session->userdata('sys_sba_username');
         $companyID       = $data['Company_ID'] ?? $this->input->cookie('companyid'); // Sesuaikan nama cookie/session
         $amount          = (float) str_replace(',', '', $data['Amount'] ?? 0);
 
@@ -93,7 +93,6 @@ class RequestApprovalSO extends CI_Model
             } else { // Free Order (Bebas)
                 $flagTurn = 1;
             }
-
             $insertData[] = [
                 'ReqApproval_ID'           => $reqApprovalID,
                 'Employee_ID'              => $empID,
@@ -253,5 +252,117 @@ class RequestApprovalSO extends CI_Model
                 ORDER BY A.SettingApproval_StepData ASC, A.ApprovedBy_ID ASC";
 
         return $this->db->query($sql, [$reqApprovalID])->result();
+    }
+
+    /**
+     * Fungsi private untuk mem-backup data SO Header & Detail ke tabel History saat terjadi Revisi
+     */
+    public function _backup_revision_history($SoNum, $hidRevision, $userId)
+    {
+        // 1. BACKUP HEADER KE HISTORY
+        $sqlHistoryHeader = "
+        INSERT INTO TAccSOHistory_Header (
+            Revision_Number, Base_Invoice_Amount, close_reason, outlet_wh,
+            SO_Number, SN_Status, project_code, TransactionDiscountRate,
+            TrxNo, Emp_ID, Proforma_Number, TransactionDiscountAmount,
+            SO_Date, FreightTax_Code, KawasanBerikat, TransactionDiscountBaseAmount,
+            SO_Notes, FreightTax_Percentage, INVOICE_PERCENTAGE, isDonation,
+            Account_ID, Invoice_Status, REMARK_NOTACTIVE, directpo,
+            Contact_ID, Due_date, isDirect, isDP,
+            Payment_Type, Approve_Date, SN_Account_ID, tax_code,
+            PO_NumCustomer, FOC_number, SI_Account_ID, SC_Number,
+            PO_DateCustomer, ETD, Creation_DateTime, ExtCom_Status,
+            Project_ID, ETA, Created_By, IntCom_Status,
+            ExternalSales_Commision, quotation_number, Last_Update, isTaxAble,
+            Base_ExternalSales_Commision, ItemCategoryType, Update_By, isFOC,
+            InternalSales_Commision, DisplayNumber, CurrencyRateList, isDisplay,
+            Base_InternalSales_Commision, JO_Code, Tax_CurrencyRateList, isNotActive,
+            Approval_Status, created_date, isSisterCompany, ReviseCounter,
+            SO_Status, SOType, SisterCompany, include_do,
+            Company_ID, terms, SisterCompanyDocument, invoicedirect,
+            Tax_Currency_ID, Deliveryterms, AllocateTo, Doc_Status,
+            Tax_Amount, WH_ID, BudgetPeriod_ID, paymentterm_code,
+            Base_Tax_Amount, disc_id, SI_SisterCompany, TaxDocNumPPN,
+            Currency_ID, automaticsn, TaxCodeInclude, TaxDocNumPPh,
+            Invoice_Amount, isClose, isOutlet, PPNNumberGenerated,
+            PriceType, claim_deduction_amount, claim_deduction_desc, reason_revision,
+            pi_number, Production_month, Production_year
+        )
+        SELECT 
+            Revision_Number, Base_Invoice_Amount, close_reason, outlet_wh,
+            SO_Number, SN_Status, project_code, TransactionDiscountRate,
+            TrxNo, Emp_ID, Proforma_Number, TransactionDiscountAmount,
+            SO_Date, FreightTax_Code, KawasanBerikat, TransactionDiscountBaseAmount,
+            SO_Notes, FreightTax_Percentage, INVOICE_PERCENTAGE, isDonation,
+            Account_ID, Invoice_Status, REMARK_NOTACTIVE, directpo,
+            Contact_ID, Due_date, isDirect, isDP,
+            Payment_Type, Approve_Date, SN_Account_ID, tax_code,
+            PO_NumCustomer, FOC_number, SI_Account_ID, SC_Number,
+            PO_DateCustomer, ETD, Creation_DateTime, ExtCom_Status,
+            Project_ID, ETA, Created_By, IntCom_Status,
+            ExternalSales_Commision, quotation_number, Last_Update, isTaxAble,
+            Base_ExternalSales_Commision, ItemCategoryType, Update_By, isFOC,
+            InternalSales_Commision, DisplayNumber, CurrencyRateList, isDisplay,
+            Base_InternalSales_Commision, JO_Code, Tax_CurrencyRateList, isNotActive,
+            Approval_Status, created_date, isSisterCompany, ReviseCounter,
+            SO_Status, SOType, SisterCompany, include_do,
+            Company_ID, terms, SisterCompanyDocument, invoicedirect,
+            Tax_Currency_ID, Deliveryterms, AllocateTo, Doc_Status,
+            Tax_Amount, WH_ID, BudgetPeriod_ID, paymentterm_code,
+            Base_Tax_Amount, disc_id, SI_SisterCompany, TaxDocNumPPN,
+            Currency_ID, automaticsn, TaxCodeInclude, TaxDocNumPPh,
+            Invoice_Amount, isClose, isOutlet, PPNNumberGenerated,
+            PriceType, claim_deduction_amount, claim_deduction_desc, reason_revision,
+            pi_number, Production_month, Production_year
+        FROM TAccSO_Header
+        WHERE SO_Number = ?
+    ";
+        $this->db->query($sqlHistoryHeader, [$SoNum]);
+
+        // 2. DAPATKAN REVISION NUMBER SAAT INI
+        $qRev = $this->db->query("SELECT ISNULL(Revision_Number, 0) as revNumber FROM TAccSO_Header WHERE SO_Number = ?", [$SoNum])->row();
+        $currentRevNumber = $qRev ? $qRev->revNumber : 0;
+
+        // 3. BACKUP DETAIL KE HISTORY DETAIL
+        $sqlHistoryDetail = "
+        INSERT INTO TAccSOHistory_Detail (
+            SO_Number, Tax_Percentage1, Others, is_install,
+            Item_Code, Tax_Operator1, CS_Number, config_level,
+            Item_Description, Tax_Amount1, EstimateDate, config_ratio,
+            Qty, Tax_Code2, parent_item, config_order,
+            Qty_DO, Tax_Percentage2, parent_path, disc_type,
+            UnitPrice, Tax_Operator2, generate_flag, SODetail_ID,
+            Base_UnitPrice, Tax_Amount2, Comp_ID, ref_id,
+            Disc_percentage, TotalPrice, Qty2, Dimension_ID,
+            ExtraPrice, Base_TotalPrice, Unit_Type, Disc_Value,
+            Tax_Code1, Include_DO, Unit_Type2, isFreeItem,
+            Notes, Revision_Number
+        )
+        SELECT 
+            SO_Number, Tax_Percentage1, Others, is_install,
+            Item_Code, Tax_Operator1, CS_Number, config_level,
+            Item_Description, Tax_Amount1, EstimateDate, config_ratio,
+            Qty, Tax_Code2, parent_item, config_order,
+            Qty_DO, Tax_Percentage2, parent_path, disc_type,
+            UnitPrice, Tax_Operator2, generate_flag, SODetail_ID,
+            Base_UnitPrice, Tax_Amount2, Comp_ID, ref_id,
+            Disc_percentage, TotalPrice, Qty2, Dimension_ID,
+            ExtraPrice, Base_TotalPrice, Unit_Type, Disc_Value,
+            Tax_Code1, Include_DO, Unit_Type2, isFreeItem,
+            Notes, ? 
+        FROM TAccSO_Detail
+        WHERE SO_Number = ?
+    ";
+        $this->db->query($sqlHistoryDetail, [$currentRevNumber, $SoNum]);
+
+        // 4. INSERT LOG KE TAccDocumentRevision
+        $logData = [
+            'Doc_type'         => 'SO',
+            'Doc_No'           => $SoNum,
+            'LastRevisionNo'   => $hidRevision,
+            'USER_ID'          => $userId,
+            'Created_datetime' => date('Y-m-d H:i:s')
+        ];
+        $this->db->insert('TAccDocumentRevision', $logData);
     }
 }

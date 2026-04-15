@@ -784,6 +784,25 @@ function delRow(tableId) {
             console.log("Item removed. lpage() triggered.");
         }
     }
+
+    $('#btnRevise').on('click', function (e) {
+        e.preventDefault(); // Mencegah form langsung submit
+
+        // Ambil value dari input alasan revisi dan hilangkan spasi kosong di awal/akhir
+        var revisionReason = $.trim($('#txtRevisionReason').val());
+
+        // Validasi: Cek apakah kosong
+        if (revisionReason.length === 0) {
+            alert('Alasan revisi wajib diisi!');
+            $('#txtRevisionReason').focus(); // Arahkan kursor ke input tersebut
+            return false;
+        } else {
+            // Lolos validasi, jalankan fungsi save/passing data
+            passingVars();
+            // Catatan: Jika saat revisi Mas butuh melempar parameter khusus ke passingVars 
+            // (misal: passingVars('REVISE')), silakan sesuaikan di sini.
+        }
+    });
 }
 
 function passingVars(IsConfirm) {

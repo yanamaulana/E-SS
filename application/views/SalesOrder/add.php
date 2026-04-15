@@ -761,28 +761,44 @@
                 </div>
             </div>
             <div class="row">
+                <?php
+                // Siapkan variabel pendukung 
+                // select * from TAccSetting
+                $qSetting       = $this->db->get('TAccSetting')->row();
+                $so_status       = isset($header->SO_Status) ? (int)$header->SO_Status : 0;
+                $revision_number = isset($header->Revision_Number) ? (int)$header->Revision_Number : 0;
+                $enable_revision = isset($qSetting->EnableSORevision) ? $qSetting->EnableSORevision : 1;
+                ?>
+
                 <table class="table">
                     <tr>
                         <td colspan="2" class="border-top py-3">
-                            <div class="d-flex gap-2">
-                                <button type="button"
-                                    name="btnSubmit"
-                                    class="btn btn-primary px-4"
-                                    onclick="passingVars();">
-                                    <i class="fas fa-save mr-1"></i> Save
-                                </button>
+                            <div class="d-flex align-items-center gap-2">
 
-                                <!-- <button type="button"
-                                    name="btnConfirm"
-                                    class="btn btn-success px-4"
-                                    onclick="passingVars('YES');">
-                                    <i class="fas fa-check-circle mr-1"></i> Confirm
-                                </button> -->
+                                <?php if ($task == 'new' || ($task == 'edit' && $so_status < 2)): ?>
+                                    <button type="button" id="btnSubmit" name="btnSubmit" class="btn btn-primary px-4" onclick="passingVars();">
+                                        <i class="fas fa-save mr-1"></i> <?= ($task == 'edit') ? 'Update' : 'Save' ?>
+                                    </button>
 
-                                <a class="btn btn-danger px-4"
-                                    href="<?= base_url('SalesOrder/index') ?>">
+                                    <button type="button" id="btnConfirm" name="btnConfirm" class="btn btn-success px-4" onclick="passingVars('YES');">
+                                        <i class="fas fa-check-circle mr-1"></i> Confirm
+                                    </button>
+                                <?php endif; ?>
+
+
+                                <?php if ($task == 'edit' && $so_status == 3 && $enable_revision == 1): ?>
+                                    <input type="hidden" name="hidRevision" value="<?= $revision_number + 1 ?>">
+
+                                    <button type="button" id="btnRevise" name="btnRevise" class="btn btn-warning px-4">
+                                        <i class="fas fa-edit mr-1"></i> Revise
+                                    </button>
+                                <?php endif; ?>
+
+
+                                <a class="btn btn-danger px-4" href="<?= base_url('SalesOrder/index') ?>">
                                     <i class="fas fa-times mr-1"></i> Cancel
                                 </a>
+
                             </div>
                         </td>
                     </tr>

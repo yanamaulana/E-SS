@@ -71,49 +71,77 @@ $(document).ready(function () {
             {
                 data: "Doc_Status",
                 name: "Doc_Status",
-                render: function (data) {
+                // Tambahkan parameter 'row' untuk mengakses data di kolom lain pada baris yang sama
+                render: function (data, type, row) {
                     if (data == 1) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Doc_Status/58.gif" alt="Open" title="Open" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-info"><i class="fas fa-folder-open mr-1"></i> Open</span>';
                     } else if (data == 2) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Doc_Status/list.png" alt="Confirmed" title="Confirmed" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-success"><i class="fas fa-check mr-1"></i> Confirm</span>';
                     } else if (data == 3) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Doc_Status/icon_truck_big.png" alt="Delivered" title="Delivered" class="img-fluid" width="20" height="20">`;
+                        // Pengecekan khusus untuk SN_Status
+                        if (row.SN_Status === 'ND') {
+                            return '<span class="badge badge-success"><i class="fas fa-check mr-1"></i> Confirm</span>';
+                        } else {
+                            return '<span class="badge badge-primary"><i class="fas fa-truck mr-1"></i> Delivered</span>';
+                        }
                     } else if (data == 4) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Doc_Status/money.gif" alt="Invoiced" title="Invoiced" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-warning text-dark"><i class="fas fa-file-invoice-dollar mr-1"></i> Invoiced</span>';
                     } else {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Doc_Status/boxin.gif" alt="Closed" title="Closed" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-secondary"><i class="fas fa-archive mr-1"></i> Closed</span>';
                     }
-
                 }
             },
             {
                 data: "SO_Status",
                 name: "SO_Status",
-                render: function (data) {
+                render: function (data, type, row) {
                     if (data == 1) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/SO_Status/25.gif" alt="New" title="New" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-primary"><i class="fas fa-star mr-1"></i> New</span>';
                     } else if (data == 2) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/SO_Status/26.gif" alt="Open" title="Open" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-warning text-dark"><i class="fas fa-folder-open mr-1"></i> Open</span>';
                     } else if (data == 3) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/SO_Status/27.gif" alt="Closed" title="Closed" class="img-fluid" width="20" height="20">`;
+                        return '<span class="badge badge-secondary"><i class="fas fa-archive mr-1"></i> Closed</span>';
+                    } else {
+                        return '<span class="badge badge-light">-</span>';
                     }
                 }
             },
             {
                 data: "Approval_Status",
                 name: "Approval_Status",
-                render: function (data) {
+                render: function (data, type, row) {
+                    let badge = '';
+
+                    // 1. Tentukan jenis Badge
                     if (data == 0) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Approval_Status/28.gif" alt="New" title="New" class="img-fluid" width="20" height="20">`;
+                        badge = '<span class="badge badge-info" title="New"><i class="fas fa-file-alt mr-1"></i> New</span>';
                     } else if (data == 2) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Approval_Status/29.gif" alt="Awaiting" title="Awaiting" class="img-fluid" width="20" height="20">`;
+                        badge = '<span class="badge badge-warning text-dark" title="Awaiting"><i class="fas fa-hourglass-half mr-1"></i> Awaiting</span>';
                     } else if (data == 3) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Approval_Status/30.gif" alt="Approved" title="Approved" class="img-fluid" width="20" height="20">`;
+                        badge = '<span class="badge badge-success" title="Approved"><i class="fas fa-check-double mr-1"></i> Approved</span>';
                     } else if (data == 4) {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Approval_Status/31.gif" alt="Rejected" title="Rejected" class="img-fluid" width="20" height="20">`;
+                        badge = '<span class="badge badge-danger" title="Rejected"><i class="fas fa-times-circle mr-1"></i> Rejected</span>';
+                    } else if (data == 5) {
+                        badge = '<span class="badge badge-primary" title="Revising"><i class="fas fa-pencil-alt mr-1"></i> Revising</span>';
                     } else {
-                        return `<img src="${$('meta[name="base_url"]').attr('content')}assets/media/Approval_Status/32.gif" alt="Revising" title="Revising" class="img-fluid" width="20" height="20">`;
+                        badge = '<span class="badge badge-secondary">-</span>';
                     }
+
+                    // 2. Buat Link Popup
+                    let baseUrl = $('meta[name="base_url"]').attr('content');
+                    // Pastikan row.SO_Number terbawa di query database DataTable Anda
+                    let popupUrl = baseUrl + "SalesOrder/approval_detail?SONum=" + encodeURIComponent(row.SO_Number) + "&task=Edit";
+
+                    let html = `<a href="javascript:void(0);" onclick="window.open('${popupUrl}', 'Detail', 'width=600,height=600,scrollbars=yes,resizable=yes');" class="text-decoration-none">${badge}</a>`;
+
+                    // 3. Tambahkan teks Revise Counter jika dokumen pernah direvisi
+                    let reviseCounter = parseInt(row.ReviseCounter) || 0;
+                    if (reviseCounter > 0) {
+                        html += `<br><small class="text-muted">- Revise [${reviseCounter}]</small>`;
+                    }
+
+                    // Bungkus dengan div center agar rapi di dalam cell tabel
+                    return `<div class="text-center">${html}</div>`;
                 }
             },
             {

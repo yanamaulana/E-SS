@@ -268,6 +268,7 @@ class SalesOrder extends CI_Controller
 
     public function DT_list_sales_order()
     {
+        sqlsrv_configure("ClientBufferMaxKBSize", 51200);
         $requestData = $_REQUEST;
         $columns = array(
             0 => 'SO_Number',
@@ -422,25 +423,21 @@ class SalesOrder extends CI_Controller
         try {
             $task      = $this->input->post('task'); // 'new' atau 'edit'
             $isConfirm = $this->input->post('txtconfirm'); // 'YES' atau 'NO'
-
-            // 1. GENERATE SO NUMBER (Hanya jika task 'new')
-            if ($task == 'new') {
+            $hidRevision = $this->input->post('hidRevision') ?? 0;
+            $SelCurr = 'txtCurr_' . $this->input->post('selCurrency'); // Ambil Rate Kurs (Default 1 jika IDR/tidak ada)
+            $rate = str_replace(',', '', $this->input->post($SelCurr) ?? 1); // Masih pake str_replace buat jaga-jaga kalau ada koma nyelip
+            $userId = $this->session->userdata('sys_sba_userid');
+            $taxBase = (float)str_replace(',', '', $this->input->post('txtTotTaxConv') ?? 0); // Ambil nilai Tax dari form (Nilai dalam IDR/Base)
+            $taxAmount = ($rate > 0) ? ($taxBase / $rate) : 0; // Hitung Tax dalam Currency Document (Misal USD) Jika IDR, maka $rate adalah 1, hasilnya tetap sama.
+            if ($task == 'new') { // 1. GENERATE SO NUMBER (Hanya jika task 'new')
                 $SoNum = $this->help->generate_so_number('TAccPattern', 'salesJournal', 'SONum', 'value', 2, 9, 'Trans');
             } else {
                 $SoNum = $this->input->post('SO_NUMBER');
             }
-            // Ambil Rate Kurs (Default 1 jika IDR/tidak ada)
-            // Masih pake str_replace buat jaga-jaga kalau ada koma nyelip
-            $SelCurr = 'txtCurr_' . $this->input->post('selCurrency');
-            $rate = str_replace(',', '', $this->input->post($SelCurr) ?? 1);
-            $userId = $this->session->userdata('sys_sba_userid');
-
-            // Ambil nilai Tax dari form (Nilai dalam IDR/Base)
-            $taxBase = (float)str_replace(',', '', $this->input->post('txtTotTaxConv') ?? 0);
-
-            // Hitung Tax dalam Currency Document (Misal USD)
-            // Jika IDR, maka $rate adalah 1, hasilnya tetap sama.
-            $taxAmount = ($rate > 0) ? ($taxBase / $rate) : 0;
+            if ($task == 'edit' && !empty($hidRevision) && $hidRevision != 0) {
+                // Panggil fungsi private untuk handle backup
+                $this->ReqApprovalSO->backup_revision_history($SoNum, $hidRevision, $userId);
+            }
 
             // 2. PREPARE DATA HEADER (TAccSO_Header)
             $dataHeader = [
@@ -632,16 +629,39 @@ class SalesOrder extends CI_Controller
             ];
             $this->db->insert('TACCCUSTOMERPAYMENT', $dataInsCust);
 
-
             if ($isConfirm == 'YES') {
+                $totalAmount = (float) str_replace(',', '', $this->input->post('txtGrandTotal'));
+                $enableSORevisionApproval = 1;
+
+                if (!empty($hidRevision) && $enableSORevisionApproval == 1) {
+                    $sqlHistory = "
+                                    INSERT INTO THRMApprovedByHistory (
+                                        ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
+                                        Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
+                                        Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
+                                        Must_Approved, Approval_Note, LastRevisionNo
+                                    )
+                                    SELECT 
+                                        ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
+                                        Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
+                                        Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
+                                        Must_Approved, Approval_Note, ? 
+                                    FROM THRMApprovedBy
+                                    WHERE ReqApproval_Id = ?
+                                ";
+                    $this->db->query($sqlHistory, [$hidRevision, $SoNum]);
+                }
+
+                // 3. Generate Rute Approval Baru
                 $ReqApproval = $this->ReqApprovalSO->generate_new_route([
                     'ReqApproval_ID'       => $SoNum,
                     'RequestApproval_Name' => 'eACCSalesOrder',
                     'Employee_ID'          => $this->session->userdata('sys_sba_userid'),
                     'Company_ID'           => $this->input->cookie('companyid', TRUE),
-                    'Amount'               => (float) str_replace(',', '', $this->input->post('txtAmount1'))
+                    'Amount'               => $totalAmount // Sudah menggunakan $totalAmount
                 ]);
 
+                // 4. Handle status balikan
                 if ($ReqApproval['valid'] === false) {
                     throw new Exception("Approval Error: " . $ReqApproval['message']);
                 } else {
