@@ -910,7 +910,15 @@ function passingVars(IsConfirm) {
         dataType: "JSON",
         success: function (response) {
             if (response.code == 200) {
-                alert(response.msg);
+                //buat pesan dengan swal dan redirect ke index setelah klik OK
+                swal({
+                    title: "Success",
+                    text: response.msg,
+                    icon: "success"
+                }).then(() => {
+                    window.location.href = site_url + '/SalesOrder';
+                });
+                window.location.href = site_url + '/SalesOrder';
             } else {
                 alert("Error: " + response.msg);
                 $('#btnSubmit, #btnConfirm').prop('disabled', false);

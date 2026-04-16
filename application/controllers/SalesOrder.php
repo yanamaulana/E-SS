@@ -429,239 +429,42 @@ class SalesOrder extends CI_Controller
             $userId = $this->session->userdata('sys_sba_userid');
             $taxBase = (float)str_replace(',', '', $this->input->post('txtTotTaxConv') ?? 0); // Ambil nilai Tax dari form (Nilai dalam IDR/Base)
             $taxAmount = ($rate > 0) ? ($taxBase / $rate) : 0; // Hitung Tax dalam Currency Document (Misal USD) Jika IDR, maka $rate adalah 1, hasilnya tetap sama.
-            if ($task == 'new') { // 1. GENERATE SO NUMBER (Hanya jika task 'new')
+            // 1. GENERATE SO NUMBER (Hanya jika task 'new')
+            if ($task == 'new') {
                 $SoNum = $this->help->generate_so_number('TAccPattern', 'salesJournal', 'SONum', 'value', 2, 9, 'Trans');
             } else {
                 $SoNum = $this->input->post('SO_NUMBER');
             }
+
+            // 2. Panggil fungsi private untuk handle backup
             if ($task == 'edit' && !empty($hidRevision) && $hidRevision != 0) {
-                // Panggil fungsi private untuk handle backup
-                $this->ReqApprovalSO->backup_revision_history($SoNum, $hidRevision, $userId);
+                $this->_backup_revision_history($SoNum, $hidRevision, $userId);
             }
 
-            // 2. PREPARE DATA HEADER (TAccSO_Header)
-            $dataHeader = [
-                'SO_Number'           => $SoNum,
-                'TrxNo'               => $SoNum,
-                'SO_Date'             => date('Y-m-d', strtotime($this->input->post('txtSODate'))) . ' ' . date('H:i:s'), // Gabungkan dengan waktu saat submit
-                'SO_Notes'            => $this->input->post('txtMemo'),
-                'Account_ID'          => $this->input->post('txtCustCode'),
-                'Payment_Type'        => 'Credit',
-                'Contact_ID'          => $this->input->post('txtCPCode'),
-                'PO_NumCustomer'      => $this->input->post('txtPONum'),
-                'PO_DateCustomer'     => !empty($this->input->post('txtPODate')) ? date('Y-m-d', strtotime($this->input->post('txtPODate'))) : NULL,
-                'Project_ID'          => $this->input->post('selProject') ?: 0,
-                'SO_Status'           => ($this->input->post('txtconfirm') == 'YES') ? 2 : 1,
-                'Approval_Status'     => '0',
-                'Company_ID'          => 2,
-                'WH_ID'               => 9,
-                'Currency_ID'         => $this->input->post('selCurrency'),
-                'Tax_Currency_ID'     => $this->input->post('selTaxCurrency'),
-                'Tax_Amount'          => $taxAmount,      // Nilai Pajak dalam Currency Document (USD/EUR dll)
-                'Base_Tax_Amount'     => $taxBase,
-                'SN_Status'           => 'ND',
-                'Emp_ID'              => $this->input->post('txtSPCode'),
-                'Invoice_Status'      => 'NI',
-                'Invoice_Amount'      => str_replace(',', '', $this->input->post('txtTotAmount')),
-                'Due_date'            => $this->input->post('txtInvDueDate'),
-                'SOType'              => $this->input->post('txtSOtype') ?: '1',
-                'Base_Invoice_Amount' => (float)str_replace(',', '', $this->input->post('txtTotAmount')) * (float)$rate,
-                'ItemCategoryType'    => 'FG',
-                'Production_month'    => $this->input->post('txtProMonth'),
-                'Production_year'     => $this->input->post('txtProYear'),
-                'PriceType'           => $this->input->post('cboPriceType'),
-                'pi_number'           => $this->input->post('txtPiNumber'), // 'SG260108-01' masuk sini
-                'SC_Number'           => NULL, // Sesuai info Mas, ini selalu NULL
-                'terms'               => $this->input->post('cboTerms'),
-                'Deliveryterms'       => $this->input->post('txtDeliveryTerms'),
-                'isClose'             => 0,
-                'close_reason' => NULL,
-                'project_code' => 0,
-                'Proforma_Number' => 0,
-                'isSisterCompany' => 0,
-                'SisterCompany' => 0,
-                'CurrencyRateList' => $this->input->post('CurrencyRateList'),
-                'Tax_CurrencyRateList' => 'IDR|1',
-                'AllocateTo' => $this->input->post('rdoAllocate'),
-                'TransactionDiscountRate' => $this->input->post('txtDisctotal') ?? 0,
-                'TransactionDiscountAmount' => $this->input->post('txtTotDisc') ?? 0,
-                'TransactionDiscountBaseAmount' => floatval($this->input->post('txtTotDisc')) * (float)$rate,
-                'include_do' => 1,
-                'paymentterm_code' => $this->input->post('cboTermsNew'),
-                'Revision_Number' => 0,
-                'isExport' => 1,
-                'reason_revision' => $this->input->post('txtRevisionReason'),
-                'claim_deduction_amount' => $this->input->post('txt_cd_amount'),
-                'claim_deduction_desc' => $this->input->post('txt_cd_desc'),
-                'SN_Account_ID' => $this->input->post('selSNGroup'),
-                'SI_Account_ID' => $this->input->post('selSIGroup'),
-                'disc_id' => 0,
-                'KawasanBerikat'      => ($this->input->post('chkKawasan') == '1') ? 1 : 0,
-                'isTaxAble'           => 0,
-                'Production_month' => $this->input->post('txtProMonth'),
-                'Production_year' => $this->input->post('txtProYear'),
-                'Update_By'           => $userId,
-                'Last_Update'         => date('Y-m-d H:i:s')
-            ];
+            // 3. SIMPAN HEADER
+            $this->_save_header($SoNum, $task, $userId);
 
-            if ($task == 'new') {
-                $dataHeader['Created_By']        = $userId;
-                $dataHeader['Creation_DateTime'] = date('Y-m-d H:i:s');
-                $this->db->insert('TAccSO_Header', $dataHeader);
-            } else {
-                $this->db->where('SO_Number', $SoNum)->update('TAccSO_Header', $dataHeader);
-                // Jika edit, hapus detail lama dulu (Wipe and Replace)
+            // 4. HAPUS DETAIL LAMA (Jika Edit)
+            if ($task == 'edit') {
                 $this->db->where('SO_Number', $SoNum)->delete('TAccSO_Detail');
+
+                // $this->db->where('SO_Number', $SoNum)->delete('TAccSO_ETA');
             }
 
-            // 3. PREPARE DATA DETAIL (Looping Array [])
-            $qtyArray = $this->input->post('qty');
+            // 5. SIMPAN DETAIL BARU (Looping)
+            $this->_save_detail($SoNum, $rate);
 
-            if (!empty($qtyArray) && is_array($qtyArray)) {
-                foreach ($qtyArray as $i => $val) {
+            // 6. SIMPAN CUSTOMER PAYMENT INFO
+            $this->_save_payment($SoNum);
 
-                    // 1. Ambil Item Code (Pastikan index-nya sesuai)
-                    $itemCode = $this->input->post('item_code')[$i] ?? $this->input->post('TXTPARTNO')[$i];
-
-                    // Jika baris ini kosong, lewati
-                    if (empty($itemCode)) continue;
-
-                    // 2. Pembersihan & Perhitungan Angka
-                    $qty        = (float)str_replace(',', '', $val);
-                    $qty2       = (float)str_replace(',', '', $this->input->post('qty2')[$i] ?? 0);
-                    $unitPrice  = (float)str_replace(',', '', $this->input->post('price')[$i] ?? 0);
-                    $discVal    = (float)str_replace(',', '', $this->input->post('disc_val')[$i] ?? 0);
-                    $totalPrice = ($qty * $unitPrice) - $discVal;
-
-                    // Rate (Asumsi variabel $rate sudah didefinisikan sebelumnya)
-                    $currentRate = (float)($rate ?? 1);
-
-                    // 3. Logic Pajak 1
-                    $tax1_raw = $this->input->post('tax1')[$i] ?? '';
-                    $t1_code = 0;
-                    $t1_rate = 0;
-                    $t1_op = '0';
-                    $t1_amt = 0;
-
-                    if (!empty($tax1_raw) && strpos($tax1_raw, '|') !== false) {
-                        $t1_parts = explode('|', $tax1_raw);
-                        $t1_code  = $t1_parts[0];
-                        $t1_rate  = (float)$t1_parts[1];
-                        $t1_op    = $t1_parts[2];
-                        $t1_amt   = ($totalPrice * $t1_rate) / 100;
-                    }
-
-                    // 4. Logic Pajak 2
-                    $tax2_raw = $this->input->post('tax2')[$i] ?? '';
-                    $t2_code = 0;
-                    $t2_rate = 0;
-                    $t2_op = '0';
-                    $t2_amt = 0;
-
-                    if (!empty($tax2_raw) && strpos($tax2_raw, '|') !== false) {
-                        $t2_parts = explode('|', $tax2_raw);
-                        $t2_code  = $t2_parts[0];
-                        $t2_rate  = (float)$t2_parts[1];
-                        $t2_op    = $t2_parts[2];
-                        $t2_amt   = ($totalPrice * $t2_rate) / 100;
-                    }
-
-                    // 5. Prepare Data Detail
-                    $dataDetail = [
-                        'SO_Number'        => $SoNum, // Pastikan $SoNum sudah ada
-                        'Item_Code'        => $itemCode,
-                        'Item_description' => $this->input->post('item_name')[$i] ?? '',
-                        'Qty'              => $qty,
-                        'Qty2'             => $qty2,
-                        'Unit_Type'        => $this->input->post('unit_id')[$i] ?: 0,
-                        'Unit_Type2'       => $this->input->post('unit_id2')[$i] ?: 0,
-                        'UnitPrice'        => $unitPrice,
-                        'Base_UnitPrice'   => $unitPrice * $currentRate,
-                        'Disc_Percentage'  => (float)str_replace(',', '', $this->input->post('disc_pct')[$i] ?? 0),
-                        'Disc_Value'       => $discVal,
-                        'Tax_Code1'        => $t1_code,
-                        'Tax_Percentage1'  => $t1_rate,
-                        'Tax_Operator1'    => $t1_op,
-                        'Tax_Amount1'      => $t1_amt,
-                        'Tax_Code2'        => $t2_code,
-                        'Tax_Percentage2'  => $t2_rate,
-                        'Tax_Operator2'    => $t2_op,
-                        'Tax_Amount2'      => $t2_amt,
-                        'TotalPrice'       => $totalPrice,
-                        'Base_TotalPrice'  => $totalPrice * $currentRate,
-                        'Include_DO'       => 1,
-                        'Others'           => $this->input->post('others')[$i] ?? '',
-                        'CS_Number'        => $this->input->post('cs_number')[$i] ?? '',
-                        'ExtraPrice'       => (float)str_replace(',', '', $this->input->post('extra_price')[$i] ?? 0),
-                        'EstimateDate'     => !empty($this->input->post('est_date')[$i]) ? $this->input->post('est_date')[$i] : $this->input->post('txtSODate'),
-                        'generate_flag'    => $this->input->post('gen_flag')[$i] ?? '0',
-                        'parent_item'      => $this->input->post('parent_item')[$i] ?? '0',
-                        'parent_path'      => $this->input->post('parent_path')[$i] ?? '0',
-                        'Comp_ID'          => $this->input->post('cc')[$i] ?: 0,
-                        'config_level'     => $this->input->post('level')[$i] ?? 0,
-                        'config_ratio'     => $this->input->post('ratio')[$i] ?? 1,
-                        'config_order'     => $i + 1,
-                        'Dimension_ID'     => $this->input->post('dim_id')[$i] ?: 3,
-                        'isFreeItem'       => '0',
-                        'Notes'            => $this->input->post('notes')[$i] ?? ''
-                    ];
-
-                    if ($this->input->post('rbTypeDoc') == 3) {
-                        $dataDetail['ref_id'] = $this->input->post('hdnSCDetailID')[$i];
-                    }
-
-                    // Simpan per baris
-                    $this->db->insert('TAccSO_Detail', $dataDetail);
-                }
-            }
-
-            $dataInsCust = [
-                'TRX_NUMBER'     => $SoNum,
-                'DOC_TYPE'       => 'SO',
-                'COMPANY_ID'     => $this->companyID, // Mengambil dari cookie atau default
-                'PAYMENT_PERIOD' => 1,
-                'INVOICE_DATE'   => date('Y-m-d', strtotime($this->input->post('txtInvoiceDate1'))),
-                'DUE_DATE'       => date('Y-m-d', strtotime($this->input->post('txtDueDate1'))),
-                'AMOUNT'         => (float) str_replace(',', '', $this->input->post('txtAmount1')),
-                'UPDATED_BY'     => $this->session->userdata('sys_sba_userid'), // Biasanya CKSATRIADEVID di CF itu UserID
-                'LAST_UPDATE'    => date('Y-m-d H:i:s'),
-                'TOP_CODE'       => $this->input->post('cboTerms')
-            ];
-            $this->db->insert('TACCCUSTOMERPAYMENT', $dataInsCust);
-
+            //7. GENERATE ROUTE APPROVAL (Jika Confirm)
             if ($isConfirm == 'YES') {
                 $totalAmount = (float) str_replace(',', '', $this->input->post('txtGrandTotal'));
                 $enableSORevisionApproval = 1;
-
                 if (!empty($hidRevision) && $enableSORevisionApproval == 1) {
-                    $sqlHistory = "
-                                    INSERT INTO THRMApprovedByHistory (
-                                        ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
-                                        Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
-                                        Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
-                                        Must_Approved, Approval_Note, LastRevisionNo
-                                    )
-                                    SELECT 
-                                        ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
-                                        Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
-                                        Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
-                                        Must_Approved, Approval_Note, ? 
-                                    FROM THRMApprovedBy
-                                    WHERE ReqApproval_Id = ?
-                                ";
-                    $this->db->query($sqlHistory, [$hidRevision, $SoNum]);
+                    $this->_backup_approval_history($SoNum, $hidRevision);
                 }
-
-                // 3. Generate Rute Approval Baru
-                $ReqApproval = $this->ReqApprovalSO->generate_new_route([
-                    'ReqApproval_ID'       => $SoNum,
-                    'RequestApproval_Name' => 'eACCSalesOrder',
-                    'Employee_ID'          => $this->session->userdata('sys_sba_userid'),
-                    'Company_ID'           => $this->input->cookie('companyid', TRUE),
-                    'Amount'               => $totalAmount // Sudah menggunakan $totalAmount
-                ]);
-
-                // 4. Handle status balikan
+                $ReqApproval = $this->ReqApprovalSO->generate_new_route(['ReqApproval_ID' => $SoNum, 'RequestApproval_Name' => 'eACCSalesOrder', 'Employee_ID' => $userId, 'Company_ID' => $this->companyID, 'Amount' => $totalAmount]);
                 if ($ReqApproval['valid'] === false) {
                     throw new Exception("Approval Error: " . $ReqApproval['message']);
                 } else {
@@ -670,6 +473,10 @@ class SalesOrder extends CI_Controller
                 }
             }
 
+            // 8. UPDATE INVENTORY RESERVATION (Hanya jika Confirm dan bukan kategori Aset)
+            if ($isConfirm == 'YES' && $this->input->post('cboType') != 'AST') {
+                $this->_update_inventory_reservation($SoNum);
+            }
 
             if ($this->db->trans_status() === FALSE) {
                 $this->db->trans_rollback();
@@ -686,6 +493,452 @@ class SalesOrder extends CI_Controller
             $this->db->trans_rollback();
             echo json_encode(["code" => 500, "msg" => "Fatal Error: " . $e->getMessage()]);
         }
+    }
+
+
+    private function _update_inventory_reservation($SoNum)
+    {
+        $companyId = $this->input->cookie('companyID') ?? 2;
+
+        // A. fntReservedDelete: Bersihkan reservasi lama dokumen ini
+        $this->db->where('DocNumber', $SoNum)->where('DocType', 'SO')->delete('TACCRESERVEDITEM');
+
+        // B. Collect Item (Rekap detail SO yang baru di-insert)
+        $this->db->select('soh.SO_Number AS DocNumber, soh.WH_ID, sod.Item_Code, sod.Dimension_ID, SUM(ISNULL(sod.Qty, 0)) AS RsvQty');
+        $this->db->from('TAccSO_Header soh');
+        $this->db->join('TAccSO_Detail sod', 'sod.SO_Number = soh.SO_Number');
+        $this->db->where('soh.SO_Number', $SoNum);
+        $this->db->group_by('soh.SO_Number, soh.WH_ID, sod.Item_Code, sod.Dimension_ID');
+        $dtsCollectItem = $this->db->get()->result();
+
+        foreach ($dtsCollectItem as $row) {
+            // 1. Ambil Stok Perusahaan (fntCompanyStock)
+            $stcQty = $this->_get_fntCompanyStock($row->Item_Code, $companyId, $row->Dimension_ID);
+
+            // 2. Ambil Qty yang sudah di-reserve dokumen lain (fntReservedQty)
+            // Parameter varDocNumber digunakan agar tidak menghitung dokumen sendiri
+            $rsvQtyLain = $this->_get_fntReservedQty([
+                'Item_Code'    => $row->Item_Code,
+                'Company_ID'   => $companyId,
+                'Dimension_ID' => $row->Dimension_ID,
+                'DocNumber'    => $SoNum
+            ]);
+
+            // 3. Hitung Available (fntInsertReserved logic)
+            $avlQty = $stcQty - $rsvQtyLain;
+
+            // 4. Tentukan Qty yang akan di-insert (Logic CF: Jika stok kurang, ambil sisa avlQty)
+            $requestedQty = (float)$row->RsvQty;
+            $finalQtyToReserve = ($requestedQty <= $avlQty) ? $requestedQty : ($avlQty > 0 ? $avlQty : 0);
+
+            // 5. Insert ke TACCRESERVEDITEM (fntReservedInsertQty)
+            if ($finalQtyToReserve >= 0) {
+                $this->db->insert('TACCRESERVEDITEM', [
+                    'DocNumber'    => $SoNum,
+                    'DocType'      => 'SO',
+                    'Item_Code'    => $row->Item_Code,
+                    'Dimension_ID' => $row->Dimension_ID,
+                    'WH_ID'        => $row->WH_ID,
+                    'Company_ID'   => $companyId,
+                    'Qty'          => $finalQtyToReserve,
+                    'ReservedDate' => date('Y-m-d H:i:s')
+                ]);
+            }
+        }
+    }
+
+    // Migrasi fntCompanyStock
+    private function _get_fntCompanyStock($itemCode, $companyId, $dimID)
+    {
+        $res = $this->db->select('SUM(ISNULL(Item_Qty, 0)) AS StcQty')
+            ->where(['Item_Code' => $itemCode, 'Company_ID' => $companyId, 'Dimension_ID' => $dimID])
+            ->get('TITEMCOMPANY')->row();
+        return $res ? (float)$res->StcQty : 0;
+    }
+
+    // Migrasi fntReservedQty
+    private function _get_fntReservedQty($params)
+    {
+        $this->db->select('SUM(ISNULL(Qty, 0)) AS RsvQty');
+        $this->db->from('TACCRESERVEDITEM');
+        $this->db->where([
+            'Item_Code'    => $params['Item_Code'],
+            'Company_ID'   => $params['Company_ID'],
+            'Dimension_ID' => $params['Dimension_ID'],
+            'Qty >'        => 0
+        ]);
+
+        // Logic: if varDocNumber is defined, then DocNumber <> varDocNumber
+        if (isset($params['DocNumber'])) {
+            $this->db->where('DocNumber !=', $params['DocNumber']);
+        }
+
+        $res = $this->db->get()->row();
+        return $res ? (float)$res->RsvQty : 0;
+    }
+
+    private function _backup_approval_history($SoNum, $hidRevision)
+    {
+        $sqlHistory = "INSERT INTO THRMApprovedByHistory (
+                    ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
+                    Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
+                    Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
+                    Must_Approved, Approval_Note, LastRevisionNo
+                )
+                SELECT 
+                    ApprovedBy_ID, ReqApproval_ID, Employee_ID, Position_id, 
+                    Approved_By, Approve_Status, LastApprove_Status, Approve_Date, 
+                    Approved_EmpID, Approve_Value, Approve_Leave, RequestApproval_id, 
+                    Must_Approved, Approval_Note, ? 
+                FROM THRMApprovedBy
+                WHERE ReqApproval_Id = ?
+                                ";
+        $this->db->query($sqlHistory, [$hidRevision, $SoNum]);
+    }
+
+
+    private function _save_payment($SoNum)
+    {
+
+        $this->db->where('TRX_NUMBER', $SoNum);
+        $this->db->where('DOC_TYPE', 'SO');
+        $this->db->where('COMPANY_ID', $this->companyID);
+        $this->db->delete('TACCCUSTOMERPAYMENT');
+
+        $dataInsCust = [
+            'TRX_NUMBER'     => $SoNum,
+            'DOC_TYPE'       => 'SO',
+            'COMPANY_ID'     => $this->companyID, // Mengambil dari cookie atau default
+            'PAYMENT_PERIOD' => 1,
+            'INVOICE_DATE'   => date('Y-m-d', strtotime($this->input->post('txtInvoiceDate1'))),
+            'DUE_DATE'       => date('Y-m-d', strtotime($this->input->post('txtDueDate1'))),
+            'AMOUNT'         => (float) str_replace(',', '', $this->input->post('txtAmount1')),
+            'UPDATED_BY'     => $this->session->userdata('sys_sba_userid'), // Biasanya CKSATRIADEVID di CF itu UserID
+            'LAST_UPDATE'    => date('Y-m-d H:i:s'),
+            'TOP_CODE'       => $this->input->post('cboTerms')
+        ];
+        $this->db->insert('TACCCUSTOMERPAYMENT', $dataInsCust);
+    }
+
+    private function _save_detail($SoNum, $rate)
+    {
+        $qtyArray = $this->input->post('qty');
+
+        if (!empty($qtyArray) && is_array($qtyArray)) {
+            foreach ($qtyArray as $i => $val) {
+
+                // 1. Ambil Item Code (Pastikan index-nya sesuai)
+                $itemCode = $this->input->post('item_code')[$i] ?? $this->input->post('TXTPARTNO')[$i];
+
+                // Jika baris ini kosong, lewati
+                if (empty($itemCode)) continue;
+
+                // 2. Pembersihan & Perhitungan Angka
+                $qty        = (float)str_replace(',', '', $val);
+                $qty2       = (float)str_replace(',', '', $this->input->post('qty2')[$i] ?? 0);
+                $unitPrice  = (float)str_replace(',', '', $this->input->post('price')[$i] ?? 0);
+                $discVal    = (float)str_replace(',', '', $this->input->post('disc_val')[$i] ?? 0);
+                $totalPrice = ($qty * $unitPrice) - $discVal;
+
+                // Rate (Asumsi variabel $rate sudah didefinisikan sebelumnya)
+                $currentRate = (float)($rate ?? 1);
+
+                // 3. Logic Pajak 1
+                $tax1_raw = $this->input->post('tax1')[$i] ?? '';
+                $t1_code = 0;
+                $t1_rate = 0;
+                $t1_op = '0';
+                $t1_amt = 0;
+
+                if (!empty($tax1_raw) && strpos($tax1_raw, '|') !== false) {
+                    $t1_parts = explode('|', $tax1_raw);
+                    $t1_code  = $t1_parts[0];
+                    $t1_rate  = (float)$t1_parts[1];
+                    $t1_op    = $t1_parts[2];
+                    $t1_amt   = ($totalPrice * $t1_rate) / 100;
+                }
+
+                // 4. Logic Pajak 2
+                $tax2_raw = $this->input->post('tax2')[$i] ?? '';
+                $t2_code = 0;
+                $t2_rate = 0;
+                $t2_op = '0';
+                $t2_amt = 0;
+
+                if (!empty($tax2_raw) && strpos($tax2_raw, '|') !== false) {
+                    $t2_parts = explode('|', $tax2_raw);
+                    $t2_code  = $t2_parts[0];
+                    $t2_rate  = (float)$t2_parts[1];
+                    $t2_op    = $t2_parts[2];
+                    $t2_amt   = ($totalPrice * $t2_rate) / 100;
+                }
+
+                // 5. Prepare Data Detail
+                $dataDetail = [
+                    'SO_Number'        => $SoNum, // Pastikan $SoNum sudah ada
+                    'Item_Code'        => $itemCode,
+                    'Item_description' => $this->input->post('item_name')[$i] ?? '',
+                    'Qty'              => $qty,
+                    'Qty2'             => $qty2,
+                    'Unit_Type'        => $this->input->post('unit_id')[$i] ?: 0,
+                    'Unit_Type2'       => $this->input->post('unit_id2')[$i] ?: 0,
+                    'UnitPrice'        => $unitPrice,
+                    'Base_UnitPrice'   => $unitPrice * $currentRate,
+                    'Disc_Percentage'  => (float)str_replace(',', '', $this->input->post('disc_pct')[$i] ?? 0),
+                    'Disc_Value'       => $discVal,
+                    'Tax_Code1'        => $t1_code,
+                    'Tax_Percentage1'  => $t1_rate,
+                    'Tax_Operator1'    => $t1_op,
+                    'Tax_Amount1'      => $t1_amt,
+                    'Tax_Code2'        => $t2_code,
+                    'Tax_Percentage2'  => $t2_rate,
+                    'Tax_Operator2'    => $t2_op,
+                    'Tax_Amount2'      => $t2_amt,
+                    'TotalPrice'       => $totalPrice,
+                    'Base_TotalPrice'  => $totalPrice * $currentRate,
+                    'Include_DO'       => 1,
+                    'Others'           => $this->input->post('others')[$i] ?? '',
+                    'CS_Number'        => $this->input->post('cs_number')[$i] ?? '',
+                    'ExtraPrice'       => (float)str_replace(',', '', $this->input->post('extra_price')[$i] ?? 0),
+                    'EstimateDate'     => !empty($this->input->post('est_date')[$i]) ? $this->input->post('est_date')[$i] : $this->input->post('txtSODate'),
+                    'generate_flag'    => $this->input->post('gen_flag')[$i] ?? '0',
+                    'parent_item'      => $this->input->post('parent_item')[$i] ?? '0',
+                    'parent_path'      => $this->input->post('parent_path')[$i] ?? '0',
+                    'Comp_ID'          => $this->input->post('cc')[$i] ?: 0,
+                    'config_level'     => $this->input->post('level')[$i] ?? 0,
+                    'config_ratio'     => $this->input->post('ratio')[$i] ?? 1,
+                    'config_order'     => $i + 1,
+                    'Dimension_ID'     => $this->input->post('dim_id')[$i] ?: 3,
+                    'isFreeItem'       => '0',
+                    'Notes'            => $this->input->post('notes')[$i] ?? ''
+                ];
+
+                if ($this->input->post('rbTypeDoc') == 3) {
+                    $dataDetail['ref_id'] = $this->input->post('hdnSCDetailID')[$i];
+                }
+
+                // Simpan per baris
+                $this->db->insert('TAccSO_Detail', $dataDetail);
+            }
+        }
+    }
+
+    /**
+     * Handle Persiapan dan Penyimpanan TAccSO_Header (Insert & Update)
+     */
+    private function _save_header($SoNum, $task, $userId)
+    {
+        // Persiapan Variabel sesuai CF
+        $rate            = str_replace(',', '', $this->input->post('txtCurr_' . $this->input->post('selCurrency')) ?? 1);
+        $invoiceAmount   = (float)str_replace(',', '', $this->input->post('txtTotAmount') ?? 0);
+        $txtTotTaxConv   = (float)str_replace(',', '', $this->input->post('txtTotTaxConv') ?? 0);
+        $txtTotTaxConv_B = (float)str_replace(',', '', $this->input->post('txtTotTaxConv_Base') ?? 0);
+        $discRate        = (float)str_replace(',', '', $this->input->post('txtDisctotal') ?? 0);
+        $discAmount      = (float)str_replace(',', '', $this->input->post('txtTotDisc') ?? 0);
+        $isConfirm       = $this->input->post('txtconfirm');
+        $hidRevision     = $this->input->post('hidRevision');
+
+        $dataHeader = [
+            'PO_NumCustomer'      => !empty(trim($this->input->post('txtPONum'))) ? $this->input->post('txtPONum') : NULL,
+            'PO_DateCustomer'     => !empty(trim($this->input->post('txtPODate'))) ? date('Y-m-d', strtotime($this->input->post('txtPODate'))) : NULL,
+            'SO_Date'             => date('Y-m-d', strtotime($this->input->post('txtSODate'))) . ' ' . date('H:i:s'),
+            'SO_Notes'            => $this->input->post('txtMemo'),
+            'Account_ID'          => $this->input->post('txtCustCode'),
+            'Company_ID'          => $this->companyID,
+            'Currency_ID'         => $this->input->post('selCurrency'),
+            'Tax_Currency_ID'     => $this->input->post('selTaxCurrency'),
+            'Invoice_Amount'      => $invoiceAmount,
+            'Base_Invoice_Amount' => $invoiceAmount * (float)$rate,
+            'Tax_Amount'          => $txtTotTaxConv,
+            'Base_Tax_Amount'     => $txtTotTaxConv_B,
+            'Due_Date'            => !empty($this->input->post('txtInvDueDate')) ? date('Y-m-d', strtotime($this->input->post('txtInvDueDate'))) : NULL,
+            'Emp_ID'              => $this->input->post('txtSPCode'),
+            'Contact_ID'          => floatval($this->input->post('txtCPCode')),
+            'terms'               => $this->input->post('cboTerms'),
+            'WH_ID'               => $this->input->cookie('Location_ID'),
+            'SOType'              => $this->input->post('txtSOtype') ?: '1',
+            'DeliveryTerms'       => $this->input->post('txtDeliveryTerms'),
+            'automaticsn'         => ($this->input->post('cbautosn')) ? 1 : 0,
+            'KawasanBerikat'      => ($this->input->post('chkKawasan') || $this->input->post('chkKawasanBerikat')) ? 1 : 0,
+            'SN_Account_ID'       => $this->input->post('selSNGroup') ?: 0,
+            'SI_Account_ID'       => $this->input->post('selSIGroup') ?: 0,
+            'Update_By'           => $userId,
+            'Last_Update'         => date('Y-m-d H:i:s'),
+            'CurrencyRateList'    => $this->input->post('CurrencyRateList'),
+            'Tax_CurrencyRateList' => $this->input->post('TaxRateList'),
+            'Project_ID'          => floatval($this->input->post('selProject')),
+            'AllocateTo'          => $this->input->post('rdoAllocate') ?: 0,
+            'TransactionDiscountRate'   => $discRate,
+            'TransactionDiscountAmount' => $discAmount,
+            'TransactionDiscountBaseAmount' => $discAmount * (float)$rate,
+            'paymentterm_code'    => $this->input->post('cboTermsNew'),
+            'claim_deduction_amount' => $this->input->post('txt_cd_amount'),
+            'claim_deduction_desc'   => $this->input->post('txt_cd_desc'),
+            'reason_revision'        => $this->input->post('txtRevisionReason'),
+            'pi_number'              => $this->input->post('txtPiNumber'),
+            'Production_month'       => $this->input->post('txtProMonth'),
+            'Production_year'        => $this->input->post('txtProYear'),
+            'isExport'               => $this->input->post('isExport') ?: 1
+        ];
+
+        // Logika Tax_Code sesuai CF
+        if ($this->input->post('txtSOtype') == 0 && $this->input->post('ddlTaxIncluded')) {
+            $parts = explode('|', $this->input->post('ddlTaxIncluded'));
+            $dataHeader['Tax_Code'] = $parts[0];
+        } else {
+            $dataHeader['Tax_Code'] = NULL;
+        }
+
+        if ($this->input->post('cboPriceType')) {
+            $dataHeader['PriceType'] = $this->input->post('cboPriceType');
+        }
+
+        if (strtolower($task) == 'edit') {
+            if (!empty($hidRevision)) {
+                $dataHeader['Revision_Number'] = $hidRevision;
+                $dataHeader['Approval_Status'] = 0; // Reset Approval saat revisi (Line 169 CF)
+                $dataHeader['SO_Status'] = 2;       // Status Open
+            } else {
+                $dataHeader['SO_Status'] = ($isConfirm == 'YES') ? 2 : 1;
+            }
+            $this->db->where('SO_Number', $SoNum)->update('TAccSO_Header', $dataHeader);
+        } else {
+            // Logika Insert New (Urutan kolom sesuai qNewSO di CF)
+            $dataHeader['SO_Number']        = $SoNum;
+            $dataHeader['TrxNo']            = $SoNum;
+            $dataHeader['Approval_Status']  = 0;
+            $dataHeader['SO_Status']        = ($isConfirm == 'YES') ? 2 : 1;
+            $dataHeader['SN_Status']        = 'ND';
+            $dataHeader['Invoice_Status']   = 'NI';
+            $dataHeader['isClose']          = 0;
+            $dataHeader['Created_By']       = $userId;
+            $dataHeader['Creation_DateTime'] = date('Y-m-d H:i:s');
+            $dataHeader['Revision_Number']  = 0;
+            $dataHeader['ItemCategoryType'] = $this->input->post('SelCBType') ?: 'FG';
+            $dataHeader['Quotation_Number'] = $this->input->post('SelQuotation') ?: '';
+
+            // Handle project_source dari CF (Logic line 180-200)
+            $dataHeader['project_code']     = $this->input->post('selPro') ?: 0;
+            $dataHeader['Proforma_Number']  = ($this->input->post('rbTypeDoc') == 2) ? $this->input->post('selProforma') : 0;
+
+            if ($this->input->post('rbTypeDoc') == 3) {
+                $dataHeader['SC_Number'] = $this->input->post('ddlSalesContract');
+            }
+
+            $this->db->insert('TAccSO_Header', $dataHeader);
+        }
+    }
+
+    /**
+     * Fungsi private untuk mem-backup data SO Header & Detail ke tabel History saat terjadi Revisi
+     */
+    private function _backup_revision_history($SoNum, $hidRevision, $userId)
+    {
+        // 1. BACKUP HEADER KE HISTORY
+        $sqlHistoryHeader = "
+        INSERT INTO TAccSOHistory_Header (
+            Revision_Number, Base_Invoice_Amount, close_reason, outlet_wh,
+            SO_Number, SN_Status, project_code, TransactionDiscountRate,
+            TrxNo, Emp_ID, Proforma_Number, TransactionDiscountAmount,
+            SO_Date, FreightTax_Code, KawasanBerikat, TransactionDiscountBaseAmount,
+            SO_Notes, FreightTax_Percentage, INVOICE_PERCENTAGE, isDonation,
+            Account_ID, Invoice_Status, REMARK_NOTACTIVE, directpo,
+            Contact_ID, Due_date, isDirect, isDP,
+            Payment_Type, Approve_Date, SN_Account_ID, tax_code,
+            PO_NumCustomer, FOC_number, SI_Account_ID, SC_Number,
+            PO_DateCustomer, ETD, Creation_DateTime, ExtCom_Status,
+            Project_ID, ETA, Created_By, IntCom_Status,
+            ExternalSales_Commision, quotation_number, Last_Update, isTaxAble,
+            Base_ExternalSales_Commision, ItemCategoryType, Update_By, isFOC,
+            InternalSales_Commision, DisplayNumber, CurrencyRateList, isDisplay,
+            Base_InternalSales_Commision, JO_Code, Tax_CurrencyRateList, isNotActive,
+            Approval_Status, created_date, isSisterCompany, ReviseCounter,
+            SO_Status, SOType, SisterCompany, include_do,
+            Company_ID, terms, SisterCompanyDocument, invoicedirect,
+            Tax_Currency_ID, Deliveryterms, AllocateTo, Doc_Status,
+            Tax_Amount, WH_ID, BudgetPeriod_ID, paymentterm_code,
+            Base_Tax_Amount, disc_id, SI_SisterCompany, TaxDocNumPPN,
+            Currency_ID, automaticsn, TaxCodeInclude, TaxDocNumPPh,
+            Invoice_Amount, isClose, isOutlet, PPNNumberGenerated,
+            PriceType, claim_deduction_amount, claim_deduction_desc, reason_revision,
+            pi_number, Production_month, Production_year
+        )
+        SELECT 
+            Revision_Number, Base_Invoice_Amount, close_reason, outlet_wh,
+            SO_Number, SN_Status, project_code, TransactionDiscountRate,
+            TrxNo, Emp_ID, Proforma_Number, TransactionDiscountAmount,
+            SO_Date, FreightTax_Code, KawasanBerikat, TransactionDiscountBaseAmount,
+            SO_Notes, FreightTax_Percentage, INVOICE_PERCENTAGE, isDonation,
+            Account_ID, Invoice_Status, REMARK_NOTACTIVE, directpo,
+            Contact_ID, Due_date, isDirect, isDP,
+            Payment_Type, Approve_Date, SN_Account_ID, tax_code,
+            PO_NumCustomer, FOC_number, SI_Account_ID, SC_Number,
+            PO_DateCustomer, ETD, Creation_DateTime, ExtCom_Status,
+            Project_ID, ETA, Created_By, IntCom_Status,
+            ExternalSales_Commision, quotation_number, Last_Update, isTaxAble,
+            Base_ExternalSales_Commision, ItemCategoryType, Update_By, isFOC,
+            InternalSales_Commision, DisplayNumber, CurrencyRateList, isDisplay,
+            Base_InternalSales_Commision, JO_Code, Tax_CurrencyRateList, isNotActive,
+            Approval_Status, created_date, isSisterCompany, ReviseCounter,
+            SO_Status, SOType, SisterCompany, include_do,
+            Company_ID, terms, SisterCompanyDocument, invoicedirect,
+            Tax_Currency_ID, Deliveryterms, AllocateTo, Doc_Status,
+            Tax_Amount, WH_ID, BudgetPeriod_ID, paymentterm_code,
+            Base_Tax_Amount, disc_id, SI_SisterCompany, TaxDocNumPPN,
+            Currency_ID, automaticsn, TaxCodeInclude, TaxDocNumPPh,
+            Invoice_Amount, isClose, isOutlet, PPNNumberGenerated,
+            PriceType, claim_deduction_amount, claim_deduction_desc, reason_revision,
+            pi_number, Production_month, Production_year
+        FROM TAccSO_Header
+        WHERE SO_Number = ?
+    ";
+        $this->db->query($sqlHistoryHeader, [$SoNum]);
+
+        // 2. DAPATKAN REVISION NUMBER SAAT INI
+        $qRev = $this->db->query("SELECT ISNULL(Revision_Number, 0) as revNumber FROM TAccSO_Header WHERE SO_Number = ?", [$SoNum])->row();
+        $currentRevNumber = $qRev ? $qRev->revNumber : 0;
+
+        // 3. BACKUP DETAIL KE HISTORY DETAIL
+        $sqlHistoryDetail = "
+        INSERT INTO TAccSOHistory_Detail (
+            SO_Number, Tax_Percentage1, Others, is_install,
+            Item_Code, Tax_Operator1, CS_Number, config_level,
+            Item_Description, Tax_Amount1, EstimateDate, config_ratio,
+            Qty, Tax_Code2, parent_item, config_order,
+            Qty_DO, Tax_Percentage2, parent_path, disc_type,
+            UnitPrice, Tax_Operator2, generate_flag, SODetail_ID,
+            Base_UnitPrice, Tax_Amount2, Comp_ID, ref_id,
+            Disc_percentage, TotalPrice, Qty2, Dimension_ID,
+            ExtraPrice, Base_TotalPrice, Unit_Type, Disc_Value,
+            Tax_Code1, Include_DO, Unit_Type2, isFreeItem,
+            Notes, Revision_Number
+        )
+        SELECT 
+            SO_Number, Tax_Percentage1, Others, is_install,
+            Item_Code, Tax_Operator1, CS_Number, config_level,
+            Item_Description, Tax_Amount1, EstimateDate, config_ratio,
+            Qty, Tax_Code2, parent_item, config_order,
+            Qty_DO, Tax_Percentage2, parent_path, disc_type,
+            UnitPrice, Tax_Operator2, generate_flag, SODetail_ID,
+            Base_UnitPrice, Tax_Amount2, Comp_ID, ref_id,
+            Disc_percentage, TotalPrice, Qty2, Dimension_ID,
+            ExtraPrice, Base_TotalPrice, Unit_Type, Disc_Value,
+            Tax_Code1, Include_DO, Unit_Type2, isFreeItem,
+            Notes, ? 
+        FROM TAccSO_Detail
+        WHERE SO_Number = ?
+    ";
+        $this->db->query($sqlHistoryDetail, [$currentRevNumber, $SoNum]);
+
+        // 4. INSERT LOG KE TAccDocumentRevision
+        $logData = [
+            'Doc_type'         => 'SO',
+            'Doc_No'           => $SoNum,
+            'LastRevisionNo'   => $hidRevision,
+            'USER_ID'          => $userId,
+            'Created_datetime' => date('Y-m-d H:i:s')
+        ];
+        $this->db->insert('TAccDocumentRevision', $logData);
     }
 
 
