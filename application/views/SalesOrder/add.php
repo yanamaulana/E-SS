@@ -473,6 +473,12 @@
                     </button>
                 </div>
                 <div class="col-6 text-end">
+                    <button type="button" class="btn btn-sm btn-light-danger" data-bs-toggle="modal" data-bs-target="#kt_modal_pajak">
+                        <i class=" fas fa-dollar-sign"></i>[!] Kode Pajak
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light-info" data-bs-toggle="modal" data-bs-target="#kt_modal_cc">
+                        <i class="fas fa-bookmark"></i>[!] Kode CostCenter
+                    </button>
                     <button type="button" id="btnUploadItem" class="btn btn-sm btn-success">
                         <i class="fas fa-file-excel"></i> [+] Upload Item
                     </button>
@@ -833,6 +839,78 @@
                 <button type="button" id="btnExecuteUpload" class="btn btn-success">
                     <i class="fas fa-upload"></i> Proses Detail
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" id="kt_modal_pajak" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">List Kode Pajak Untuk Tax 1 & Tax 2</h5>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="svg-icon svg-icon-2x"></span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-striped mb-0 gy-3 gs-3" style="font-size: 0.85rem;" id="table_tax">
+                    <thead>
+                        <tr class="fw-bold fs-6 text-white border-bottom border-gray-200" style="background-color: #3B6D8C;">
+                            <th class="text-center">Kode <i class="fas fa-file-excel"></i></th>
+                            <th class="text-center">Deskripsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $i = 1; ?>
+                        <?php foreach ($tax_list as $tax): ?>
+                            <tr>
+                                <td><?= $tax->Tax_Code ?></td>
+                                <td><?= $tax->Tax_Name ?>
+                            </tr>
+
+                            <?php $i++; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" id="kt_modal_cc" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">List Kode Cost Center</h5>
+                <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal" aria-label="Close">
+                    <span class="svg-icon svg-icon-2x"></span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-striped mb-0 gy-3 gs-3" style="font-size: 0.85rem;" id="table_cc">
+                    <thead>
+                        <tr class="fw-bold fs-6 text-white border-bottom border-gray-200" style="background-color: #3B6D8C;">
+                            <th class="text-center">Kode <i class="fas fa-file-excel"></i></th>
+                            <th class="text-center">Deskripsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $i = 1; ?>
+                        <?php foreach ($cc_list as $cc): ?>
+                            <tr>
+                                <td><?= $cc->Comp_ID ?></td>
+                                <td><?= $cc->Comp_Name ?>
+                            </tr>
+
+                            <?php $i++; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

@@ -41,7 +41,14 @@ class SalesOrder extends CI_Controller
         $this->data['task'] = $task;
         $this->data['so_number'] = $so_number;
         $companyID = 2;
-
+        $this->data['tax_list'] = $this->db->query("SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
+                                                        FROM TaccTax 
+                                                        ORDER BY Tax_Name")->result();
+        $this->data['cc_list'] = $this->db->query("SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
+                                                    FROM TAccCostCenter 
+                                                    WHERE Company_ID = $companyID 
+                                                    AND CC_Type = 'CC'
+                                                    ORDER BY CostCenter_Name_en ASC")->result();
         if ($task == 'edit' && !empty($so_number)) {
             $this->data['header'] = $this->db->query("SELECT isNULL(TAccSO_Header.Revision_Number,0) as Revision_Number,
                                                     TAccSO_Header.SO_Number,TAccSO_Header.Tax_Code AS VAT_Tax_Code,
@@ -137,15 +144,6 @@ class SalesOrder extends CI_Controller
                                                     WHERE 		TAccSO_Detail.SO_Number = ?
                                                     AND TAccSO_Detail.IsFreeItem = 0
                                                     ORDER BY 	TAccSO_Detail.SODetail_ID", [$companyID, $so_number])->result();
-
-            $this->data['tax_list'] = $this->db->query("SELECT DISTINCT Tax_ID, Tax_Code, Tax_Name, Tax_Rate, Tax_operator 
-                                                        FROM TaccTax 
-                                                        ORDER BY Tax_Name")->result();
-            $this->data['cc_list'] = $this->db->query("SELECT CostCenter_ID AS Comp_ID, CostCenter_Name_en AS Comp_Name 
-                                                    FROM TAccCostCenter 
-                                                    WHERE Company_ID = $companyID 
-                                                    AND CC_Type = 'CC'
-                                                    ORDER BY CostCenter_Name_en ASC")->result();
 
             $AccountID = $this->data['header']->Account_ID;
             $this->data['sales_person'] = $this->db->query("select account_ID,account_name,GroupID from taccount where account_id = $AccountID")->row();

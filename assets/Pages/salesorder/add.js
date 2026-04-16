@@ -462,7 +462,12 @@ $(document).ready(function () {
             width: '100%'
         }).removeClass('select2-item-new').addClass('select2-item');
     }
-
+    $('#table_tax').DataTable({
+        dom: '<"row"<"col-sm-10"f><"col-sm-2"l>>rtip',
+    });
+    $('#table_cc').DataTable({
+        dom: '<"row"<"col-sm-10"f><"col-sm-2"l>>rtip',
+    });
 });
 
 const site_url = $('meta[name="base_url"]').attr('content');
