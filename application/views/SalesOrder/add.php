@@ -864,7 +864,7 @@
                         <?php $i = 1; ?>
                         <?php foreach ($tax_list as $tax): ?>
                             <tr>
-                                <td><?= $tax->Tax_Code ?></td>
+                                <td class="text-center"><?= $tax->Tax_Code ?></td>
                                 <td><?= $tax->Tax_Name ?>
                             </tr>
 
@@ -900,7 +900,7 @@
                         <?php $i = 1; ?>
                         <?php foreach ($cc_list as $cc): ?>
                             <tr>
-                                <td><?= $cc->Comp_ID ?></td>
+                                <td class="text-center"><?= $cc->Comp_ID ?></td>
                                 <td><?= $cc->Comp_Name ?>
                             </tr>
 
