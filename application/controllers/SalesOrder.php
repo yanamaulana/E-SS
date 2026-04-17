@@ -9,6 +9,7 @@ class SalesOrder extends CI_Controller
     private $Date;
     private $DateTime;
     private $companyID = 2;
+    private $WH_ID = 9;
     private $layout = 'layout';
 
     public function __construct()
@@ -462,7 +463,7 @@ class SalesOrder extends CI_Controller
                 if (!empty($hidRevision) && $enableSORevisionApproval == 1) {
                     $this->_backup_approval_history($SoNum, $hidRevision);
                 }
-                $ReqApproval = $this->ReqApprovalSO->generate_new_route(['ReqApproval_ID' => $SoNum, 'RequestApproval_Name' => 'eACCSalesOrder', 'Employee_ID' => $userId, 'Company_ID' => $this->companyID, 'Amount' => $totalAmount]);
+                $ReqApproval = $this->ReqApprovalSO->generate_new_route(['ReqApproval_ID' => $SoNum, 'RequestApproval_Name' => 'eACCSalesOrder', 'Employee_ID' => null, 'Company_ID' => $this->companyID, 'Amount' => $totalAmount]);
                 if ($ReqApproval['valid'] === false) {
                     throw new Exception("Approval Error: " . $ReqApproval['message']);
                 } else {
@@ -536,10 +537,10 @@ class SalesOrder extends CI_Controller
                     'DocType'      => 'SO',
                     'Item_Code'    => $row->Item_Code,
                     'Dimension_ID' => $row->Dimension_ID,
-                    'WH_ID'        => $row->WH_ID,
+                    'WH_ID'        => $this->WH_ID,
                     'Company_ID'   => $companyId,
                     'Qty'          => $finalQtyToReserve,
-                    'ReservedDate' => date('Y-m-d H:i:s')
+                    'Reserved_Date' => date('Y-m-d H:i:s')
                 ]);
             }
         }
@@ -753,7 +754,7 @@ class SalesOrder extends CI_Controller
             'Emp_ID'              => $this->input->post('txtSPCode'),
             'Contact_ID'          => floatval($this->input->post('txtCPCode')),
             'terms'               => $this->input->post('cboTerms'),
-            'WH_ID'               => $this->input->cookie('Location_ID'),
+            'WH_ID'               => $this->WH_ID,
             'SOType'              => $this->input->post('txtSOtype') ?: '1',
             'DeliveryTerms'       => $this->input->post('txtDeliveryTerms'),
             'automaticsn'         => ($this->input->post('cbautosn')) ? 1 : 0,
@@ -1016,6 +1017,19 @@ class SalesOrder extends CI_Controller
                     AND (TItem.InActive is NULL Or TItem.InActive = 0)
                 ", [$itemCode, $companyID])->row();
 
+                $UnitSn = $this->db->query("
+                                    SELECT 
+                                        TItemQtyConvert.Unit_Type_ID, TACCUNITTYPE.Unit_Name 
+                                    FROM 
+                                        TItemQtyConvert 
+                                        INNER JOIN TACCUNITTYPE 
+                                        ON TACCUNITTYPE.Unit_Type_ID = TItemQtyConvert.Unit_Type_ID 
+                                    WHERE 
+                                        TItemQtyConvert.Company_ID = 2
+                                        AND TItemQtyConvert.Item_Code = '$itemCode'
+                                        AND TItemQtyConvert.Document_Type = 'SN' 
+                ")->row();
+
                 //berikan validasi apabila salah satu baris berisi item code yang tidak ditemukan, maka proses import akan dihentikan dan memberikan pesan error
                 if (empty($item)) {
                     header('Content-Type: application/json');
@@ -1034,6 +1048,8 @@ class SalesOrder extends CI_Controller
                         'item_name'    => $item->Item_name,
                         'unit_id'      => $item->unit_type_id,
                         'unit_name'    => $item->unit_name,
+                        'unit_id2'      => $UnitSn->Unit_Type_ID,
+                        'unit_name2'    => $UnitSn->Unit_Name,
                         'dim_id'       => $item->Dimension_ID,
                         'size'         => $item->Size,
                         'color'        => $item->Color,

@@ -387,7 +387,7 @@ $(document).ready(function () {
                 ${data.item_code} 
                 <input type="hidden" name="item_code[]" value="${data.item_code}">
                 <input type="hidden" name="unit_id[]" value="${data.unit_id}"> 
-                <input type="hidden" name="unit_id2[]" value="${data.unit_id}">
+                <input type="hidden" name="unit_id2[]" value="${data.unit_id2}">
                 <input type="hidden" name="dim_id[]" value="${data.dim_id}">
             </td>
             <td>
@@ -410,7 +410,7 @@ $(document).ready(function () {
             <td style="min-width: 85px;">
                 <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="0">
             </td>
-            <td class="fw-bold text-muted">${data.unit_name}</td> 
+            <td class="fw-bold text-muted">${data.unit_name2}</td> 
             
             <td style="display:none">
                 <input type="hidden" name="cs_number[]" value="">
@@ -916,22 +916,34 @@ function passingVars(IsConfirm) {
         success: function (response) {
             if (response.code == 200) {
                 //buat pesan dengan swal dan redirect ke index setelah klik OK
-                swal({
+                Swal.fire({
                     title: "Success",
                     text: response.msg,
-                    icon: "success"
-                }).then(() => {
-                    window.location.href = site_url + '/SalesOrder';
+                    icon: "success",
+                    confirmButtonColor: "#3085d6",
+                    confirmButtonText: "OK"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = site_url + '/SalesOrder';
+                    }
                 });
-                window.location.href = site_url + '/SalesOrder';
+                // window.location.href = site_url + '/SalesOrder';
             } else {
-                alert("Error: " + response.msg);
+                Swal.fire({
+                    icon: 'error',
+                    title: response.msg
+                });
                 $('#btnSubmit, #btnConfirm').prop('disabled', false);
             }
         },
-        error: function () {
-            alert("Terjadi kesalahan pada server.");
-            $('#btnSubmit, #btnConfirm').prop('disabled', false);
+        error: function (xhr, status, error) {
+            var statusCode = xhr.status;
+            var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+            Swal.fire({
+                icon: "error",
+                title: "Error!",
+                html: `Kode HTTP: ${statusCode}<br\>Pesan: ${errorMessage}`,
+            });
         }
     });
 }

@@ -277,10 +277,10 @@
                                         <option value="6" <?= ($header->Production_month ?? '') == '6' ? 'selected' : '' ?>>June</option>
                                         <option value="7" <?= ($header->Production_month ?? '') == '7' ? 'selected' : '' ?>>July</option>
                                         <option value="8" <?= ($header->Production_month ?? '') == '8' ? 'selected' : '' ?>>August</option>
-                                        <option value="9" <?= ($header->Production_month ?? '') == '9' ? 'selected' : '' ?>>>September</option>
-                                        <option value="10" <?= ($header->Production_month ?? '') == '10' ? 'selected' : '' ?>>>October</option>
-                                        <option value="11" <?= ($header->Production_month ?? '') == '11' ? 'selected' : '' ?>>>November</option>
-                                        <option value="12" <?= ($header->Production_month ?? '') == '12' ? 'selected' : '' ?>>>December</option>
+                                        <option value="9" <?= ($header->Production_month ?? '') == '9' ? 'selected' : '' ?>>September</option>
+                                        <option value="10" <?= ($header->Production_month ?? '') == '10' ? 'selected' : '' ?>>October</option>
+                                        <option value="11" <?= ($header->Production_month ?? '') == '11' ? 'selected' : '' ?>>November</option>
+                                        <option value="12" <?= ($header->Production_month ?? '') == '12' ? 'selected' : '' ?>>December</option>
                                     </select>
                                 </div>
                                 <div class="col-6 pl-1">

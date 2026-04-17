@@ -106,7 +106,21 @@ $sqlItem = "SELECT
                 -- Tambahan sesuai instruksi Mas Yana
                 TITEM.unit_type_id,
                 (SELECT unit_name FROM taccunittype WHERE unit_type_id = TITEM.unit_type_id) AS unit_name,
-                TItemCompany.Dimension_ID
+                TItemCompany.Dimension_ID,
+                    -- Menarik Unit_Type_ID2 dari query kedua
+                (SELECT TOP 1 conv.Unit_Type_ID 
+                FROM TItemQtyConvert conv 
+                WHERE conv.Item_Code = TITEM.item_code 
+                AND conv.Company_ID = TItemCompany.Company_ID 
+                AND conv.Document_Type = 'SN') AS Unit_Type_ID2,
+                
+                -- Menarik Unit_Name2 dari query kedua
+                (SELECT TOP 1 unit2.Unit_Name 
+                FROM TItemQtyConvert conv 
+                INNER JOIN TACCUNITTYPE unit2 ON unit2.Unit_Type_ID = conv.Unit_Type_ID
+                WHERE conv.Item_Code = TITEM.item_code 
+                AND conv.Company_ID = TItemCompany.Company_ID 
+                AND conv.Document_Type = 'SN') AS Unit_Name2
             FROM TITEM 
             INNER JOIN TItemCompany ON TItemCompany.item_code = TItem.item_code 
             INNER JOIN TitemCategory ON TitemCategory.ItemCategory_ID = TItemCompany.ItemCategory_ID 
@@ -284,8 +298,8 @@ $qItem = $this->db->query($sqlItem)->result();
                                             data-type="<?= $row->Type ?>"
                                             data-unitid="<?= $row->unit_type_id ?>"
                                             data-unitname="<?= $row->unit_name ?>"
-                                            data-unitid2="<?= $row->unit_type_id ?>"
-                                            data-unitname2="<?= $row->unit_name ?>"
+                                            data-unitid2="<?= $row->Unit_Type_ID2 ?>"
+                                            data-unitname2="<?= $row->Unit_Name2 ?>"
                                             data-dimid="<?= $row->Dimension_ID ?>">
                                     </td>
                                     <td class="text-center"><?= $no++ ?></td>
