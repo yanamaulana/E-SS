@@ -274,24 +274,32 @@
 
 
                             <?php if ($isSalesPerson == 1) : ?>
-                                <div class="menu-item">
-                                    <div class="menu-content pt-4 pb-2">
-                                        <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">SALES ORDER</span>
+                                <?php
+                                $accessCount = $this->db->where_in('sf_ufunc_access', ['write', 'delete'])
+                                    ->where('UserGroup_ID', 44)
+                                    ->where('sf_ufunc_id', 'ERSTD07854')
+                                    ->count_all_results('TUserGroupFuncL');
+                                ?>
+                                <?php if ($accessCount > 0 || $is_admin == true) : ?>
+                                    <div class="menu-item">
+                                        <div class="menu-content pt-4 pb-2">
+                                            <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">SALES ORDER</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <!-- $is_admin == true || -->
-                                <div class="menu-item" data-bs-toggle="tooltip" title="Sales Order">
-                                    <a class="menu-link <?= ($Menu == 'SalesOrder') ? 'active' : null ?>" href="<?= base_url('SalesOrder') ?>">
-                                        <span class="menu-icon">
-                                            <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
-                                            <span class="svg-icon svg-icon-muted svg-icon-2qx">
-                                                <i class="fas fa-pallet fs-3"></i>
+                                    <!-- $is_admin == true || -->
+                                    <div class="menu-item" data-bs-toggle="tooltip" title="Sales Order">
+                                        <a class="menu-link <?= ($Menu == 'SalesOrder') ? 'active' : null ?>" href="<?= base_url('SalesOrder') ?>">
+                                            <span class="menu-icon">
+                                                <!--begin::Svg Icon | path: assets/media/icons/duotune/graphs/gra010.svg-->
+                                                <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                    <i class="fas fa-pallet fs-3"></i>
+                                                </span>
+                                                <!--end::Svg Icon-->
                                             </span>
-                                            <!--end::Svg Icon-->
-                                        </span>
-                                        <span class="menu-title">Sales Order</span>
-                                    </a>
-                                </div>
+                                            <span class="menu-title">Sales Order</span>
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             <?php endif; ?>
 
 
