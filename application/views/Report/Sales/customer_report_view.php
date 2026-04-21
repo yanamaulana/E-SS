@@ -328,6 +328,8 @@ $qGetAccount = $CI->db->query($sqlGetAccount, $params);
                             taccsi_detail.tax_code1,
                             taccsi_detail.tax_code2,
                             titem.item_name,
+                            titem.ItemCodeCust,
+                            titem.ItemNameCust,
                             dimension_name,
                             ISNULL(taccsi_header.transactiondiscountrate, 0) AS transactiondiscountrate,
                             titem.customfield1 AS item_type,
@@ -549,7 +551,7 @@ $qGetAccount = $CI->db->query($sqlGetAccount, $params);
                 // === Table header
                 echo '<br><table border="0" cellpadding="3" cellspacing="1" width="100%">';
                 echo '<tr class="formtextreport" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #000; border-bottom:1px solid #000;">';
-                echo '<td bgcolor="EFEFEF" style="' . $borderStyle . '; border-top:1px solid #CCC;" colspan="24" align="center"><b>' . $DO_VAR['SalesInvoice'] . '</b></td>';
+                echo '<td bgcolor="EFEFEF" style="' . $borderStyle . '; border-top:1px solid #CCC;" colspan="30" align="center"><b>' . $DO_VAR['SalesInvoice'] . '</b></td>';
                 echo '</tr>';
                 echo '<tr class="formtextreport" style="border-left:1px solid #000; border-right:1px solid #000; border-top:1px solid #000; border-bottom:1px solid #000;">';
                 $hdrs = [
@@ -562,6 +564,8 @@ $qGetAccount = $CI->db->query($sqlGetAccount, $params);
                     'SIDate',
                     'ItemCode',
                     'ItemName',
+                    'Item Code Customer',
+                    'Item Name Customer',
                     'category',
                     'type',
                     'color',
@@ -615,7 +619,8 @@ $qGetAccount = $CI->db->query($sqlGetAccount, $params);
                     echo '<td nowrap style="' . $borderStyle . '" class="formtextreport" align="right">' . ($row->invoice_date ? date('d M Y', strtotime($row->invoice_date)) : '&nbsp;') . '</td>';
                     echo '<td nowrap style="' . $borderStyle . '" class="formtextreport">' . ($row->item_code ?: '&nbsp;') . '</td>';
                     echo '<td nowrap style="' . $borderStyle . '" class="formtextreport">' . ($row->item_name ?: '&nbsp;') . '</td>';
-
+                    echo '<td nowrap style="' . $borderStyle . '" class="formtextreport">' . ($row->ItemCodeCust ?: '&nbsp;') . '</td>';
+                    echo '<td nowrap style="' . $borderStyle . '" class="formtextreport">' . ($row->ItemNameCust ?: '&nbsp;') . '</td>';
                     // category name query (inline, as in CF)
                     $qCat = $CI->db->query("select itemcategory_name from titemcategory inner join titemcompany on titemcompany.itemcategory_id=titemcategory.itemcategory_id where item_code=?", [$row->item_code]);
                     $catName = ($qCat->num_rows() ? $qCat->row()->itemcategory_name : '');
