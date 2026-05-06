@@ -174,8 +174,8 @@ class CbrAppPresidentDirector extends CI_Controller
             $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR UserDivision LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+            // $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
+            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%') ";
         }
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();

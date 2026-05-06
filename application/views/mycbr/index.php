@@ -81,7 +81,7 @@
                                 </form>
                             </div>
                             <div class="modal fade" tabindex="-1" id="modal-bulk-payment-plan">
-                                <div class="modal-dialog">
+                                <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title">Bulk Update Payment Plan Date</h5>
@@ -94,10 +94,15 @@
                                                 <i class="fas fa-info-circle fs-1 text-primary me-3"></i>
                                                 <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count">0</b> dokumen yang dipilih.</span>
                                             </div>
-                                            <div class="mb-3">
-                                                <label class="form-label fw-bold required">New Payment Plan Date</label>
-                                                <input type="text" id="bulk_payment_date" class="form-control date-picker" placeholder="Select Date">
+
+                                            <label class="form-label fw-bold required">Set Payment Plan Date</label>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon3"><?= $this->session->userdata('sys_sba_department') ?>_</span>
+                                                </div>
+                                                <input type="text" id="bulk_payment_date" class="form-control date-picker" placeholder="Select Date" aria-describedby="basic-addon3">
                                             </div>
+
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
@@ -232,7 +237,7 @@
                                 </table>
                             </div>
                             <div class="modal fade" tabindex="-1" id="modal-bulk-payment-plan-history">
-                                <div class="modal-dialog">
+                                <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title text-danger"><i class="fas fa-history text-danger me-2"></i> Bulk Update History Payment Date</h5>
@@ -245,9 +250,18 @@
                                                 <i class="fas fa-exclamation-triangle fs-1 text-danger me-3"></i>
                                                 <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count-history">0</b> data di <b>History</b>.</span>
                                             </div>
+
+                                            <label class="form-label fw-bold required">New Payment Plan Date</label>
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon3"><?= $this->session->userdata('sys_sba_department') ?>_</span>
+                                                </div>
+                                                <input type="text" id="bulk_payment_date_history" class="form-control date-picker" placeholder="Select Date" aria-describedby="basic-addon3">
+                                            </div>
+
+
                                             <div class="mb-3">
-                                                <label class="form-label fw-bold required">New Payment Plan Date</label>
-                                                <input type="text" id="bulk_payment_date_history" class="form-control date-picker" placeholder="Select Date">
+
                                             </div>
                                         </div>
                                         <div class="modal-footer">

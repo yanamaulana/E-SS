@@ -8,8 +8,8 @@ class MyCbr extends CI_Controller
     private $layout = 'layout';
     private $Ttrx_Cbr_Approval = 'Ttrx_Cbr_Approval';
     private $TmstTrxSettingSteppApprovalCbr = 'TmstTrxSettingSteppApprovalCbr';
-    private $QviewTrx_Assignment_Approval_User = 'QviewTrx_Assignment_Approval_User'; // hanya identitas user ke master step
-    private $Qview_Assignment_Approval_User = 'Qview_Assignment_Approval_User'; // detail dengan approval jabatan yang harus melakukan approval
+    private $QviewTrx_Assignment_Approval_User = 'QviewTrx_Assignment_Approval_User';
+    private $Qview_Assignment_Approval_User = 'Qview_Assignment_Approval_User';
     private $Ttrx_Dtl_Attachment_Cbr = 'Ttrx_Dtl_Attachment_Cbr';
     private $Qview_trx_Dtl_Attachment_Cbr = 'Qview_trx_Dtl_Attachment_Cbr';
     private $Ttrx_DtlHst_Attachment_Cbr = 'Ttrx_DtlHst_Attachment_Cbr';
@@ -38,6 +38,7 @@ class MyCbr extends CI_Controller
     {
         $cbr_list = $this->input->post('cbr_list'); // Ini berupa array
         $new_date = $this->input->post('new_date');
+        $UserDiv = $this->session->userdata('sys_sba_department');
 
         if (empty($cbr_list) || empty($new_date)) {
             echo json_encode(['code' => 500, 'msg' => 'Invalid Data']);
@@ -49,7 +50,7 @@ class MyCbr extends CI_Controller
         // Update sekaligus menggunakan where_in
         $this->db->where_in('CBReq_No', $cbr_list);
         $this->db->update('TaccCashBookReq_Header', [
-            'Payment_Plan_Date' => $new_date,
+            'Payment_Plan_Date' => $UserDiv . '_' . $new_date,
             'Last_Update'       => date('Y-m-d H:i:s')
         ]);
 
