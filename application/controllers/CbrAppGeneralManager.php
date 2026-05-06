@@ -204,18 +204,22 @@ class CbrAppGeneralManager extends CI_Controller
 
         // 2. Menambahkan Filter Pencarian (Search)
         if (!empty($requestData['search']['value'])) {
-            $searchValue = $this->db->escape_like_str($requestData['search']['value']); // Pencegahan SQL Injection untuk LIKE
+            $searchValue = $requestData['search']['value'];
 
-            // Tambahkan kondisi search, pastikan dilingkupi oleh tanda kurung ()
-            $sql .= " AND (H.CBReq_No LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR P.First_Name LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Document_Number LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Document_Date LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Currency_Id LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Descript LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.CBReq_Status LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Payment_Plan_Date LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Amount LIKE '%" . $searchValue . "%') ";
+            $sql .= " AND (
+                    H.CBReq_No LIKE '%$searchValue%' 
+                    OR P.First_Name LIKE '%$searchValue%' 
+                    OR H.Document_Number LIKE '%$searchValue%' 
+                    OR H.Currency_Id LIKE '%$searchValue%' 
+                    OR H.Descript LIKE '%$searchValue%' 
+                    OR A.UserDivision LIKE '%$searchValue%'
+                    -- Kolom Date dikonversi ke String
+                    OR CAST(H.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(H.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    -- Kolom Numeric dikonversi ke String
+                    OR CAST(H.Amount AS VARCHAR) LIKE '%$searchValue%'
+                    -- OR CAST(H.CBReq_Status AS VARCHAR) LIKE '%$searchValue%'
+                )";
         }
 
         // Total data setelah filter pencarian

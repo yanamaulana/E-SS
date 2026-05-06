@@ -176,6 +176,21 @@ class CbrAppPresidentDirector extends CI_Controller
             $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
             // $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
             $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%') ";
+
+
+            $searchValue = $requestData['search']['value'];
+            $sql .= " AND (
+                    TAccCashBookReq_Header.CBReq_No LIKE '%$searchValue%' 
+                    OR TUserPersonal.First_Name LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Document_Number LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Currency_Id LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Descript LIKE '%$searchValue%' 
+                    OR Ttrx_Cbr_Approval.UserDivision LIKE '%$searchValue%'
+                    -- Kolom Date dikonversi ke String
+                    OR CAST(TAccCashBookReq_Header.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(TAccCashBookReq_Header.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(TAccCashBookReq_Header.Amount AS VARCHAR) LIKE '%$searchValue%'
+                )";
         }
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();

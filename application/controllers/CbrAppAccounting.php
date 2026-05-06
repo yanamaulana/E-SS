@@ -150,15 +150,19 @@ class CbrAppAccounting extends CI_Controller
 
         $totalData = $this->db->query($sql)->num_rows();
         if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+            $searchValue = $requestData['search']['value'];
+            $sql .= " AND (
+                    Ttrx_Cbr_Approval.CBReq_No LIKE '%$searchValue%' 
+                    OR TUserPersonal.First_Name LIKE '%$searchValue%' 
+                    OR Ttrx_Cbr_Approval.Document_Number LIKE '%$searchValue%' 
+                    OR Ttrx_Cbr_Approval.Currency_Id LIKE '%$searchValue%' 
+                    OR Ttrx_Cbr_Approval.Descript LIKE '%$searchValue%' 
+                    OR Ttrx_Cbr_Approval.UserDivision LIKE '%$searchValue%'
+                    -- Kolom Date dikonversi ke String
+                    OR CAST(TAccCashBookReq_Header.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(TAccCashBookReq_Header.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(TAccCashBookReq_Header.Amount AS VARCHAR) LIKE '%$searchValue%'
+                )";
         }
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();

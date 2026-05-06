@@ -205,22 +205,19 @@ class CbrAppDirector extends CI_Controller
 
         // 2. Menambahkan Filter Pencarian (Search)
         if (!empty($requestData['search']['value'])) {
-            // Menggunakan escape_like_str untuk mencegah SQL Injection
-            $searchValue = $this->db->escape_like_str($requestData['search']['value']);
-
-            // Masalah pada kode asli: Kondisi AND (LIKE OR LIKE) harus ditambahkan setelah WHERE utama
-            // Jika ditambahkan tanpa tanda kurung penutup setelah kondisi OR utama,
-            // logika akan rusak. Di sini, kita menambahkan AND (....) pada akhir kueri.
-
-            $sql .= " AND (H.CBReq_No LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR P.First_Name LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Document_Number LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Document_Date LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Currency_Id LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Descript LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.CBReq_Status LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Payment_Plan_Date LIKE '%" . $searchValue . "%' ";
-            $sql .= " OR H.Amount LIKE '%" . $searchValue . "%') ";
+            $searchValue = $requestData['search']['value'];
+            $sql .= " AND (
+                    H.CBReq_No LIKE '%$searchValue%' 
+                    OR P.First_Name LIKE '%$searchValue%' 
+                    OR H.Document_Number LIKE '%$searchValue%' 
+                    OR H.Currency_Id LIKE '%$searchValue%' 
+                    OR H.Descript LIKE '%$searchValue%' 
+                    OR A.UserDivision LIKE '%$searchValue%'
+                    -- Kolom Date dikonversi ke String
+                    OR CAST(H.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(H.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' 
+                    OR CAST(H.Amount AS VARCHAR) LIKE '%$searchValue%'
+                )";
         }
 
         // Total data setelah filter pencarian
