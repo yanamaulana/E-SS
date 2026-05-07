@@ -154,9 +154,9 @@ class CbrAppAccounting extends CI_Controller
             $sql .= " AND (
                     Ttrx_Cbr_Approval.CBReq_No LIKE '%$searchValue%' 
                     OR TUserPersonal.First_Name LIKE '%$searchValue%' 
-                    OR Ttrx_Cbr_Approval.Document_Number LIKE '%$searchValue%' 
-                    OR Ttrx_Cbr_Approval.Currency_Id LIKE '%$searchValue%' 
-                    OR Ttrx_Cbr_Approval.Descript LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Document_Number LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Currency_Id LIKE '%$searchValue%' 
+                    OR TAccCashBookReq_Header.Descript LIKE '%$searchValue%' 
                     OR Ttrx_Cbr_Approval.UserDivision LIKE '%$searchValue%'
                     -- Kolom Date dikonversi ke String
                     OR CAST(TAccCashBookReq_Header.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
