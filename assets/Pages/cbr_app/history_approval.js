@@ -22,8 +22,8 @@ $(document).ready(function () {
             dom: '<"row mb-3"<"col-sm-12"B>><"row"<"col-sm-11"f><"col-sm-1"l>>rtip',
             select: true,
             "lengthMenu": [
-                [10, 30, 90, 1000, 9999],
-                [10, 30, 90, 1000, 9999]
+                [10, 30, 90, 1000, 5000],
+                [10, 30, 90, 1000, 5000]
             ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "HistoryApproval/DT_List_History_Approval",
