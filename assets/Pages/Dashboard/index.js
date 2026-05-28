@@ -95,7 +95,7 @@ $(document).ready(function () {
                                     </td>`;
                         bodyRow += `<td>
                                         <span href="#" class="text-dark fw-bolder text-hover-primary d-block fs-6">${divData.Total_CBRs}</span>
-                                        <span class="text-muted fw-bold text-muted d-block fs-7">Total Cbr Submitted</span>
+                                        <span class="text-muted fw-bold text-muted d-block fs-7">Total CBR Submitted</span>
                                     </td>`;
 
                         // Looping berdasarkan master daftar mata uang agar kolomnya konsisten menyamping
