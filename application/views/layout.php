@@ -254,7 +254,6 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
-
                             <?php if ($sess_jabatan == 'Finance Director' || $sess_jabatan == 'President Director' || $sess_dept == 'Accounting' || $is_admin == true) : ?>
                                 <!-- $is_admin == true || -->
                                 <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Cbr">
@@ -270,9 +269,6 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
-
-
-
                             <?php if ($isSalesPerson == 1) : ?>
                                 <?php
                                 $accessCount = $this->db->where_in('sf_ufunc_access', ['write', 'delete'])
@@ -301,10 +297,6 @@
                                     </div>
                                 <?php endif; ?>
                             <?php endif; ?>
-
-
-
-
                             <?php if ($sess_jabatan != 'Director' && $sess_jabatan != 'Finance Director' && $sess_jabatan != 'President Director') : ?>
                                 <div class="menu-item">
                                     <div class="menu-content pt-4 pb-2">

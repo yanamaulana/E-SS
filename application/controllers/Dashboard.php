@@ -5,6 +5,8 @@ class Dashboard extends CI_Controller
 {
     private $Day;
     private $Date;
+    private $year;
+    private $month;
     private $layout = 'layout';
 
     public function __construct()
@@ -13,17 +15,52 @@ class Dashboard extends CI_Controller
         is_logged_in();
         $this->Day = date("l");
         $this->Date = date("Y-m-d");
+        $this->year = date("Y");
+        $this->month = date("n");
         $this->load->model('m_helper', 'help');
+        $this->load->model('m_Dashboard', 'dash_help');
     }
 
     public function index()
     {
         $this->data['page_title'] = "Dashboard";
-        $this->data['page_content'] = "Dashboard/index";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/Dashboard/index.js"></script>';
+        $username = $this->session->userdata('sys_sba_username');
+
+        if ($this->session->userdata('sys_sba_jabatan') == 'President Director') {
+            $this->data['page_content'] = "Dashboard/index_presdir";
+            $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/Dashboard/index.js?v=' . time() . '""></script>';
+        } else {
+            $this->data['page_content'] = "Dashboard/index";
+            $this->data['script_page'] =  '';
+        }
+
         $this->data['date'] = date('Y-m-d');
+        $this->data['Awaiting_Approvals'] = $this->dash_help->get_Count_Awaiting_Approvals($username);
+        $this->data['Approved'] = $this->dash_help->get_Count_After_Approvals($username, 1);
+        $this->data['Rejected'] = $this->dash_help->get_Count_After_Approvals($username, 2);
+        $this->data['Amount_Approved'] = $this->dash_help->get_Amount_Approved($username);
+
+        $table_data = $this->dash_help->get_Division_Summary(0, $username, $this->year, $this->month);
+        $this->data['currencies'] = $table_data['currencies'];
+        $this->data['divisions']  = $table_data['divisions'];
 
         $this->load->view($this->layout, $this->data);
+    }
+
+    public function get_history_data()
+    {
+        $username = $this->session->userdata('sys_sba_username');
+        $year = $this->input->post('year');
+        $month = $this->input->post('month');
+
+        $table_data = $this->dash_help->get_Division_Summary(1, $username, $year, $month);
+        $currencies = $table_data['currencies'];
+        $divisions  = $table_data['divisions'];
+
+        echo json_encode([
+            'currencies' => $currencies,
+            'divisions' => $divisions
+        ]);
     }
 
     public function Access_log()
