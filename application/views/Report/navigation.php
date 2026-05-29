@@ -59,26 +59,26 @@
                                 </div>
                             </div>
                         </div>
-
-
-                        <div class="col-lg-4 col-md-4 mt-4">
-                            <div class="card card-bordered shadow-sm">
-                                <div class="card-body p-0">
-                                    <div class="dropdown text-center">
-                                        <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenu3" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <strong>HR Report</strong>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu3">
-                                            <li><a href="<?= base_url('ReportPemakaianCuti') ?>" class="dropdown-item">Pemakaian Cuti Terkini</a></li>
-                                            <li><a href="<?= base_url('InformasiKaryawan') ?>" class="dropdown-item">Master Data Karyawan & Photo</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="text-center px-4">
-                                        <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/undraw_team-page_q5am.png">
+                        <?php if ($this->session->userdata('sys_sba_isAdm') == true || $this->session->userdata('sys_sba_NIK') == '09466'): ?>
+                            <div class="col-lg-4 col-md-4 mt-4">
+                                <div class="card card-bordered shadow-sm">
+                                    <div class="card-body p-0">
+                                        <div class="dropdown text-center">
+                                            <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenu3" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <strong>HR Report</strong>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu3">
+                                                <li><a href="<?= base_url('ReportPemakaianCuti') ?>" class="dropdown-item">Pemakaian Cuti Terkini</a></li>
+                                                <li><a href="<?= base_url('InformasiKaryawan') ?>" class="dropdown-item">Master Data Karyawan & Photo</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="text-center px-4">
+                                            <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/undraw_team-page_q5am.png">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
