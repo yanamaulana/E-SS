@@ -61,11 +61,11 @@ $(document).ready(function () {
             destroy: true,
             processing: true,
             serverSide: true,
-            dom: '<"row"<"col-md-6"><"col-md-6">><"row"<"col-md-8"l><"col-md-4"B>>rtip',
+            dom: '<"row mb-3"<"col-sm-12"B>><"row"<"col-sm-11"f><"col-sm-1"l>>rtip',
             select: true,
-            lengthMenu: [
-                [50, 10000],
-                [50, 'All']
+            "lengthMenu": [
+                [15, 50, 100, 4999],
+                [15, 50, 100, 4999]
             ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "InformasiKaryawan/DT_List_Employee",
@@ -76,143 +76,233 @@ $(document).ready(function () {
                     param: parameter
                 }
             },
-            columns: [{
-                data: "Emp_No",
-                name: "Emp_No",
-                visible: true,
-                render: function (data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
-                }
-            },
-            {
-                data: "Emp_No",
-                name: "Emp_No",
-            },
-            {
-                data: "First_Name",
-                name: "First_Name",
-            },
-            {
-                data: "Pos_Name",
-                name: "Pos_Name",
-            },
-            {
-                data: "Division_Name",
-                name: "Division_Name",
-            },
-            {
-                data: "costcenter_name",
-                name: "costcenter_name",
-            },
-            {
-                data: "Emp_No",
-                name: "Emp_No",
-                render: function (data) {
-                    return cekStatusKontrak(data)
-                }
-            },
-            {
-                data: "Date_Of_Birth",
-                name: "Date_Of_Birth",
-                render: function (data) {
-                    return hitungUmur(data)
-                }
-            },
-            {
-                data: "Start_Date",
-                name: "Start_Date",
-                render: function (data) {
-                    return hitungUmurKerja(data)
-                }
-            },
-            {
-                data: "Email",
-                name: "Email",
-            },
-            {
-                data: "MOBILE_PHONE",
-                name: "MOBILE_PHONE",
-            },
-            {
-                data: "EMP_IMAGE",
-                name: "EMP_IMAGE",
-                render: function (data, type, row, meta) {
-                    return `<div class="card shadow">
+            columns: [
+                {
+                    // 1. No
+                    data: "Emp_No",
+                    name: "Emp_No",
+                    render: function (data, type, row, meta) {
+                        return meta.row + meta.settings._iDisplayStart + 1;
+                    }
+                },
+                {
+                    // 2. NIP
+                    data: "Emp_No",
+                    name: "Emp_No",
+                },
+                {
+                    // 3. EMP ID
+                    data: "Emp_ID",
+                    name: "Emp_ID",
+                },
+                {
+                    // 4. Nama Karyawan
+                    data: "FullName",
+                    name: "FullName",
+                },
+                {
+                    // 5. Jenis Kelamin
+                    data: "Gender",
+                    name: "Gender",
+                    render: function (data) {
+                        return data == 1 ? "Pria" : "Wanita";
+                    }
+                },
+                {
+                    // 6. Alamat
+                    data: "Address1",
+                    name: "Address1",
+                },
+                {
+                    // 7. Tempat Lahir
+                    data: "Birth_Place",
+                    name: "Birth_Place",
+                },
+                {
+                    // 8. Tanggal Lahir
+                    data: "Date_Of_Birth",
+                    name: "Date_Of_Birth",
+                    render: function (data) {
+                        return data ? data : "N/A";
+                    }
+                },
+                {
+                    // 9. Umur
+                    data: "Date_Of_Birth",
+                    name: "Date_Of_Birth",
+                    render: function (data) {
+                        return data ? hitungUmur(data) : "N/A";
+                    }
+                },
+                {
+                    // 10. Tanggal Bergabung
+                    data: "Start_Date",
+                    name: "Start_Date",
+                    render: function (data) {
+                        return data ? data : "N/A";
+                    }
+                },
+                {
+                    // 11. Masa Kerja
+                    data: "Start_Date",
+                    name: "Start_Date",
+                    render: function (data, type, row) {
+                        return data ? hitungUmurKerja(data) : "N/A";
+                    }
+                },
+                {
+                    // 12. Tanggal Resign
+                    data: "End_Date",
+                    name: "End_Date",
+                    visible: false,
+                },
+                {
+                    // 13. Jabatan
+                    data: "Position_Name_En",
+                    name: "Position_Name_En",
+                },
+                {
+                    // 14. Pendidikan
+                    data: "Edu_Name",
+                    name: "Edu_Name",
+                    render: function (data) {
+                        return data ? data : "N/A";
+                    }
+                },
+                {
+                    // 15. Status Karyawan
+                    data: "EmploymentStatus_Name_En",
+                    name: "EmploymentStatus_Name_En",
+                },
+                {
+                    // 16. Status Pernikahan
+                    data: "Marital_Status",
+                    name: "Marital_Status",
+                    render: function (data) {
+                        return data == 1 ? "Married" : "Single";
+                    }
+                },
+                {
+                    // 17. Status Pajak
+                    data: "TaxStatus",
+                    name: "TaxStatus",
+                    render: function (data, type, row) {
+                        return data == 0 ? "TK" : "K/" + (row.NumDependent ? row.NumDependent : 0);
+                    }
+                },
+                {
+                    // 18. Gaji Pokok
+                    data: "Salary",
+                    name: "Salary",
+                    render: function (data) {
+                        return data ? Number(data).toLocaleString('id-ID') : 0;
+                    }
+                },
+                {
+                    // 19. Tunjangan Insentif
+                    data: "Insentif",
+                    name: "Insentif",
+                    render: function (data) {
+                        return data ? Number(data).toLocaleString('id-ID') : 0;
+                    }
+                },
+                {
+                    // 20. Tunjangan Jabatan
+                    data: "Tunj_Jabatan",
+                    name: "Tunj_Jabatan",
+                    render: function (data) {
+                        return data ? Number(data).toLocaleString('id-ID') : 0;
+                    }
+                },
+                {
+                    // 21. Uang Makan
+                    data: "Uang_Makan",
+                    name: "Uang_Makan",
+                    render: function (data) {
+                        return data ? Number(data).toLocaleString('id-ID') : 0;
+                    }
+                },
+                {
+                    // 22. Uang Transport
+                    data: "Uang_Trans",
+                    name: "Uang_Trans",
+                    render: function (data) {
+                        return data ? Number(data).toLocaleString('id-ID') : 0;
+                    }
+                },
+                {
+                    // 23. Cost Center
+                    data: "CostCenter_Code",
+                    name: "CostCenter_Code",
+                    render: function (data, type, row) {
+                        return `${row.CostCenter_Code} - ${row.CostCenter_Name_En}`;
+                    }
+                },
+                {
+                    // 24. KTP
+                    data: "NRIC",
+                    name: "NRIC",
+                },
+                {
+                    // 25. No BPJS Kesehatan
+                    data: "No_BPJSKES",
+                    name: "No_BPJSKES",
+                },
+                {
+                    // 26. No BPJS Ketenagakerjaan
+                    data: "No_JAMSOSTEK",
+                    name: "No_JAMSOSTEK",
+                },
+                {
+                    // 27. Mobile Phone
+                    data: "Mobile_Phone",
+                    name: "Mobile_Phone",
+                },
+                {
+                    // 28. Email
+                    data: "EMAIL",
+                    name: "EMAIL",
+                },
+                {
+                    // 29. Bank Account
+                    data: "BANK_ACCOUNT",
+                    name: "BANK_ACCOUNT",
+                }, {
+                    data: "EMP_IMAGE",
+                    name: "EMP_IMAGE",
+                    render: function (data, type, row, meta) {
+                        return `<div class="card shadow">
                             <img class="card-img-top" src="${$('meta[name="base_url"]').attr('content')}assets/Files/photo/${row.Emp_No}.jpg" alt="Employee Photo" style="width: 10vh; object-fit: cover;">
                     </div>`;
-                }
-            },
+                    }
+                },
             ],
             order: [[1, "asc"]],
             columnDefs: [
-                { className: "text-center", targets: [0, 6, 7, 10], },
-                { className: "text-left", targets: [] }
+                // Penyesuaian Indeks berdasarkan 29 Kolom
+                { className: "text-center", targets: [0, 2, 4, 7, 8, 9, 10, 11, 15, 16, 23, 24, 25, 26, 27, 28] },
+                { className: "text-right", targets: [17, 18, 19, 20, 21] }
             ],
             autoWidth: true,
             responsive: false,
-            rowCallback: function (row, data) {
-                // console.log(row.Is_Close)
-                // if (data.Is_NotActive == 1) {
-                //     $('td', row).css('background-color', 'grey');
-                // }
-            },
             preDrawCallback: function () {
                 $("#DataTable tbody td").addClass("blurry");
             },
             language: {
-                processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" style="text-align:center" class="loading-text"></span> ',
+                processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" class="loading-text"></span> ',
             },
             drawCallback: function () {
-                $("#DataTable tbody td").addClass("blurry");
-                setTimeout(function () {
-                    $("#DataTable tbody td").removeClass("blurry");
-                });
+                $("#DataTable tbody td").removeClass("blurry");
                 $('[data-toggle="tooltip"]').tooltip();
             },
-            "buttons": [
-                //     {
-                //     text: `<i class="fas fa-plus fs-3"></i>`,
-                //     className: "bg-primary",
-                //     action: function (e, dt, node, config) {
-                //         window.location.href = $('meta[name="base_url"]').attr('content') + "Backend/Blog/index"
-                //     }
-                // }, {
-                //     text: `<i class="fas fa-edit fs-3"></i>`,
-                //     className: "btn btn-warning",
-                //     action: function (e, dt, node, config) {
-                //         var RowData = dt.rows({
-                //             selected: true
-                //         }).data();
-                //         if (RowData.length == 0) {
-                //             Swal.fire({
-                //                 icon: 'warning',
-                //                 title: 'Ooppss...',
-                //                 text: 'Please select data to be update !',
-                //                 footer: '<a href="javascript:void(0)" class="text-danger">Notifikasi System</a>'
-                //             });
-                //         } else {
-                //             Init_Append_Modal_Update(RowData[0].SysId)
-                //         }
-                //     }
-                // }, {
-                //     text: `<i class="fas fa-trash"></i>`,
-                //     className: "btn disabled text-dark bg-white",
-                //     action: function (e, dt, node, config) {
-                //         var RowData = dt.rows({
-                //             selected: true
-                //         }).data();
-                // if (RowData.length == 0) {
-                //     Swal.fire({
-                //         icon: 'warning',
-                //         title: 'Ooppss...',
-                //         text: 'Please select data to be delete !',
-                //         footer: '<a href="javascript:void(0)" class="text-danger">Notifikasi System</a>'
-                //     });
-                // } else {
-                //     Fn_Delete_RowData(RowData[0].SysId)
-                // }
-                // }
-                // },
+            buttons: [
+                {
+                    text: `<i class="fas fa-id-card-alt"></i> Upload Photo`,
+                    className: "btn btn-light-info",
+                    action: function (e, dt, node, config) {
+                        window.location.href = $('meta[name="base_url"]').attr('content') + "InformasiKaryawan/upload_photo";
+                    }
+                },
                 {
                     text: `Export to :`,
                     className: "btn disabled text-dark bg-white",
@@ -235,9 +325,13 @@ $(document).ready(function () {
                     text: `<i class="fas fa-print"></i>`,
                     extend: 'print',
                     className: "btn btn-sm btn-warning",
-                }],
+                }
+            ],
         }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
     }
+
+
+
     InitDataTable($('#var').val(), $('#param').val());
 
 })

@@ -20,7 +20,7 @@
                     <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade active show" id="kt_tab_pane_4" role="tabpanel">
 
-                            <div class="row mb-6">
+                            <!-- <div class="row mb-6">
                                 <label for="Account" class="col-sm-1 col-form-label-sm col-form-label">Filter :</label>
                                 <div class="col-sm-6">
                                     <div class="input-group">
@@ -30,7 +30,7 @@
                                             <option value="Pos_Name">Position Name</option>
                                             <option value="Division_Name">Unit</option>
                                             <option value="costcenter_name">Section</option>
-                                            <!-- <option value="EMPLOYMENTSTATUS_NAME">Status</option> -->
+
                                             <option value="Emai">Email</option>
                                             <option value="MOBILE_PHONE">Mobile Phone</option>
                                         </select>
@@ -39,23 +39,41 @@
                                         <button class="input-group-text btn btn-sm btn-primary" type="button" id="search" title="Search" data-toggle="tooltip"><i class="fas fa-search"></i></button>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <div class="pb-5 table-responsive">
                                 <table class="display compact table-bordered table-striped table-hover table-sm align-middle gy-5 gs-5" id="DataTable">
                                     <thead>
-                                        <tr style="background-color: #3B6D8C;">
-                                            <th>#</th>
-                                            <th>NIK</th>
-                                            <th>NAME</th>
-                                            <th>POSITION</th>
-                                            <th>UNIT</th>
-                                            <th>SECTION</th>
-                                            <th>STATUS</th>
-                                            <th>AGE</th>
-                                            <th>TENURE</th>
-                                            <th>EMAIL</th>
-                                            <th>PHONE</th>
+                                        <tr style="font-weight: bold; background-color: #3B6D8C;" align=" center">
+                                            <th>No</th>
+                                            <th>NIP</th>
+                                            <th>EMP ID</th>
+                                            <th>Nama Karyawan</th>
+                                            <th>Jenis Kelamin</th>
+                                            <th style="min-width: 250px !important;">Alamat</th>
+                                            <th>Tempat Lahir</th>
+                                            <th>Tanggal Lahir</th>
+                                            <th>Umur</th>
+                                            <th>Tanggal Bergabung</th>
+                                            <th>Masa Kerja</th>
+                                            <th>Tanggal Resign</th>
+                                            <th>Jabatan</th>
+                                            <th>Pendidikan</th>
+                                            <th>Status Karyawan</th>
+                                            <th>Status Pernikahan</th>
+                                            <th>Status Pajak</th>
+                                            <th>Gaji Pokok</th>
+                                            <th>Tunjangan Insentif</th>
+                                            <th>Tunjangan Jabatan</th>
+                                            <th>Uang Makan</th>
+                                            <th>Uang Transport</th>
+                                            <th>Cost Center</th>
+                                            <th>KTP</th>
+                                            <th>No BPJS Kesehatan</th>
+                                            <th>No BPJS Ketenagakerjaan</th>
+                                            <th>Mobile Phone</th>
+                                            <th>Email</th>
+                                            <th>Bank Account</th>
                                             <th>PHOTO</th>
                                         </tr>
                                     </thead>

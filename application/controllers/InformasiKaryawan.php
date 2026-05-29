@@ -88,94 +88,150 @@ class InformasiKaryawan extends CI_Controller
 
     public function DT_List_Employee()
     {
-        $query = "select * from $this->HRQview_Employee_Detail WHERE Emp_No NOT in ('09466',
-'09460',
-'29319',
-'09188',
-'08218',
-'09433',
-'09438',
-'09499',
-'05202',
-'04628',
-'09008',
-'09085',
-'09243',
-'30194',
-'30358',
-'09073',
-'09465',
-'09510',
-'29475',
-'07826',
-'09422') AND Emp_No In ('09466',
-'09460',
-'29319',
-'09188',
-'08218',
-'09433',
-'09438',
-'09499',
-'05202',
-'04628',
-'09008',
-'09085',
-'09243',
-'30194',
-'30358',
-'09073',
-'09465',
-'09510',
-'29475',
-'07826',
-'09422',
-'04566',
-'07980',
-'08752',
-'09093',
-'08803',
-'09412',
-'09175',
-'09291',
-'29555',
-'29557',
-'09434',
-'09436',
-'30357',
-'09429',
-'09075',
-'04412',
-'09442',
-'00032',
-'04796',
-'09331',
-'09279',
-'05671',
-'09518',
-'03085',
-'07094');";
-        $search = [];
+        $requestData = $_REQUEST;
 
-        $isWhere = null;
+        // Pemetaan 29 Kolom untuk Order By DataTables
+        $columns = array(
+            0 => 'EmpComp.Emp_No',
+            1 => 'EmpComp.Emp_No',
+            2 => 'EmpData.Emp_ID',
+            3 => 'EmpData.First_Name',
+            4 => 'EmpData.Gender',
+            5 => 'EmpData.Address1',
+            6 => 'EmpData.Birth_Place',
+            7 => 'EmpData.Date_Of_Birth',
+            8 => 'EmpData.Date_Of_Birth',
+            9 => 'EmpComp.Start_Date',
+            10 => 'EmpComp.Start_Date',
+            11 => 'EmpComp.End_Date',
+            12 => 'EmpPos.Position_Name_En',
+            13 => 'EmpEdu.Edu_Name',
+            14 => 'EmpStatus.EmploymentStatus_Name_En',
+            15 => 'EmpData.Marital_Status',
+            16 => 'EmpSal.TaxStatus',
+            17 => 'EmpSal.Salary',
+            18 => 'EmpSal.PayrollField1',
+            19 => 'EmpSal.PayrollField2',
+            20 => 'EmpSal.PayrollField6',
+            21 => 'EmpSal.Payrollfield5',
+            22 => 'EmpCost.CostCenter_Code',
+            23 => 'EmpData.NRIC',
+            24 => 'No_BPJSKES',
+            25 => 'No_JAMSOSTEK',
+            26 => 'EmpData.Mobile_Phone',
+            27 => 'EmpData.EMAIL',
+            28 => 'EmpComp.BANK_ACCOUNT',
+            29 => 'EmpData.EMP_IMAGE'
+        );
 
-        $where  = null;
+        $order  = $columns[$requestData['order']['0']['column']];
+        $dir    = $requestData['order']['0']['dir'];
+        // $from   = $this->input->post('from');
+        // $until  = $this->input->post('until');
 
-        header('Content-Type: application/json');
-        echo $this->M_Datatable_HR->get_tables_query($query, $search, $where, $isWhere);
-        // if (!empty($this->input->post('param'))) {
-        // } else {
-        //     header('Content-Type: application/json');
-        //     echo $this->M_Datatable_HR->get_tables_query($query, $where, $search, $isWhere);
-        // }
+        $sql = "SELECT EmpComp.Emp_No AS Emp_No, 
+            EmpData.Emp_ID, 
+            EmpData.First_Name+' '+EmpData.Middle_Name+' '+EmpData.Last_Name AS FullName, 
+            EmpData.Gender AS Gender, 
+            EmpData.Address1, 
+            EmpData.Birth_Place AS Birth_Place, 
+            EmpData.Date_Of_Birth AS Date_Of_Birth,
+            EmpComp.Start_Date AS Start_Date,
+            EmpComp.End_Date AS End_Date,
+            EmpPos.Position_Name_En,
+            EmpEdu.Edu_Name AS Edu_Name,
+            EmpStatus.EmploymentStatus_Name_En AS EmploymentStatus_Name_En,
+            EmpData.Marital_Status AS Marital_Status,
+            EmpSal.TaxStatus AS TaxStatus,
+            EmpSal.NumDependent AS NumDependent,
+            dbo.SF131412(EmpSal.Salary, 'muliaditinawellystif', '10001010101001010010') AS Salary,
+            EmpSal.PayrollField1 AS Insentif,
+            EmpSal.PayrollField2 AS Tunj_Jabatan,
+            EmpSal.PayrollField6 AS Uang_Makan,
+            EmpSal.Payrollfield5 AS Uang_Trans,
+            EmpCost.CostCenter_Code AS CostCenter_Code,
+            EmpCost.CostCenter_Name_En AS CostCenter_Name_En,
+            EmpData.NRIC, 
+            (Select Insurance_No from THRMEmpInsurance EmpInsurance1 where EmpInsurance1.Insurance_Institution = 'BPJSKES' and EmpInsurance1.Emp_ID = EmpComp.EMP_ID) as No_BPJSKES,
+            (Select Insurance_No from THRMEmpInsurance EmpInsurance2 where EmpInsurance2.Insurance_Institution = 'JAMSOSTEK' and EmpInsurance2.Emp_ID = EmpComp.EMP_ID) as No_JAMSOSTEK,
+            EmpData.Phone, 
+            EmpData.Mobile_Phone, 
+            EmpData.Phone1, 
+            EmpData.EMAIL,  
+            EmpComp.BANK_ACCOUNT,
+            EmpData.EMP_IMAGE
+        FROM THRMEmpPersonalData EmpData
+        LEFT JOIN THRMEmpCompany EmpComp ON EmpData.Emp_ID = EmpComp.Emp_ID
+        LEFT JOIN THRMEmpSalaryParam EmpSal ON EmpComp.EMP_ID = EmpSal.Emp_ID
+        LEFT JOIN THRMEmpEducation EmpEdu ON EmpComp.Emp_ID = EmpEdu.Emp_ID
+        LEFT JOIN THRMEmploymentStatus EmpStatus ON EmpComp.Employment_Code = EmpStatus.EmploymentStatus_Code
+        LEFT JOIN THRMPosition EmpPos ON EmpComp.Position_ID = EmpPos.Position_ID
+        LEFT JOIN THRMCostCenter EmpCost ON EmpComp.Cost_Center = EmpCost.CostCenter_Code
+        WHERE EmpComp.Start_Date <= '$this->DateTime'
+        AND (EmpComp.End_Date IS NULL OR EmpComp.End_Date = '' OR EmpComp.End_Date >= '$this->DateTime')";
 
-        // $query  = "SELECT A.*, B.Account_Name AS supplier " .
-        //     "FROM ttrx_hdr_payment_purchase A " .
-        //     "INNER JOIN tmst_account B ON A.id_supplier = B.SysId";
-        // $search = array('A.doc_number', 'A.keterangan', 'B.Account_Name');
-        // $where  = null;
-        // $isWhere = null;
+        $totalData = $this->HR->query($sql)->num_rows();
 
-        // header('Content-Type: application/json');
-        // echo $this->M_Datatables->get_tables_query($query, $search, $where, $isWhere);
+        // Benarkan Logika Search berdasarkan atribut Employee
+        if (!empty($requestData['search']['value'])) {
+            $searchVal = $requestData['search']['value'];
+            $sql .= " AND (EmpComp.Emp_No LIKE '%$searchVal%' ";
+            $sql .= " OR EmpData.Emp_ID LIKE '%$searchVal%' ";
+            $sql .= " OR EmpData.First_Name LIKE '%$searchVal%' ";
+            $sql .= " OR EmpPos.Position_Name_En LIKE '%$searchVal%' ";
+            $sql .= " OR EmpData.Address1 LIKE '%$searchVal%' ";
+            $sql .= " OR EmpData.Mobile_Phone LIKE '%$searchVal%') ";
+        }
+
+        $totalFiltered = $this->HR->query($sql)->num_rows();
+        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
+        $query = $this->HR->query($sql);
+
+        $data = array();
+        foreach ($query->result_array() as $row) {
+            $nestedData = array();
+
+            // Return 29 kolom ke DataTables
+            $nestedData['Emp_No'] = $row['Emp_No'];
+            $nestedData['Emp_ID'] = $row['Emp_ID'];
+            $nestedData['FullName'] = $row['FullName'];
+            $nestedData['Gender'] = $row['Gender'];
+            $nestedData['Address1'] = $row['Address1'];
+            $nestedData['Birth_Place'] = $row['Birth_Place'];
+            $nestedData['Date_Of_Birth'] = !empty($row['Date_Of_Birth']) ? substr($row['Date_Of_Birth'], 0, 10) : null;
+            $nestedData['Start_Date'] = !empty($row['Start_Date']) ? substr($row['Start_Date'], 0, 10) : null;
+            $nestedData['End_Date'] = $row['End_Date'];
+            $nestedData['Position_Name_En'] = $row['Position_Name_En'];
+            $nestedData['Edu_Name'] = $row['Edu_Name'];
+            $nestedData['EmploymentStatus_Name_En'] = $row['EmploymentStatus_Name_En'];
+            $nestedData['Marital_Status'] = $row['Marital_Status'];
+            $nestedData['TaxStatus'] = $row['TaxStatus'];
+            $nestedData['NumDependent'] = $row['NumDependent'];
+            $nestedData['Salary'] = $row['Salary'];
+            $nestedData['Insentif'] = $row['Insentif'];
+            $nestedData['Tunj_Jabatan'] = $row['Tunj_Jabatan'];
+            $nestedData['Uang_Makan'] = $row['Uang_Makan'];
+            $nestedData['Uang_Trans'] = $row['Uang_Trans'];
+            $nestedData['CostCenter_Code'] = $row['CostCenter_Code'];
+            $nestedData['CostCenter_Name_En'] = $row['CostCenter_Name_En'];
+            $nestedData['NRIC'] = $row['NRIC'];
+            $nestedData['No_BPJSKES'] = $row['No_BPJSKES'];
+            $nestedData['No_JAMSOSTEK'] = $row['No_JAMSOSTEK'];
+            $nestedData['Mobile_Phone'] = $row['Mobile_Phone'];
+            $nestedData['EMAIL'] = $row['EMAIL'];
+            $nestedData['BANK_ACCOUNT'] = $row['BANK_ACCOUNT'];
+            $nestedData['EMP_IMAGE'] = $row['EMP_IMAGE'];
+
+            $data[] = $nestedData;
+        }
+
+        $json_data = array(
+            "draw" => intval($requestData['draw']),
+            "recordsTotal" => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data" => $data,
+        );
+
+        echo json_encode($json_data);
     }
 }
