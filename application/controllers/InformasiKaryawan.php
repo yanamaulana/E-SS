@@ -1,6 +1,11 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+
 class InformasiKaryawan extends CI_Controller
 {
     private $HR;
@@ -233,5 +238,184 @@ class InformasiKaryawan extends CI_Controller
         );
 
         echo json_encode($json_data);
+    }
+
+    public function ExportExcelFoto()
+    {
+        // 1. Eksekusi Query (Sama seperti DT_List_Employee tapi tanpa batasan pagination)
+        $sql = "SELECT EmpComp.Emp_No AS Emp_No, 
+        EmpData.Emp_ID, 
+        EmpData.First_Name+' '+EmpData.Middle_Name+' '+EmpData.Last_Name AS FullName, 
+        EmpData.Gender AS Gender, 
+        EmpData.Address1, 
+        EmpData.Birth_Place AS Birth_Place, 
+        EmpData.Date_Of_Birth AS Date_Of_Birth,
+        EmpComp.Start_Date AS Start_Date,
+        EmpComp.End_Date AS End_Date,
+        EmpPos.Position_Name_En,
+        EmpEdu.Edu_Name AS Edu_Name,
+        EmpStatus.EmploymentStatus_Name_En AS EmploymentStatus_Name_En,
+        EmpData.Marital_Status AS Marital_Status,
+        EmpSal.TaxStatus AS TaxStatus,
+        EmpSal.NumDependent AS NumDependent,
+        dbo.SF131412(EmpSal.Salary, 'muliaditinawellystif', '10001010101001010010') AS Salary,
+        EmpSal.PayrollField1 AS Insentif,
+        EmpSal.PayrollField2 AS Tunj_Jabatan,
+        EmpSal.PayrollField6 AS Uang_Makan,
+        EmpSal.Payrollfield5 AS Uang_Trans,
+        EmpCost.CostCenter_Code AS CostCenter_Code,
+        EmpCost.CostCenter_Name_En AS CostCenter_Name_En,
+        EmpData.NRIC, 
+        (Select Insurance_No from THRMEmpInsurance EmpInsurance1 where EmpInsurance1.Insurance_Institution = 'BPJSKES' and EmpInsurance1.Emp_ID = EmpComp.EMP_ID) as No_BPJSKES,
+        (Select Insurance_No from THRMEmpInsurance EmpInsurance2 where EmpInsurance2.Insurance_Institution = 'JAMSOSTEK' and EmpInsurance2.Emp_ID = EmpComp.EMP_ID) as No_JAMSOSTEK,
+        EmpData.Phone, 
+        EmpData.Mobile_Phone, 
+        EmpData.Phone1, 
+        EmpData.EMAIL,  
+        EmpComp.BANK_ACCOUNT,
+        EmpData.EMP_IMAGE
+    FROM THRMEmpPersonalData EmpData
+    LEFT JOIN THRMEmpCompany EmpComp ON EmpData.Emp_ID = EmpComp.Emp_ID
+    LEFT JOIN THRMEmpSalaryParam EmpSal ON EmpComp.EMP_ID = EmpSal.Emp_ID
+    LEFT JOIN THRMEmpEducation EmpEdu ON EmpComp.Emp_ID = EmpEdu.Emp_ID
+    LEFT JOIN THRMEmploymentStatus EmpStatus ON EmpComp.Employment_Code = EmpStatus.EmploymentStatus_Code
+    LEFT JOIN THRMPosition EmpPos ON EmpComp.Position_ID = EmpPos.Position_ID
+    LEFT JOIN THRMCostCenter EmpCost ON EmpComp.Cost_Center = EmpCost.CostCenter_Code
+    WHERE EmpComp.Start_Date <= '$this->DateTime'
+    AND (EmpComp.End_Date IS NULL OR EmpComp.End_Date = '' OR EmpComp.End_Date >= '$this->DateTime') 
+    ORDER BY EmpComp.Emp_No ASC"; // Mengurutkan berdasarkan Emp_No
+
+        $query = $this->HR->query($sql);
+        $karyawan = $query->result_array();
+
+        // 2. Inisialisasi PhpSpreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Data Karyawan');
+
+        // 3. Menyiapkan Header Tabel (Baris 1)
+        $headers = [
+            'A' => 'No',
+            'B' => 'NIP',
+            'C' => 'EMP ID',
+            'D' => 'Nama Karyawan',
+            'E' => 'Jenis Kelamin',
+            'F' => 'Alamat',
+            'G' => 'Tempat Lahir',
+            'H' => 'Tanggal Lahir',
+            'I' => 'Tanggal Bergabung',
+            'J' => 'Tanggal Resign',
+            'K' => 'Jabatan',
+            'L' => 'Pendidikan',
+            'M' => 'Status Karyawan',
+            'N' => 'Status Pernikahan',
+            'O' => 'Status Pajak',
+            'P' => 'Gaji Pokok',
+            'Q' => 'Tunjangan Insentif',
+            'R' => 'Tunjangan Jabatan',
+            'S' => 'Uang Makan',
+            'T' => 'Uang Transport',
+            'U' => 'Cost Center',
+            'V' => 'KTP',
+            'W' => 'No BPJS Kesehatan',
+            'X' => 'No BPJS Ketenagakerjaan',
+            'Y' => 'Mobile Phone',
+            'Z' => 'Email',
+            'AA' => 'Bank Account',
+            'AB' => 'Photo'
+        ];
+
+        foreach ($headers as $col => $headerTitle) {
+            $sheet->setCellValue($col . '1', $headerTitle);
+            // Memiringkan dan menebalkan teks header
+            $sheet->getStyle($col . '1')->getFont()->setBold(true);
+        }
+
+        // 4. Proses Looping Data ke dalam Sel
+        $rowNum = 2; // Mulai dari baris ke-2
+        $no = 1;
+
+        foreach ($karyawan as $row) {
+            $sheet->setCellValue('A' . $rowNum, $no++);
+
+            // Gunakan setCellValueExplicit agar format angka nol di depan tidak hilang
+            $sheet->setCellValueExplicit('B' . $rowNum, $row['Emp_No'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('C' . $rowNum, $row['Emp_ID'], DataType::TYPE_STRING);
+            $sheet->setCellValue('D' . $rowNum, $row['FullName']);
+
+            $sheet->setCellValue('E' . $rowNum, ($row['Gender'] == 1 ? 'Pria' : 'Wanita'));
+            $sheet->setCellValue('F' . $rowNum, $row['Address1']);
+            $sheet->setCellValue('G' . $rowNum, $row['Birth_Place']);
+
+            $sheet->setCellValue('H' . $rowNum, !empty($row['Date_Of_Birth']) ? substr($row['Date_Of_Birth'], 0, 10) : '');
+            $sheet->setCellValue('I' . $rowNum, !empty($row['Start_Date']) ? substr($row['Start_Date'], 0, 10) : '');
+            $sheet->setCellValue('J' . $rowNum, !empty($row['End_Date']) ? substr($row['End_Date'], 0, 10) : '');
+
+            $sheet->setCellValue('K' . $rowNum, $row['Position_Name_En']);
+            $sheet->setCellValue('L' . $rowNum, $row['Edu_Name']);
+            $sheet->setCellValue('M' . $rowNum, $row['EmploymentStatus_Name_En']);
+            $sheet->setCellValue('N' . $rowNum, ($row['Marital_Status'] == 1 ? 'Married' : 'Single'));
+            $sheet->setCellValue('O' . $rowNum, ($row['TaxStatus'] == 0 ? 'TK' : 'K/' . ($row['NumDependent'] ?: 0)));
+
+            $sheet->setCellValue('P' . $rowNum, $row['Salary']);
+            $sheet->setCellValue('Q' . $rowNum, $row['Insentif']);
+            $sheet->setCellValue('R' . $rowNum, $row['Tunj_Jabatan']);
+            $sheet->setCellValue('S' . $rowNum, $row['Uang_Makan']);
+            $sheet->setCellValue('T' . $rowNum, $row['Uang_Trans']);
+
+            $sheet->setCellValue('U' . $rowNum, $row['CostCenter_Code'] . ' - ' . $row['CostCenter_Name_En']);
+
+            // Data nomor panjang yang rentan berubah jadi rumus/eksponensial di Excel
+            $sheet->setCellValueExplicit('V' . $rowNum, $row['NRIC'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('W' . $rowNum, $row['No_BPJSKES'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('X' . $rowNum, $row['No_JAMSOSTEK'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('Y' . $rowNum, $row['Mobile_Phone'], DataType::TYPE_STRING);
+
+            $sheet->setCellValue('Z' . $rowNum, $row['EMAIL']);
+            $sheet->setCellValueExplicit('AA' . $rowNum, $row['BANK_ACCOUNT'], DataType::TYPE_STRING);
+
+            // 5. Menyisipkan Gambar di Kolom AB
+            $photoPath = FCPATH . 'assets/Files/photo/' . $row['Emp_No'] . '.jpg';
+
+            if (file_exists($photoPath)) {
+                $drawing = new Drawing();
+                $drawing->setName('Foto Karyawan');
+                $drawing->setDescription('Foto ' . $row['FullName']);
+                $drawing->setPath($photoPath);
+                $drawing->setCoordinates('AB' . $rowNum);
+                $drawing->setOffsetX(5);
+                $drawing->setOffsetY(5);
+                $drawing->setHeight(60);
+                $drawing->setWorksheet($sheet);
+
+                // Melebarkan ukuran baris agar foto tidak tumpang tindih
+                $sheet->getRowDimension($rowNum)->setRowHeight(55);
+            } else {
+                // Beri penanda teks jika foto fisik tidak ada di server
+                $sheet->setCellValue('AB' . $rowNum, 'Tidak Ada Foto');
+            }
+
+            $rowNum++;
+        }
+
+        // Mengatur lebar kolom foto
+        $sheet->getColumnDimension('AB')->setWidth(15);
+
+        // 6. Output Download Excel
+        $filename = 'Laporan_Data_Karyawan_' . date('Y-m-d') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        // Mencegah error cache di IE9
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
     }
 }

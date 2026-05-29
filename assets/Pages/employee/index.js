@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    const baseUrl = $('meta[name="base_url"]').attr('content');
     function hitungUmur(tanggalLahir) {
         let tanggalLahirDate = new Date(tanggalLahir);
         let tanggalSekarang = new Date();
@@ -300,7 +301,7 @@ $(document).ready(function () {
                     text: `<i class="fas fa-id-card-alt"></i> Upload Photo`,
                     className: "btn btn-light-info",
                     action: function (e, dt, node, config) {
-                        window.location.href = $('meta[name="base_url"]').attr('content') + "InformasiKaryawan/upload_photo";
+                        window.open(baseUrl + "InformasiKaryawan/upload_photo", "_blank");
                     }
                 },
                 {
@@ -311,16 +312,39 @@ $(document).ready(function () {
                     extend: 'copy',
                     className: "bg-info",
                 }, {
+                    // Tombol Custom Export Excel dengan Foto
                     text: `<i class="far fa-file-excel"></i>`,
-                    extend: 'excelHtml5',
-                    title: $('#table-title').text() + '~' + moment().format("YYYY-MM-DD"),
                     className: "btn btn-sm btn-success",
+                    action: function (e, dt, node, config) {
+                        // Membuka URL di tab baru (_blank) untuk mengunduh file
+                        window.open(baseUrl + "InformasiKaryawan/ExportExcelFoto", "_blank");
+                    }
                 }, {
                     text: `<i class="far fa-file-pdf"></i>`,
                     extend: 'pdfHtml5',
                     title: $('#table-title').text() + '~' + moment().format("YYYY-MM-DD"),
                     className: "btn btn-sm btn-danger",
-                    orientation: "landscape"
+                    orientation: "landscape",
+                    pageSize: "A4", // Mengubah ukuran kertas menjadi A3 agar lebih lebar
+                    exportOptions: {
+                        // Mengecualikan kolom indeks ke-29 (Foto) agar tidak ikut di-export dan membuat error layout PDF
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]
+                    },
+                    customize: function (doc) {
+                        // Mengecilkan ukuran font seluruh tabel di PDF agar 29 kolom bisa muat
+                        doc.defaultStyle.fontSize = 6;
+
+                        // Mengecilkan ukuran font header tabel
+                        doc.styles.tableHeader.fontSize = 7;
+
+                        // Mengatur padding tabel agar lebih padat
+                        doc.styles.tableBodyEven.margin = [0, 2, 0, 2];
+                        doc.styles.tableBodyOdd.margin = [0, 2, 0, 2];
+
+                        // Menyesuaikan lebar setiap kolom secara proporsional (menggunakan '*')
+                        var colCount = new Array(29).fill('*');
+                        doc.content[1].table.widths = colCount;
+                    }
                 }, {
                     text: `<i class="fas fa-print"></i>`,
                     extend: 'print',
