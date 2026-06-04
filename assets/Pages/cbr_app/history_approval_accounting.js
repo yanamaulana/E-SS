@@ -38,7 +38,7 @@ $(document).ready(function () {
             columns: [
                 {
                     data: "CBReq_No", name: "CBReq_No", orderable: false, render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+                        return `<button type="button" value="${row.CBReq_No}" class="btn btn-sm btn-light-primary btn-list-attachment"><i class="fas fa-paperclip"></i></button>`
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
@@ -529,6 +529,42 @@ $(document).ready(function () {
         let Cbr_no = $(this).val();
 
         window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_rpt_cbr/${Cbr_no}`, `RptCbr-${Cbr_no}`, 'width=854,height=480');
+    })
+
+
+    $(document).on('click', '.btn-list-attachment', function () {
+        $('#txt-cbr').text($(this).val());
+        $.ajax({
+            // dataType: "json",
+            type: "GET",
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/m_list_cbr_attachment",
+            data: {
+                CbrNo: $(this).val(),
+                auth_upload: 1,
+                note: 'Accounting'
+            }, beforeSend: function () {
+                Swal.fire({
+                    title: 'Loading....',
+                    html: '<div class="spinner-border text-primary"></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                })
+            },
+            success: function (ajaxData) {
+                Swal.close()
+                $("#location").html(ajaxData);
+                $("#ModalAttachment").modal('show');
+            }, error: function (xhr, status, error) {
+                var statusCode = xhr.status;
+                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    html: `Kode HTTP: ${statusCode}<br\>message: ${errorMessage}`,
+                });
+            }
+        });
     })
 
 

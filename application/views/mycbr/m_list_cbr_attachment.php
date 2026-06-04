@@ -43,7 +43,7 @@
                         <div class="row mb-3">
                             <label for="note" class="col-sm-3 col-form-label"><b>Note Attachment :</b></label>
                             <div class="col-sm-9 fv-row">
-                                <textarea rows="2" class="form-control form-control-sm" name="note" id="note" placeholder="Note attachment...."></textarea>
+                                <textarea rows="2" class="form-control form-control-sm" name="note" id="note" placeholder="Note attachment...." <?= ($note != '') ? 'readonly' : '' ?>><?= $note ?></textarea>
                             </div>
                         </div>
                         <div class="row mb-3">

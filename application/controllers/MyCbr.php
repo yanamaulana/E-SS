@@ -942,6 +942,7 @@ class MyCbr extends CI_Controller
         $this->data['Attachments'] = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
         $this->data['Types'] = $this->db->get($this->Tmst_Attachment_Type_CBR);
         $this->data['auth_upload'] = $this->input->get('auth_upload');
+        $this->data['note'] = $this->input->get('note') ?? '';
 
         $this->load->view('mycbr/m_list_cbr_attachment', $this->data);
     }
