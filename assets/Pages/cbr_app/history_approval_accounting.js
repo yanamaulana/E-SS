@@ -317,33 +317,31 @@ $(document).ready(function () {
                                                 </tbody>
                                             </table>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>`;
+                                    </div>`;
         } else if (d.Document_Number.startsWith('PWU')) {
             container = container + `<div class="card my-3 px-2 py-2">
-                                                <div class="table-responsive overflow-auto">
-                                                    <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
-                                                        <thead>
-                                                            <tr>
-                                                                <th class="text-dark" colspan="11">Purchase Order  : ${d.Document_Number}</th>
-                                                            </tr>
-                                                            <tr class="bg-dark">
-                                                                <th class="text-center">PO Number</th>
-                                                                <th class="text-center">Vendor</th>
-                                                                <th class="text-center">PO Date</th>
-                                                                <th class="text-center">Pick Up Date</th>
-                                                                <th class="text-center">Vendor SO Number</th>
-                                                                <th class="text-center">Document Status</th>
-                                                                <th class="text-center">PO Status</th>
-                                                                <th class="text-center">Approval</th>
-                                                                <th class="text-center">Invoiced</th>
-                                                                <th class="text-center">Active</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="tbody_vin_${d.CBReq_No}">
-                                                        </tbody>
-                                                    </table>
+                                        <div class="table-responsive overflow-auto">
+                                            <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-dark" colspan="11">Purchase Order  : ${d.Document_Number}</th>
+                                                    </tr>
+                                                    <tr class="bg-dark">
+                                                        <th class="text-center">PO Number</th>
+                                                        <th class="text-center">Vendor</th>
+                                                        <th class="text-center">PO Date</th>
+                                                        <th class="text-center">Pick Up Date</th>
+                                                        <th class="text-center">Vendor SO Number</th>
+                                                        <th class="text-center">Document Status</th>
+                                                        <th class="text-center">PO Status</th>
+                                                        <th class="text-center">Approval</th>
+                                                        <th class="text-center">Invoiced</th>
+                                                        <th class="text-center">Active</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody_vin_${d.CBReq_No}">
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>

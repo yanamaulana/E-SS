@@ -166,7 +166,7 @@ function format_rupiah($angka)
                     <tr>
                         <td class="text-center"><?= $i ?></td>
                         <td><?= $li->Description ?></td>
-                        <td><?= '[' . $li->Acc_ID . ']' . ' ' . $li->Account_Name ?></td>
+                        <td><?= '[' . $li->Account_Number . ']' . ' ' . $li->Account_Name ?></td>
                         <td style="border-right: solid black 1px;" class="text-right">
                             <div class="container" style="justify-content: space-between;">
                                 <div style="text-align: left;"><?= $li->currency_id ?></div>
