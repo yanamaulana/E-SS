@@ -157,7 +157,7 @@ $(document).ready(function () {
                 targets: 7
             }, {
                 className: "text-center dt-nowrap",
-                targets: [0, 1, 2, 3, 6, 7, 8, 9, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+                targets: [0, 2, 3, 6, 7, 8, 9, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
             }, {
                 className: "details-control pr-4 dt-nowrap",
                 targets: [1]
