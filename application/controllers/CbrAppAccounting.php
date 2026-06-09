@@ -218,7 +218,6 @@ class CbrAppAccounting extends CI_Controller
         echo json_encode($query->result());
     }
 
-    // 2. PROSES SIMPAN / UPDATE TERMIN BERKALA
     public function save_termin()
     {
         $cbreq_no = $this->input->post('cbreq_no');
@@ -226,19 +225,25 @@ class CbrAppAccounting extends CI_Controller
         $dates = $this->input->post('payment_plan_date');
 
         if (empty($cbreq_no) || empty($amounts)) {
-            $this->session->set_flashdata('error', 'Data tidak lengkap.');
-            redirect($_SERVER['HTTP_REFERER']);
+            echo json_encode(["code" => 400, "msg" => "Data inputan tidak lengkap!"]);
+            return;
         }
 
-        // 1. AMBIL DATA TERMIN YANG SUDAH ADA DI DATABASE SAAT INI
+        // Ambil info Currency asli dari tabel Header CBR
+        $this->db->select('Currency_ID');
+        $this->db->where('CBReq_No', $cbreq_no);
+        $header = $this->db->get('TaccCashBookReq_Header')->row();
+        $currency_id = (!empty($header)) ? $header->Currency_ID : 'IDR';
+
+        // Ambil data termin yang sudah ada saat ini
         $this->db->where('CBReq_No', $cbreq_no);
         $this->db->order_by('Termin_Ke', 'ASC');
         $current_termin = $this->db->get('Ttrx_Cbr_Approval_Termin')->result_array();
 
-        // Pisahkan data yang sudah di-approve dan yang belum
         $approved_termin = [];
         foreach ($current_termin as $row) {
-            if ($row['Status_AppvPresdir'] == 1) {
+            // Kunci data jika statusnya Awaiting (0) atau Approved (1)
+            if ($row['Status_AppvPresdir'] == 0 || $row['Status_AppvPresdir'] == 1) {
                 $approved_termin[] = $row;
             }
         }
@@ -246,34 +251,30 @@ class CbrAppAccounting extends CI_Controller
         $total_approved_count = count($approved_termin);
         $total_input_count = count($amounts);
 
-        // 2. VALIDASI: Jumlah baris baru tidak boleh lebih dari (Jumlah yang sudah approved + 1)
-        // Contoh: Jika sudah approve 1, maka total baris di form MAKSIMAL boleh 2 (1 approved + 1 diajukan baru)
+        // Validasi Gate
         if ($total_input_count > ($total_approved_count + 1)) {
-            $this->session->set_flashdata('error', 'Anda hanya boleh mengajukan 1 termin baru yang pending! Selesaikan approval termin sebelumnya terlebih dahulu.');
-            redirect($_SERVER['HTTP_REFERER']);
+            echo json_encode(["code" => 400, "msg" => "Gagal! Selesaikan approval termin aktif (Awaiting) terlebih dahulu sebelum membuat termin baru."]);
+            return;
         }
 
-        // 3. PROSES SIMPAN MENGGUNAKAN TRANSACTION
         $this->db->trans_start();
 
-        // Hapus data LAMA yang BELUM di-approve saja
+        // Hapus data lama yang berstatus Ditolak/Rejected (2) agar bisa di-input ulang oleh accounting jika direvisi
         $this->db->where('CBReq_No', $cbreq_no);
-        $this->db->where('Status_AppvPresdir', 0);
+        $this->db->where('Status_AppvPresdir', 2);
         $this->db->delete('Ttrx_Cbr_Approval_Termin');
 
-        // Insert data BARU untuk termin yang sedang diajukan
-        // Loop dimulai dari indeks setelah termin yang sudah di-approve
+        // Simpan baris pengajuan baru dengan default status 0 (Awaiting)
         for ($i = $total_approved_count; $i < $total_input_count; $i++) {
-
-            // Pengaman: pastikan index inputan eksis
             if (!isset($amounts[$i])) continue;
 
             $this->db->insert('Ttrx_Cbr_Approval_Termin', [
                 'CBReq_No'           => $cbreq_no,
                 'Termin_Ke'          => $i + 1,
                 'Amount_Termin'      => $amounts[$i],
+                'Currency_ID'        => $currency_id,
                 'Payment_Plan_Date'  => $dates[$i],
-                'Status_AppvPresdir' => 0, // Berstatus pending untuk Presdir
+                'Status_AppvPresdir' => 0, // Otomatis berstatus 0 (Awaiting) untuk meja Presdir
                 'Rec_Created_At'     => date('Y-m-d H:i:s')
             ]);
         }
@@ -281,11 +282,12 @@ class CbrAppAccounting extends CI_Controller
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
-            $this->session->set_flashdata('error', 'Gagal memproses termin.');
+            $response = ["code" => 500, "msg" => "Gagal menyimpan data ke database server."];
         } else {
-            $this->session->set_flashdata('success', 'Termin baru berhasil diajukan!');
+            $response = ["code" => 200, "msg" => "Susunan termin pembayaran berhasil disimpan!"];
         }
 
-        redirect($_SERVER['HTTP_REFERER']);
+        // Kembalikan sebagai JSON (bukan redirect)
+        echo json_encode($response);
     }
 }

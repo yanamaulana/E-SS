@@ -156,21 +156,21 @@
 </div>
 <div id="location"></div>
 <div class="modal fade" id="modal_set_termin" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Atur Pembayaran Termin - <span id="txt_modal_cbr_no" class="text-primary"></span></h5>
+            <div class="modal-header py-4">
+                <h5 class="modal-title fs-4">Atur Pembayaran Termin - <span id="txt_modal_cbr_no" class="text-primary"></span></h5>
                 <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
                     <i class="bi bi-x fs-1"></i>
                 </div>
             </div>
-            <form id="form_termin" method="POST" action="<?= base_url('accounting/save_termin') ?>">
-                <div class="modal-body">
-                    <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-4 mb-6">
+            <form id="form_termin" method="POST" action="<?= base_url('CbrAppAccounting/save_termin') ?>">
+                <div class="modal-body pt-4">
+                    <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-3 mb-4">
                         <div class="d-flex flex-stack flex-grow-1">
                             <div class="fw-semibold">
-                                <h4 class="text-gray-900 fw-bold m-0">Total Amount CBR: <span id="txt_modal_total_amount" class="text-dark">0</span></h4>
-                                <div class="fs-6 text-gray-700 mt-1">Sisa yang belum diatur: <span id="txt_modal_remaining_amount" class="text-danger fw-bold">0</span></div>
+                                <span class="text-gray-800 fw-bold fs-6 me-4">Total CBR: <span id="txt_modal_total_amount" class="text-dark">0</span></span>
+                                <span class="text-gray-700 fs-6">Sisa Limit: <span id="txt_modal_remaining_amount" class="text-danger fw-bold">0</span></span>
                             </div>
                         </div>
                     </div>
@@ -178,16 +178,25 @@
                     <input type="hidden" name="cbreq_no" id="inp_modal_cbreq_no">
                     <input type="hidden" id="inp_modal_total_amount_raw">
 
-                    <div id="termin_container">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-row-gray-300 align-middle gs-2 gy-2">
+                            <thead>
+                                <tr class="fw-bold text-muted fs-7 text-uppercase bg-light">
+                                    <th class="w-50px text-center ps-2">No</th>
+                                    <th class="w-120px text-center">Status</th>
+                                    <th class="min-w-150px">Nominal Pembayaran</th>
+                                    <th class="min-w-150px">Rencana Tgl Bayar</th>
+                                    <th class="w-50px text-center pe-2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="termin_table_body">
+                            </tbody>
+                        </table>
                     </div>
-
-                    <button type="button" class="btn btn-sm btn-light-success mt-3" id="btn_add_row_termin">
-                        <i class="bi bi-plus-lg fs-4 me-1"></i>Tambah Termin
-                    </button>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btn_save_termin">Simpan Termin</button>
+                <div class="modal-footer py-3">
+                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-sm btn-primary" id="btn_save_termin">Simpan Termin</button>
                 </div>
             </form>
         </div>
