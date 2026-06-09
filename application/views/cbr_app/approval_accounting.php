@@ -155,3 +155,41 @@
     </div>
 </div>
 <div id="location"></div>
+<div class="modal fade" id="modal_set_termin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Atur Pembayaran Termin - <span id="txt_modal_cbr_no" class="text-primary"></span></h5>
+                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-x fs-1"></i>
+                </div>
+            </div>
+            <form id="form_termin" method="POST" action="<?= base_url('accounting/save_termin') ?>">
+                <div class="modal-body">
+                    <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-4 mb-6">
+                        <div class="d-flex flex-stack flex-grow-1">
+                            <div class="fw-semibold">
+                                <h4 class="text-gray-900 fw-bold m-0">Total Amount CBR: <span id="txt_modal_total_amount" class="text-dark">0</span></h4>
+                                <div class="fs-6 text-gray-700 mt-1">Sisa yang belum diatur: <span id="txt_modal_remaining_amount" class="text-danger fw-bold">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="cbreq_no" id="inp_modal_cbreq_no">
+                    <input type="hidden" id="inp_modal_total_amount_raw">
+
+                    <div id="termin_container">
+                    </div>
+
+                    <button type="button" class="btn btn-sm btn-light-success mt-3" id="btn_add_row_termin">
+                        <i class="bi bi-plus-lg fs-4 me-1"></i>Tambah Termin
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btn_save_termin">Simpan Termin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

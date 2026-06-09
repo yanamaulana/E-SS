@@ -205,4 +205,64 @@ class CbrAppAccounting extends CI_Controller
         //----------------------------------------------------------------------------------
         echo json_encode($json_data);
     }
+
+    // 1. PENGAMBILAN DATA UNTUK AJAX JENDELA MODAL
+    public function get_termin_data($cbreq_no)
+    {
+        $cbreq_no = urldecode($cbreq_no);
+
+        $this->db->where('CBReq_No', $cbreq_no);
+        $this->db->order_by('Termin_Ke', 'ASC');
+        $query = $this->db->get('Ttrx_Cbr_Approval_Termin');
+
+        echo json_encode($query->result());
+    }
+
+    // 2. PROSES SIMPAN / UPDATE TERMIN BERKALA
+    public function save_termin()
+    {
+        $cbreq_no = $this->input->post('cbreq_no');
+        $amounts = $this->input->post('amount_termin');
+        $dates = $this->input->post('payment_plan_date');
+
+        if (empty($cbreq_no) || empty($amounts)) {
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        // Jalankan Transaction SQL Server agar aman
+        $this->db->trans_start();
+
+        // Langkah A: Hapus termin lama untuk nomor CBR ini (Skenario Reset/Update)
+        $this->db->where('CBReq_No', $cbreq_no);
+        $this->db->delete('Ttrx_Cbr_Approval_Termin');
+
+        // Langkah B: Insert baris termin baru hasil setingan Accounting
+        $batch_data = [];
+        foreach ($amounts as $index => $amount) {
+            $batch_data[] = [
+                'CBReq_No'           => $cbreq_no,
+                'Termin_Ke'          => $index + 1,
+                'Amount_Termin'      => $amount,
+                'Payment_Plan_Date'  => $dates[$index],
+                'Status_AppvPresdir' => 0, // Reset ke pending agar di-review ulang oleh Presdir
+                'Rec_Created_At'     => date('Y-m-d H:i:s')
+            ];
+        }
+
+        if (!empty($batch_data)) {
+            $this->db->insert_batch('Ttrx_Cbr_Approval_Termin', $batch_data);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            // Jika Error
+            $this->session->set_flashdata('error', 'Gagal mengatur termin pembayaran.');
+        } else {
+            // Jika Sukses
+            $this->session->set_flashdata('success', 'Termin pembayaran berhasil disimpan!');
+        }
+
+        redirect($_SERVER['HTTP_REFERER']);
+    }
 }

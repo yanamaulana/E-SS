@@ -219,7 +219,7 @@ class MyCbr extends CI_Controller
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
-        AND (Paid_Status = 'NP' or Paid_Status = 'HP')
+        -- AND (Paid_Status = 'NP' or Paid_Status = 'HP')
         AND (isClose = 0 OR isClose IS NULL)
         AND Ttrx_Cbr_Approval.CBReq_No IS NULL
         AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
@@ -748,12 +748,76 @@ class MyCbr extends CI_Controller
             }
         }
 
+        $CashbookCheck = $this->db->get_where('TAccCashBookDetail', ['Invoice_No' => $Req_No]);
+
+        $ValidateCashbook = $CashbookCheck->num_rows();
+        $code_having_bdj = 200;
+        $dataBdjs = array();
+        if ($ValidateCashbook == 0) {
+            $code_having_bdj = 404;
+        } else {
+            $Bdj = $CashbookCheck->row()->JournalH_Code;
+            $SqlBdj = $this->db->query("SELECT TAccCashBookHeader.JournalH_Code, 
+                        TAccCashBookHeader.isvoid,
+                        TAccCashBookHeader.CashBookDate,
+                        TAccCashBookHeader.CashBookType,
+                        TAccCashBookHeader.Currency_ID,
+                        TAccCashBookHeader.Total_Amount,
+                        TAccCashBookHeader.Memo,
+                        TAccChartAccount.Account_nameen AS Account_Name,
+                        TAccCashBookHeader.ClearingBank,
+                        TAccCashBookHeader.Payor_Payee ,status,approval_status,
+                        isNULL(TAccCashBookHeader.CashFlow_Type,0) AS CashFlow_Type,
+                        TAccCashFlowType.CashFlow_Name,
+                        THRMMasterType.Type_NameEn,
+                        TAccCashBookHeader.Notes, THRMMasterType.Company_ID
+                        FROM TAccCashBookHeader
+                        INNER JOIN TAccChartAccount ON TAccCashBookHeader.Acc_ID = TAccChartAccount.Acc_ID
+                        LEFT JOIN TAccCashFlowType ON TAccCashBookHeader.CashFlow_Type = TAccCashFlowType.CashFlow_Code
+                        LEFT JOIN THRMMasterType ON TAccCashFlowType.Header = THRMMasterType.Type_Code
+                        WHERE TAccCashBookHeader.Acc_ID = TAccChartAccount.Acc_ID 
+                        AND TAccCashBookHeader.Company_ID = TAccChartAccount.Company_ID 
+                        AND TAccCashBookHeader.Company_ID = 2
+                        AND ((UPPER( TAccCashBookHeader.JournalH_Code) = UPPER('$Bdj')))");
+
+
+            if ($SqlBdj->num_rows() > 0) {
+                foreach ($SqlBdj->result_array() as $li) {
+                    $nestedData = array();
+
+                    $nestedData['JournalH_Code'] = $li['JournalH_Code'];
+                    $nestedData['isvoid'] = $li['isvoid'];
+                    $nestedData['CashBookDate'] = substr($li['CashBookDate'], 0, 10);
+                    $nestedData['CashBookType'] = $li['CashBookType'];
+                    $nestedData['Currency_ID'] = $li['Currency_ID'];
+                    $nestedData['Total_Amount'] = $li['Total_Amount'];
+                    $nestedData['Memo'] = $li['Memo'];
+                    $nestedData['Account_Name'] = $li['Account_Name'];
+                    $nestedData['ClearingBank'] = $li['ClearingBank'];
+                    $nestedData['Payor_Payee'] = $li['Payor_Payee'];
+                    $nestedData['status'] = $li['status'];
+                    $nestedData['approval_status'] = $li['approval_status'];
+                    $nestedData['CashFlow_Type'] = $li['CashFlow_Type'];
+                    $nestedData['CashFlow_Name'] = $li['CashFlow_Name'];
+                    $nestedData['Type_NameEn'] = $li['Type_NameEn'];
+                    $nestedData['Notes'] = $li['Notes'];
+                    $nestedData['Company_ID'] = $li['Company_ID'];
+
+                    $dataBdjs[] = $nestedData;
+                }
+            } else {
+                $code_having_bdj = 404;
+            }
+        }
+
         return $this->help->Fn_resulting_response([
             'code' => $code,
             'code_vin' => $code_having_vin,
             'dataVins' => $dataVins,
             'data' => $data,
             'data_Attachments' => $data_Attachments,
+            'code_bdj' => $code_having_bdj,
+            'dataBdjs' => $dataBdjs,
         ]);
     }
 

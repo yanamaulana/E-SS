@@ -38,7 +38,10 @@ $(document).ready(function () {
             columns: [
                 {
                     data: "CBReq_No", name: "CBReq_No", orderable: false, render: function (data, type, row, meta) {
-                        return `<button type="button" value="${row.CBReq_No}" class="btn btn-sm btn-light-primary btn-list-attachment"><i class="fas fa-paperclip"></i></button>`
+                        return `<div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
+                                    <button type="button" class="btn btn-sm btn-primary btn-list-attachment" data-bs-toggle="tooltip" title="Upload Attachment"><i class="fas fa-paperclip"></i></button>
+                                    <button type="button" class="btn btn-sm btn-info btn-set-termin" data-bs-toggle="tooltip" title="Set Partial Payment" data-cbreq-no="${data}" data-amount="${row.Amount}"><i class="fas fa-comments-dollar"></i></button>
+                                </div>`;
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
@@ -243,149 +246,195 @@ $(document).ready(function () {
     });
 
     function format(d) {
-        let container = `<div class="row bg-primary">
+        let container = `
+        <div class="row bg-primary">
+            <div class="col-md-6">
+                <div class="card my-3 px-1 py-1">
+                    <div class="table-responsive overflow-auto">
+                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-dark" colspan="4">
+                                        <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-cbr">
+                                            🖨️ Cash Book Requisition Number : ${d.CBReq_No}
+                                        </button>
+                                    </th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">Account</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card my-3 px-1 py-1">
+                    <div class="table-responsive overflow-auto">
+                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" colspan="4">
+                                        <button type="button" class="btn btn-sm btn-bg-light btn-color-dark">
+                                            List Attachment : ${d.CBReq_No}
+                                        </button>
+                                    </th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">#</th>
+                                    <th class="text-center">File Name</th>
+                                    <th class="text-center">Doc Type</th>
+                                    <th class="text-center">Note</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_attachment_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row bg-primary">
+            <div class="col-md-6">
+    `;
+
+        // Detail Ref CBR : Ref Container
+        if (d.Document_Number == null || d.Document_Number == '') {
+            container += `
+                <div class="card my-3 px-2 py-2">
+                    <div class="table-responsive overflow-auto">
+                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-dark" colspan="11">Purchase Invoice : -N/A-</th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">Invoice No</th>
+                                    <th class="text-center">Vendor Invoice Number</th>
+                                    <th class="text-center">Invoice Date</th>
+                                    <th class="text-center">Due Date</th>
+                                    <th class="text-center">Purchase Order Number</th>
+                                    <th class="text-center">Vendor Name</th>
+                                    <th class="text-center">Payment Status</th>
+                                    <th class="text-center">Is Void</th>
+                                    <th class="text-center">Document Status</th>
+                                    <th class="text-center">Receipt Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_vin_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        } else if (d.Document_Number.startsWith('PWU')) {
+            container += `
+                <div class="card my-3 px-2 py-2">
+                    <div class="table-responsive overflow-auto">
+                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-dark" colspan="11">Purchase Order : ${d.Document_Number}</th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">PO Number</th>
+                                    <th class="text-center">Vendor</th>
+                                    <th class="text-center">PO Date</th>
+                                    <th class="text-center">Pick Up Date</th>
+                                    <th class="text-center">Vendor SO Number</th>
+                                    <th class="text-center">Document Status</th>
+                                    <th class="text-center">PO Status</th>
+                                    <th class="text-center">Approval</th>
+                                    <th class="text-center">Invoiced</th>
+                                    <th class="text-center">Active</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_vin_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        } else {
+            container += `
+                <div class="card my-3 px-2 py-2">
+                    <div class="table-responsive overflow-auto">
+                        <table class="table-sm table-bordered rounded-sm" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-dark" colspan="7">
+                                        Purchase Invoice : ${d.Document_Number}
+                                    </th>
+                                    <th style="text-align: center;" colspan="3">
+                                        <button type="button" value="${d.Document_Number}" class="btn btn-sm btn-light-danger rpt-vin">🔍 Purchase Invoice</button>
+                                    </th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">Invoice No</th>
+                                    <th class="text-center">Vendor Invoice Number</th>
+                                    <th class="text-center">Invoice Date</th>
+                                    <th class="text-center">Due Date</th>
+                                    <th class="text-center" style="white-space: pre-line; max-width: 200px;">Purchase Order Number</th>
+                                    <th class="text-center">Vendor Name</th>
+                                    <th class="text-center">Payment Status</th>
+                                    <th class="text-center">Is Void</th>
+                                    <th class="text-center">Document Status</th>
+                                    <th class="text-center">Receipt Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_vin_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+        // Bagian BDJ (Kolom Kanan pada Row Kedua)
+        container += `
+                    </div>
+                        <div class="row bg-primary">
                             <div class="col-md-6">
-                                <div class="card my-3 px-1 py-1">
+                                <div class="card my-3 px-2 py-2">
                                     <div class="table-responsive overflow-auto">
-                                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
+                                        <table class="table-sm table-bordered rounded-sm" style="width:100%;">
                                             <thead>
                                                 <tr>
-                                                    <th class="text-dark" colspan="4"><button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-info btn-cbr">🖨️ Cash Book Requisition Number : ${d.CBReq_No}</button></th>
-                                                </tr>
-                                                <tr class="bg-dark">
-                                                    <th class="text-center">Account</th>
-                                                    <th class="text-center">Description</th>
-                                                    <th class="text-center">Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tbody_${d.CBReq_No}">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card my-3 px-1 py-1">
-                                    <div class="table-responsive overflow-auto">
-                                        <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;" >
-                                            <thead>
-                                                <tr>
-                                                    <th class="text-center" colspan="4">
-                                                        <button type="button" class="btn btn-sm btn-bg-light btn-color-dark">List Attachment : ${d.CBReq_No}</button>
+                                                    <th colspan="6">
+                                                        <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-warning rpt-bdj">🖨️ Print Cash Book</button>
                                                     </th>
                                                 </tr>
                                                 <tr class="bg-dark">
-                                                    <th class="text-center">#</th>
-                                                    <th class="text-center">File Name</th>
-                                                    <th class="text-center">Doc Type</th>
-                                                    <th class="text-center">Note</th>
+                                                    <th class="text-center">Doc Numb</th>
+                                                    <th class="text-center">Payee</th>
+                                                    <th class="text-center">Date</th>
+                                                    <th class="text-center">Account</th>
+                                                    <th class="text-center">Bank Payment</th>
+                                                    <th class="text-center">Memo</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="tbody_attachment_${d.CBReq_No}">
-                                            </tbody>
+                                            <tbody id="tbody_bdj_${d.CBReq_No}"></tbody>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row bg-primary">
-                            <div class="col-md-12">
-                        `;
-        // detail ref cbr : ref_container
-        if (d.Document_Number == null || d.Document_Number == '') {
-            container = container + `<div class="card my-3 px-2 py-2">
-                                        <div class="table-responsive overflow-auto">
-                                            <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="text-dark" colspan="11">Purchase Invoice  : -N/A-</th>
-                                                    </tr>
-                                                    <tr class="bg-dark">
-                                                        <th class="text-center">Invoice No</th>
-                                                        <th class="text-center">Vendor Invoice Number</th>
-                                                        <th class="text-center">Invoice Date</th>
-                                                        <th class="text-center">Due Date</th>
-                                                        <th class="text-center">Purchase Order Number</th>
-                                                        <th class="text-center">Vendor Name</th>
-                                                        <th class="text-center">Payment Status</th>
-                                                        <th class="text-center">Is Void</th>
-                                                        <th class="text-center">Document Status</th>
-                                                        <th class="text-center">Receipt Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="tbody_vin_${d.CBReq_No}">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>`;
-        } else if (d.Document_Number.startsWith('PWU')) {
-            container = container + `<div class="card my-3 px-2 py-2">
-                                        <div class="table-responsive overflow-auto">
-                                            <table class="table-sm overflow-auto table-bordered rounded-sm" style="width:100%;">
-                                                <thead>
-                                                    <tr>
-                                                        <th class="text-dark" colspan="11">Purchase Order  : ${d.Document_Number}</th>
-                                                    </tr>
-                                                    <tr class="bg-dark">
-                                                        <th class="text-center">PO Number</th>
-                                                        <th class="text-center">Vendor</th>
-                                                        <th class="text-center">PO Date</th>
-                                                        <th class="text-center">Pick Up Date</th>
-                                                        <th class="text-center">Vendor SO Number</th>
-                                                        <th class="text-center">Document Status</th>
-                                                        <th class="text-center">PO Status</th>
-                                                        <th class="text-center">Approval</th>
-                                                        <th class="text-center">Invoiced</th>
-                                                        <th class="text-center">Active</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="tbody_vin_${d.CBReq_No}">
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
-        } else {
-            container = container + `<div class="card my-3 px-2 py-2">
-                                                <table class="table-sm table-bordered rounded-sm" style="width:100%;">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-dark" colspan="7">
-                                                                Purchase Invoice  : ${d.Document_Number}
-                                                            </th>
-                                                            <th style="text-align: center;" colspan="3">
-                                                                <button type="button" value="${d.Document_Number}" class="btn btn-sm btn-light-danger rpt-vin">🔍 Purchase Invoice</button>
-                                                            </th>
-                                                        </tr>
-                                                        <tr class="bg-dark">
-                                                            <th class="text-center">Invoice No</th>
-                                                            <th class="text-center">Vendor Invoice Number</th>
-                                                            <th class="text-center">Invoice Date</th>
-                                                            <th class="text-center">Due Date</th>
-                                                            <th class="text-center" style="white-space: pre-line; max-width: 200px;">Purchase Order Number</th>
-                                                            <th class="text-center">Vendor Name</th>
-                                                            <th class="text-center">Payment Status</th>
-                                                            <th class="text-center">Is Void</th>
-                                                            <th class="text-center">Document Status</th>
-                                                            <th class="text-center">Receipt Date</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="tbody_vin_${d.CBReq_No}">
-                                                    </tbody>
-                                                </table>
-                                        </div>
-                                </div>
-                            </div>`;
-        }
+                        </div>`;
 
         return container;
-
     }
+
+
     $(document).on('click', '.rpt-vin', function () {
         let vin = $(this).val();
 
         window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_purchase_invoice/${vin}`, `RptVin-${vin}`, 'width=800,height=600');
+    })
+
+    $(document).on('click', '.rpt-bdj', function () {
+        let CBReq_No = $(this).val();
+
+        window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_bdj/${vin}`, `RptBdj-${CBReq_No}`, 'width=800,height=600');
     })
 
     function getInsDetail(Req_No, Ref_no) {
@@ -476,6 +525,24 @@ $(document).ready(function () {
                     tbody_attachment.append(`<tr><td colspan="4">This Cash Book Requisition doesnt have attachment file !</td></tr>`);
                 }
 
+                var tbody_bdj = $("#tbody_bdj_" + Req_No);
+                if (response.code_bdj == 200) {
+                    $.each(response.dataBdjs, function (index, bdj) {
+                        tbody_bdj.append(
+                            `<tr>
+                                <td>${bdj.JournalH_Code}</td>
+                                <td>${bdj.Payor_Payee}</td>
+                                <td>${bdj.CashBookDate}</td>
+                                <td>${bdj.Account_Name}</td>
+                                <td>${bdj.Currency_ID} ${bdj.Total_Amount}</td>
+                                <td>${bdj.Memo}</td>
+                            </tr>`);
+                    });
+                } else {
+                    tbody_bdj.append(`<tr><td colspan="6">This Cash Book Requisition doesnt have BDJ !</td></tr>`);
+                }
+
+
 
             }, error: function (xhr, status, error) {
                 var statusCode = xhr.status;
@@ -525,7 +592,6 @@ $(document).ready(function () {
 
     $(document).on('click', '.btn-cbr', function () {
         let Cbr_no = $(this).val();
-
         window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_rpt_cbr/${Cbr_no}`, `RptCbr-${Cbr_no}`, 'width=854,height=480');
     })
 
@@ -548,8 +614,7 @@ $(document).ready(function () {
                     allowOutsideClick: false,
                     allowEscapeKey: false
                 })
-            },
-            success: function (ajaxData) {
+            }, success: function (ajaxData) {
                 Swal.close()
                 $("#location").html(ajaxData);
                 $("#ModalAttachment").modal('show');
@@ -564,6 +629,129 @@ $(document).ready(function () {
             }
         });
     })
+
+
+    let totalCbrAmount = 0; // Global variable untuk menampung nominal CBR aktif
+
+    $(document).on('click', '.btn-set-termin', function () {
+        const cbreqNo = $(this).data('cbreq-no');
+        totalCbrAmount = parseFloat($(this).data('amount')) || 0;
+        const baseUrl = $('meta[name="base_url"]').attr('content');
+
+        // Set teks header & input tersembunyi di dalam modal
+        $('#txt_modal_cbr_no').text(cbreqNo);
+        $('#inp_modal_cbreq_no').val(cbreqNo);
+        $('#txt_modal_total_amount').text(formatRupiah(totalCbrAmount));
+        $('#inp_modal_total_amount_raw').val(totalCbrAmount);
+
+        // Ambil data termin lama via AJAX jika akuntan pernah menyimpannya
+        $.ajax({
+            url: baseUrl + "CbrAppAccounting/get_termin_data/" + encodeURIComponent(cbreqNo),
+            type: "GET",
+            dataType: "JSON",
+            success: function (response) {
+                $('#termin_container').empty(); // Kosongkan form kontainer termin
+
+                if (response && response.length > 0) {
+                    // Jika data sudah ada di DB, looping dan cetak barisnya
+                    response.forEach(function (item, index) {
+                        // split(' ')[0] digunakan jika tanggal berformat Y-m-d H:i:s agar menjadi Y-m-d saja
+                        let planDate = item.Payment_Plan_Date ? item.Payment_Plan_Date.split(' ')[0] : '';
+                        addTerminRow(item.Amount_Termin, planDate);
+                    });
+                } else {
+                    // Jika data termin masih kosong, buat 1 baris awal bernilai nominal penuh
+                    addTerminRow(totalCbrAmount, '');
+                }
+
+                calculateRemaining();
+                $('#modal_set_termin').modal('show'); // Tampilkan modal Metronic 8
+            },
+            error: function () {
+                alert('Gagal mengambil data termin dari server.');
+            }
+        });
+    });
+
+    // Fungsi membuat baris form inputan termin
+    function addTerminRow(amount = 0, date = '') {
+        const rowCount = $('.termin-row').length + 1;
+        const html = `
+        <div class="row g-3 mb-3 align-items-center termin-row">
+            <div class="col-md-1 text-center">
+                <span class="fw-bold fs-5 row-number">${rowCount}</span>
+            </div>
+            <div class="col-md-5">
+                <div class="input-group input-group-solid">
+                    <input type="number" step="0.01" name="amount_termin[]" class="form-control form-control-solid inp-amount-termin" value="${amount}" required>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <input type="text" name="payment_plan_date[]" class="form-control form-control-solid date-picker" value="${date}" required>
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-icon btn-light-danger btn-sm btn-delete-row">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>`;
+        $('#termin_container').append(html);
+        calculateRemaining();
+        // $('.date-picker').flatpickr();
+    }
+
+    // Handler tombol "Tambah Termin" di dalam modal
+    $('#btn_add_row_termin').on('click', function () {
+        calculateRemaining();
+        const remaining = parseFloat($('#txt_modal_remaining_amount').data('val')) || 0;
+        // Berikan sisa uang otomatis pada baris baru yang dibentuk
+        addTerminRow(remaining > 0 ? remaining : 0, '');
+    });
+
+    // Handler tombol "Hapus" baris termin
+    $(document).on('click', '.btn-delete-row', function () {
+        if ($('.termin-row').length > 1) {
+            $(this).closest('.termin-row').remove();
+            // Susun ulang nomor urut termin (1, 2, 3...)
+            $('.termin-row').each(function (index) {
+                $(this).find('.row-number').text(index + 1);
+            });
+            calculateRemaining();
+        } else {
+            alert('Minimal harus ada 1 termin pembayaran!');
+        }
+    });
+
+    // Handler hitung ulang tiap kali akuntan mengubah angka input secara manual
+    $(document).on('input', '.inp-amount-termin', function () {
+        calculateRemaining();
+    });
+
+    // Fungsi kalkulator sisa limit saldo termin
+    function calculateRemaining() {
+        let totalInputed = 0;
+        $('.inp-amount-termin').each(function () {
+            let val = parseFloat($(this).val()) || 0;
+            totalInputed += val;
+        });
+
+        let remaining = totalCbrAmount - totalInputed;
+        $('#txt_modal_remaining_amount').text(formatRupiah(remaining)).data('val', remaining);
+
+        // Validasi toleransi decimal pembulatan mssql
+        if (Math.abs(remaining) < 0.01) {
+            $('#txt_modal_remaining_amount').removeClass('text-danger text-warning').addClass('text-success');
+            $('#btn_save_termin').prop('disabled', false); // Aktifkan tombol simpan jika match
+        } else {
+            $('#txt_modal_remaining_amount').removeClass('text-success').addClass('text-danger');
+            $('#btn_save_termin').prop('disabled', true);  // Kunci tombol simpan jika nominal belum klop
+        }
+    }
+
+    // Fungsi bantu format angka nominal agar rapi dibaca di modal
+    function formatRupiah(angka) {
+        return parseFloat(angka).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
 
 
 })
