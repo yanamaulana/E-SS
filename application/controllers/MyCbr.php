@@ -219,7 +219,7 @@ class MyCbr extends CI_Controller
         AND isNull(isSPJ,0) = 0
         AND Approval_Status  = 3
         AND CBReq_Status = 3
-        -- AND (Paid_Status = 'NP' or Paid_Status = 'HP')
+        AND (Paid_Status = 'NP' or Paid_Status = 'HP')
         AND (isClose = 0 OR isClose IS NULL)
         AND Ttrx_Cbr_Approval.CBReq_No IS NULL
         AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";

@@ -226,41 +226,64 @@ class CbrAppAccounting extends CI_Controller
         $dates = $this->input->post('payment_plan_date');
 
         if (empty($cbreq_no) || empty($amounts)) {
+            $this->session->set_flashdata('error', 'Data tidak lengkap.');
             redirect($_SERVER['HTTP_REFERER']);
         }
 
-        // Jalankan Transaction SQL Server agar aman
-        $this->db->trans_start();
-
-        // Langkah A: Hapus termin lama untuk nomor CBR ini (Skenario Reset/Update)
+        // 1. AMBIL DATA TERMIN YANG SUDAH ADA DI DATABASE SAAT INI
         $this->db->where('CBReq_No', $cbreq_no);
-        $this->db->delete('Ttrx_Cbr_Approval_Termin');
+        $this->db->order_by('Termin_Ke', 'ASC');
+        $current_termin = $this->db->get('Ttrx_Cbr_Approval_Termin')->result_array();
 
-        // Langkah B: Insert baris termin baru hasil setingan Accounting
-        $batch_data = [];
-        foreach ($amounts as $index => $amount) {
-            $batch_data[] = [
-                'CBReq_No'           => $cbreq_no,
-                'Termin_Ke'          => $index + 1,
-                'Amount_Termin'      => $amount,
-                'Payment_Plan_Date'  => $dates[$index],
-                'Status_AppvPresdir' => 0, // Reset ke pending agar di-review ulang oleh Presdir
-                'Rec_Created_At'     => date('Y-m-d H:i:s')
-            ];
+        // Pisahkan data yang sudah di-approve dan yang belum
+        $approved_termin = [];
+        foreach ($current_termin as $row) {
+            if ($row['Status_AppvPresdir'] == 1) {
+                $approved_termin[] = $row;
+            }
         }
 
-        if (!empty($batch_data)) {
-            $this->db->insert_batch('Ttrx_Cbr_Approval_Termin', $batch_data);
+        $total_approved_count = count($approved_termin);
+        $total_input_count = count($amounts);
+
+        // 2. VALIDASI: Jumlah baris baru tidak boleh lebih dari (Jumlah yang sudah approved + 1)
+        // Contoh: Jika sudah approve 1, maka total baris di form MAKSIMAL boleh 2 (1 approved + 1 diajukan baru)
+        if ($total_input_count > ($total_approved_count + 1)) {
+            $this->session->set_flashdata('error', 'Anda hanya boleh mengajukan 1 termin baru yang pending! Selesaikan approval termin sebelumnya terlebih dahulu.');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+
+        // 3. PROSES SIMPAN MENGGUNAKAN TRANSACTION
+        $this->db->trans_start();
+
+        // Hapus data LAMA yang BELUM di-approve saja
+        $this->db->where('CBReq_No', $cbreq_no);
+        $this->db->where('Status_AppvPresdir', 0);
+        $this->db->delete('Ttrx_Cbr_Approval_Termin');
+
+        // Insert data BARU untuk termin yang sedang diajukan
+        // Loop dimulai dari indeks setelah termin yang sudah di-approve
+        for ($i = $total_approved_count; $i < $total_input_count; $i++) {
+
+            // Pengaman: pastikan index inputan eksis
+            if (!isset($amounts[$i])) continue;
+
+            $this->db->insert('Ttrx_Cbr_Approval_Termin', [
+                'CBReq_No'           => $cbreq_no,
+                'Termin_Ke'          => $i + 1,
+                'Amount_Termin'      => $amounts[$i],
+                'Payment_Plan_Date'  => $dates[$i],
+                'Status_AppvPresdir' => 0, // Berstatus pending untuk Presdir
+                'Rec_Created_At'     => date('Y-m-d H:i:s')
+            ]);
         }
 
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
-            // Jika Error
-            $this->session->set_flashdata('error', 'Gagal mengatur termin pembayaran.');
+            $this->session->set_flashdata('error', 'Gagal memproses termin.');
         } else {
-            // Jika Sukses
-            $this->session->set_flashdata('success', 'Termin pembayaran berhasil disimpan!');
+            $this->session->set_flashdata('success', 'Termin baru berhasil diajukan!');
         }
 
         redirect($_SERVER['HTTP_REFERER']);
