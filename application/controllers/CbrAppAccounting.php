@@ -57,7 +57,7 @@ class CbrAppAccounting extends CI_Controller
                         'Termin_Ke'          => 1,
                         'Currency_ID'        => $header->Currency_ID,
                         'Amount_Termin'      => (float)$header->Amount,
-                        'Payment_Plan_Date'  => $header->Payment_Plan_Date,
+                        'Payment_Plan_Date'  => $this->Date, // Default tanggal sekarang, bisa disesuaikan jika ada logika khusus
                         'Status_AppvPresdir' => 0, // Awaiting
                         'Rec_Created_At'     => $this->DateTime,
                         'Created_By'         => $this->session->userdata('sys_sba_username'),
