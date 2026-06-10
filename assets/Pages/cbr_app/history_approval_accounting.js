@@ -69,7 +69,7 @@ $(document).ready(function () {
                             title="Set Partial Payment" 
                             data-cbreq-no="${data}" 
                             data-amount="${row.Amount}" 
-                            data-currency="${row.Currency_ID}">
+                            data-currency="${row.Currency_Id}">
                         <i class="fas fa-comments-dollar"></i>
                     </button>
                 </div>`;
