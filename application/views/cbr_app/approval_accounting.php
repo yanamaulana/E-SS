@@ -156,7 +156,7 @@
 </div>
 <div id="location"></div>
 <div class="modal fade" id="modal_set_termin" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header py-4">
                 <h5 class="modal-title fs-4">Atur Pembayaran Termin - <span id="txt_modal_cbr_no" class="text-primary"></span></h5>
@@ -166,6 +166,11 @@
             </div>
             <form id="form_termin" method="POST" action="<?= base_url('CbrAppAccounting/save_termin') ?>">
                 <div class="modal-body pt-4">
+                    <div id="msg_termin_complete" class="d-none alert alert-success text-center">
+                        <i class="fas fa-check-circle text-success fs-2x"></i>
+                        <h4 class="text-success mt-2">Termin Pembayaran Selesai!</h4>
+                        <p class="mb-0">Seluruh nominal CBR telah disetujui secara penuh.</p>
+                    </div>
                     <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-3 mb-4">
                         <div class="d-flex flex-stack flex-grow-1">
                             <div class="fw-semibold">
@@ -174,7 +179,6 @@
                             </div>
                         </div>
                     </div>
-
                     <input type="hidden" name="cbreq_no" id="inp_modal_cbreq_no">
                     <input type="hidden" id="inp_modal_total_amount_raw">
 
@@ -186,7 +190,7 @@
                                     <th class="w-120px text-center">Status</th>
                                     <th class="min-w-150px">Nominal Pembayaran</th>
                                     <th class="min-w-150px">Rencana Tgl Bayar</th>
-                                    <th class="w-50px text-center pe-2">Aksi</th>
+                                    <!-- <th class="w-50px text-center pe-2">Aksi</th> -->
                                 </tr>
                             </thead>
                             <tbody id="termin_table_body">

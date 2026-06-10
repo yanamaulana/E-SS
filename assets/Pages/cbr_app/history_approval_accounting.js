@@ -13,6 +13,21 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
+
+    $(document).on('input', '.inp-amount-termin', function () {
+        // 1. Ganti semua karakter yang BUKAN angka atau titik dengan string kosong
+        let val = $(this).val().replace(/[^0-9.]/g, '');
+
+        // 2. Mencegah user mengetik titik lebih dari satu kali (misal: 50.00.00)
+        let parts = val.split('.');
+        if (parts.length > 2) {
+            val = parts[0] + '.' + parts.slice(1).join('');
+        }
+
+        // Set kembali nilai yang sudah bersih ke dalam input
+        $(this).val(val);
+    });
+
     function Fn_Initialized_DataTable() {
         $("#TableDataHistory").DataTable({
             destroy: true,
@@ -38,17 +53,26 @@ $(document).ready(function () {
             columns: [
                 {
                     data: "CBReq_No", name: "CBReq_No", orderable: false, render: function (data, type, row, meta) {
+                        // Cek status: Jika sudah Close ATAU Void, maka tombol tidak perlu ditampilkan
+                        // (Asumsi isClose == 1 adalah closed, isVoid == 1 adalah void)
+                        if (row.isClose == 1 || row.isVoid == 1) {
+                            return '<span class="badge badge-light-secondary fs-8">Closed/Void</span>';
+                        }
+
+                        // Jika data aktif, tampilkan tombolnya
                         return `<div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                                    <button type="button" class="btn btn-sm btn-primary btn-list-attachment" data-bs-toggle="tooltip" title="Upload Attachment"><i class="fas fa-paperclip"></i></button>
-                                    <button type="button" class="btn btn-sm btn-info btn-set-termin" 
-                                            data-bs-toggle="tooltip" 
-                                            title="Set Partial Payment" 
-                                            data-cbreq-no="${data}" 
-                                            data-amount="${row.Amount}" 
-                                            data-currency="${row.Currency_Id}">
-                                        <i class="fas fa-comments-dollar"></i>
-                                    </button>
-                                </div>`;
+                    <button type="button" class="btn btn-sm btn-primary btn-list-attachment" data-bs-toggle="tooltip" title="Upload Attachment">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info btn-set-termin" 
+                            data-bs-toggle="tooltip" 
+                            title="Set Partial Payment" 
+                            data-cbreq-no="${data}" 
+                            data-amount="${row.Amount}" 
+                            data-currency="${row.Currency_ID}">
+                        <i class="fas fa-comments-dollar"></i>
+                    </button>
+                </div>`;
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
@@ -409,7 +433,7 @@ $(document).ready(function () {
                                             <thead>
                                                 <tr>
                                                     <th colspan="6">
-                                                        <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-warning rpt-bdj">🖨️ Print Cash Book</button>
+                                                        <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-warning">LIst BDJ - Cashbook</button>
                                                     </th>
                                                 </tr>
                                                 <tr class="bg-dark">
@@ -439,9 +463,9 @@ $(document).ready(function () {
     })
 
     $(document).on('click', '.rpt-bdj', function () {
-        let CBReq_No = $(this).val();
+        let bdj = $(this).data('bdj');
 
-        window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_bdj/${vin}`, `RptBdj-${CBReq_No}`, 'width=800,height=600');
+        window.open($('meta[name="base_url"]').attr('content') + `MyCbr/get_detail_bdj/${bdj}`, `RptBdj-${bdj}`, 'width=800,height=600');
     })
 
     function getInsDetail(Req_No, Ref_no) {
@@ -537,7 +561,7 @@ $(document).ready(function () {
                     $.each(response.dataBdjs, function (index, bdj) {
                         tbody_bdj.append(
                             `<tr>
-                                <td>${bdj.JournalH_Code}</td>
+                                <td><a href="#" class="rpt-bdj" class="btn rpt-bdj" data-bdj="${bdj.JournalH_Code}">🖨️ ${bdj.JournalH_Code}</a></td>
                                 <td>${bdj.Payor_Payee}</td>
                                 <td>${bdj.CashBookDate}</td>
                                 <td>${bdj.Account_Name}</td>
@@ -639,17 +663,16 @@ $(document).ready(function () {
 
 
     let totalCbrAmount = 0;
-    let cbrCurrency = 'IDR'; // Variable global baru untuk menampung jenis mata uang
+    let cbrCurrency = 'IDR';
 
     $(document).on('click', '.btn-set-termin', function () {
         const cbreqNo = $(this).data('cbreq-no');
         totalCbrAmount = parseFloat($(this).data('amount')) || 0;
-        cbrCurrency = $(this).data('currency') || 'IDR'; // Ambil data currency dari tombol row
+        cbrCurrency = $(this).data('currency') || 'IDR';
 
-        // Set teks header & input tersembunyi di dalam modal
         $('#txt_modal_cbr_no').text(cbreqNo);
         $('#inp_modal_cbreq_no').val(cbreqNo);
-        $('#txt_modal_total_amount').text(cbrCurrency + ' ' + formatRupiah(totalCbrAmount)); // Tampilkan Currency
+        $('#txt_modal_total_amount').text(cbrCurrency + ' ' + formatRupiah(totalCbrAmount));
         $('#inp_modal_total_amount_raw').val(totalCbrAmount);
 
         $.ajax({
@@ -659,16 +682,47 @@ $(document).ready(function () {
             success: function (response) {
                 $('#termin_table_body').empty();
 
+                let totalApproved = 0;
+                let hasActiveAwaiting = false;
+
                 if (response && response.length > 0) {
                     response.forEach(function (item, index) {
                         let planDate = item.Payment_Plan_Date ? item.Payment_Plan_Date.split(' ')[0] : '';
 
-                        // Ambil status angka dari DB (misal 0=Draft/Pending, 1=Approved, dst sesuai setingan controller)
                         addTerminRow(item.Amount_Termin, planDate, item.Status_AppvPresdir, cbrCurrency);
+
+                        // Akumulasi hanya yang sudah APPROVED (Status 1)
+                        if (item.Status_AppvPresdir == 1) {
+                            totalApproved += parseFloat(item.Amount_Termin);
+                        }
+
+                        if (item.Status_AppvPresdir == 0) {
+                            hasActiveAwaiting = true;
+                        }
                     });
+
+                    // LOGIKA: Jika nominal Approved sudah sama dengan Total CBR
+                    // Kita gunakan Math.abs agar toleransi desimal aman
+                    if (Math.abs(totalApproved - totalCbrAmount) < 0.01) {
+                        $('#msg_termin_complete').removeClass('d-none'); // Tampilkan pesan
+                        $('#table_termin_wrapper').addClass('d-none');   // Sembunyikan tabel
+                        $('#btn_save_termin').hide();                    // Sembunyikan tombol simpan
+                    } else {
+                        $('#msg_termin_complete').addClass('d-none');
+                        $('#table_termin_wrapper').removeClass('d-none');
+
+                        // Jika tidak ada yang awaiting, baru buatkan baris draft sisa
+                        let outstanding = totalCbrAmount - totalApproved; // Outstanding dari yang sudah approved
+                        if (!hasActiveAwaiting && outstanding > 0.01) {
+                            addTerminRow(outstanding, '', 'draft', cbrCurrency);
+                        }
+                    }
+
                 } else {
-                    // Default jika data kosong, status = 0 (Draft)
-                    addTerminRow(totalCbrAmount, '', 0, cbrCurrency);
+                    // Jika data benar-benar kosong
+                    $('#msg_termin_complete').addClass('d-none');
+                    $('#table_termin_wrapper').removeClass('d-none');
+                    addTerminRow(totalCbrAmount, '', 'draft', cbrCurrency);
                 }
 
                 calculateRemaining();
@@ -680,43 +734,45 @@ $(document).ready(function () {
     function addTerminRow(amount = 0, date = '', status = 0, cbrCurrency) {
         const rowCount = $('.termin-row').length + 1;
 
-        // Proteksi input: Jika status sudah Approved (1) atau Awaiting (0), input dikunci.
-        // Sesuai validasi Anda sebelumnya: Hanya boleh mengedit jika data baru dibuat (Draft awal di form).
+        // Input terkunci HANYA jika status dari DB adalah 1 (Approved) atau 2 (Rejected)
+        // Jika statusnya 0 (Awaiting) atau 'draft', input tetap TERBUKA agar bisa di-split/diubah
         const isDisabled = (status == 1 || status == 2) ? 'disabled' : '';
         const isDeleteHidden = (status == 1 || status == 2) ? 'd-none' : '';
 
-        // Pemetaan Badge Status Baru sesuai kode Anda
+        // Pemetaan Badge Status berdasarkan standarisasi angka Anda + kondisi 'draft'
         let badgeStatus = '';
         if (status == 1) {
             badgeStatus = '<span class="badge badge-sm badge-light-success fw-bold">Approved</span>';
         } else if (status == 2) {
             badgeStatus = '<span class="badge badge-sm badge-light-danger fw-bold">Rejected</span>';
+        } else if (status === 'draft') {
+            // Tampilan khusus untuk baris otomatis yang belum masuk DB
+            badgeStatus = '<span class="badge badge-sm badge-light-primary fw-bold">Draft</span>';
         } else {
-            // Status 0 adalah default saat masuk dari approval accounting / awaiting presdir
+            // Status 0 dari DB
             badgeStatus = '<span class="badge badge-sm badge-light-warning fw-bold">Awaiting</span>';
         }
 
         const html = `<tr class="termin-row fs-7" data-status="${status}">
-                            <td class="text-center fw-bold row-number ps-2">${rowCount}</td>
-                            <td class="text-center">${badgeStatus}</td>
-                            <td>
-                                <div class="input-group input-group-sm input-group-solid">
-                                    <span class="input-group-text fw-bold fs-7 py-1 px-2">${cbrCurrency}</span>
-                                    <input type="number" step="0.01" name="amount_termin[]" class="form-control form-control-sm form-control-solid inp-amount-termin fs-7 py-1" value="${amount}" required ${isDisabled}>
-                                    ${(status == 1 || status == 2) ? `<input type="hidden" name="amount_termin[]" value="${amount}">` : ''}
-                                </div>
-                            </td>
-                            <td>
-                                <input type="text" name="payment_plan_date[]" class="form-control form-control-sm form-control-solid date-picker fs-7 py-1" value="${date}" required ${isDisabled}>
-                                ${(status == 1 || status == 2) ? `<input type="hidden" name="payment_plan_date[]" value="${date}">` : ''}
-                            </td>
-                            <td class="text-center pe-2">
-                                <button type="button" class="btn btn-icon btn-light-danger btn-sm w-25px h-25px btn-delete-row ${isDeleteHidden}" title="Hapus">
-                                    <i class="fas fa-trash fs-8"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        `;
+                    <td class="text-center fw-bold row-number ps-2">${rowCount}</td>
+                    <td class="text-center">${badgeStatus}</td>
+                    <td>
+                        <div class="input-group input-group-sm input-group-solid">
+                            <span class="input-group-text fw-bold fs-7 py-1 px-2">${cbrCurrency}</span>
+                            <input type="text" name="amount_termin[]" class="form-control form-control-sm form-control-solid inp-amount-termin fs-7 py-1" value="${amount}" required ${isDisabled}>
+                            ${(status == 1 || status == 2) ? `<input type="hidden" name="amount_termin[]" value="${amount}">` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" name="payment_plan_date[]" class="form-control form-control-sm form-control-solid date-picker fs-7 py-1" value="${date}" required ${isDisabled}>
+                        ${(status == 1 || status == 2) ? `<input type="hidden" name="payment_plan_date[]" value="${date}">` : ''}
+                    </td>
+                   <!-- <td class="text-center pe-2">
+                        <button type="button" class="btn btn-icon btn-light-danger btn-sm w-25px h-25px btn-delete-row ${isDeleteHidden}" title="Hapus">
+                            <i class="fas fa-trash fs-8"></i>
+                        </button> --!> 
+                    </td>
+                </tr>`;
 
         $('#termin_table_body').append(html);
         calculateRemaining();
@@ -746,15 +802,14 @@ $(document).ready(function () {
 
     function calculateRemaining() {
         let totalInputed = 0;
-        let totalApprovedOnly = 0; // Tambahan variabel untuk menghitung yang sudah approved saja
+        let totalApprovedOnly = 0;
 
         $('.termin-row').each(function () {
-            const status = parseInt($(this).data('status')) || 0;
+            const status = parseInt($(this).data('status'));
             const val = parseFloat($(this).find('.inp-amount-termin').val()) || 0;
 
             totalInputed += val;
 
-            // Jika status == 1 (Approved), kumpulkan nilainya
             if (status === 1) {
                 totalApprovedOnly += val;
             }
@@ -763,25 +818,24 @@ $(document).ready(function () {
         let remaining = totalCbrAmount - totalInputed;
         $('#txt_modal_remaining_amount').text(formatRupiah(remaining)).data('val', remaining);
 
-        // Hitung sisa absolut antara Total CBR vs data yang SUDAH APPROVED
+        // Jika total yang disetujui (Approved) sudah sama dengan total anggaran CBR
         let approvedRemaining = totalCbrAmount - totalApprovedOnly;
-
-        // VALIDASI BARU: Jika sisa nominal approved vs total CBR sudah habis (0)
         if (Math.abs(approvedRemaining) < 0.01) {
             $('#txt_modal_remaining_amount').text(formatRupiah(0)).removeClass('text-danger').addClass('text-success');
-            $('#btn_save_termin').hide(); // Sembunyikan tombol simpan secara permanen untuk CBR ini
-            return; // Keluar dari fungsi
+            $('#btn_save_termin').hide();
+            return;
         }
 
-        // --- Logika Validasi Tombol Normal (Jika Masih Ada Sisa Anggaran) ---
-        $('#btn_save_termin').show(); // Pastikan tombol muncul jika masih ada sisa budget
+        // Tampilkan tombol jika masih dalam proses termin berjalan
+        $('#btn_save_termin').show();
 
+        // Tombol aktif jika sisa input pas (0) atau bernilai positif (parsial termin diizinkan)
         if (remaining >= 0) {
             $('#txt_modal_remaining_amount').removeClass('text-danger').addClass('text-success');
             $('#btn_save_termin').prop('disabled', false);
         } else {
             $('#txt_modal_remaining_amount').removeClass('text-success').addClass('text-danger');
-            $('#btn_save_termin').prop('disabled', true); // Kunci tombol jika over-budget
+            $('#btn_save_termin').prop('disabled', true); // Kunci jika melampaui total dana CBR
         }
     }
 
@@ -790,75 +844,82 @@ $(document).ready(function () {
         return parseFloat(angka).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
     }
 
-
     $('#form_termin').on('submit', function (e) {
-        e.preventDefault(); // Mencegah form melakukan reload halaman formal
+        e.preventDefault(); // Tahan form agar tidak reload dulu
 
         const form = $(this);
         const btnSave = $('#btn_save_termin');
-        const baseUrl = $('meta[name="base_url"]').attr('content');
 
-        // 1. Ubah tombol menjadi mode Loading (Metronic style)
-        btnSave.attr('data-kt-indicator', 'on');
-        btnSave.prop('disabled', true);
+        let isValid = true;
+        let errorMsg = "";
+        let totalInputed = 0;
 
-        // 2. Kirim data via AJAX POST
+        // LOOPING UNTUK VALIDASI PER BARIS TABEL
+        $('.termin-row').each(function (index) {
+            const rowNum = index + 1;
+            const amountVal = parseFloat($(this).find('.inp-amount-termin').val()) || 0;
+            const dateVal = $(this).find('.date-picker').val();
+
+            totalInputed += amountVal;
+
+            // 1. Validasi Required & Tidak Boleh 0
+            if (!amountVal || amountVal <= 0) {
+                isValid = false;
+                errorMsg = `Nominal Pembayaran pada baris ke-${rowNum} tidak boleh kosong atau 0!`;
+                return false; // Break loop jQuery
+            }
+
+            // 2. Validasi Plan Date Required
+            if (!dateVal || dateVal.trim() === "") {
+                isValid = false;
+                errorMsg = `Rencana Tanggal Bayar pada baris ke-${rowNum} wajib diisi!`;
+                return false; // Break loop jQuery
+            }
+        });
+
+        if (!isValid) {
+            Swal.fire({ text: errorMsg, icon: "warning", buttonsStyling: false, confirmButtonText: "Ok, Perbaiki", customClass: { confirmButton: "btn btn-sm btn-warning" } });
+            return false;
+        }
+
+        // 3. Validasi Keseluruhan Termin Tidak Boleh Lebih Besar dari Nilai Amount CBR
+        // Menggunakan selisih toleransi desimal 0.01 untuk menghindari bug tipe data float
+        if ((totalInputed - totalCbrAmount) > 0.01) {
+            Swal.fire({
+                text: `Total akumulasi termin (${formatRupiah(totalInputed)}) melebihi nilai total nominal CBR (${formatRupiah(totalCbrAmount)})!`,
+                icon: "error",
+                buttonsStyling: false,
+                confirmButtonText: "Sesuaikan Angka",
+                customClass: { confirmButton: "btn btn-sm btn-danger" }
+            });
+            return false;
+        }
+
+        // --- JIKA LOLOS SEMUA VALIDASI, JALANKAN AJAX SIMPAN ---
+        btnSave.attr('data-kt-indicator', 'on').prop('disabled', true);
+
         $.ajax({
             url: form.attr('action'),
             type: "POST",
-            data: form.serialize(), // Mengambil semua data input (termasuk array termin)
+            data: form.serialize(),
             dataType: "JSON",
             success: function (response) {
-                // Sembunyikan mode loading
-                btnSave.removeAttr('data-kt-indicator');
-                btnSave.prop('disabled', false);
+                btnSave.removeAttr('data-kt-indicator').prop('disabled', false);
 
                 if (response.code === 200) {
-                    // Tampilkan pesan sukses (Gunakan SweetAlert2 bawaan Metronic jika ada)
-                    Swal.fire({
-                        text: response.msg,
-                        icon: "success",
-                        buttonsStyling: false,
-                        confirmButtonText: "Ok, Mengerti!",
-                        customClass: {
-                            confirmButton: "btn btn-primary"
-                        }
-                    }).then(function () {
-                        $('#modal_set_termin').modal('hide'); // Tutup Modal
-
-                        // REFRESH DATATABLE ANDA SECARA OTOMATIS
+                    Swal.fire({ text: response.msg, icon: "success", buttonsStyling: false, confirmButtonText: "Selesai", customClass: { confirmButton: "btn btn-sm btn-primary" } }).then(function () {
+                        $('#modal_set_termin').modal('hide');
                         if ($.fn.DataTable.isDataTable('#TableDataHistory')) {
                             $('#TableDataHistory').DataTable().ajax.reload(null, false);
-                            // null, false membuat pagination halaman aktif tidak ter-reset saat reload
                         }
                     });
                 } else {
-                    // Tampilkan pesan error jika validasi backend gagal
-                    Swal.fire({
-                        text: response.msg,
-                        icon: "error",
-                        buttonsStyling: false,
-                        confirmButtonText: "Coba Lagi",
-                        customClass: {
-                            confirmButton: "btn btn-light-danger"
-                        }
-                    });
+                    Swal.fire({ text: response.msg, icon: "error", buttonsStyling: false, confirmButtonText: "Coba Lagi", customClass: { confirmButton: "btn btn-sm btn-danger" } });
                 }
             },
-            error: function (xhr, status, error) {
-                // Handle jika server crash atau error 500
-                btnSave.removeAttr('data-kt-indicator');
-                btnSave.prop('disabled', false);
-
-                Swal.fire({
-                    text: "Terjadi kesalahan sistem atau koneksi terputus.",
-                    icon: "error",
-                    buttonsStyling: false,
-                    confirmButtonText: "Tutup",
-                    customClass: {
-                        confirmButton: "btn btn-light"
-                    }
-                });
+            error: function () {
+                btnSave.removeAttr('data-kt-indicator').prop('disabled', false);
+                Swal.fire({ text: "Terjadi kesalahan sistem server.", icon: "error", buttonsStyling: false, confirmButtonText: "Tutup", customClass: { confirmButton: "btn btn-sm btn-light" } });
             }
         });
     });

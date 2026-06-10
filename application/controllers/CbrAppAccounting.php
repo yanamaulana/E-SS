@@ -35,12 +35,37 @@ class CbrAppAccounting extends CI_Controller
 
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
+            // 1. Update Status Approval Finance
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                 'Status_AppvFinancePerson' => 1,
                 'AppvFinancePerson_Name' => $this->session->userdata('sys_sba_nama'),
                 'AppvFinancePerson_By' => $this->session->userdata('sys_sba_username'),
                 'AppvFinancePerson_At' => $this->DateTime,
             ]);
+
+            // 2. Ambil data Header untuk keperluan Termin
+            $header = $this->db->where('CBReq_No', $CBReq_No)->get('TaccCashBookReq_Header')->row();
+
+            if ($header) {
+                // Cek apakah data termin sudah ada (mencegah duplikasi jika tombol diklik berkali-kali)
+                $check_termin = $this->db->where('CBReq_No', $CBReq_No)->count_all_results('Ttrx_Cbr_Approval_Termin');
+
+                if ($check_termin == 0) {
+                    // 3. Insert ke Tabel Termin (Status 0 = Awaiting)
+                    $this->db->insert('Ttrx_Cbr_Approval_Termin', [
+                        'CBReq_No'           => $CBReq_No,
+                        'Termin_Ke'          => 1,
+                        'Currency_ID'        => $header->Currency_ID,
+                        'Amount_Termin'      => (float)$header->Amount,
+                        'Payment_Plan_Date'  => $header->Payment_Plan_Date,
+                        'Status_AppvPresdir' => 0, // Awaiting
+                        'Rec_Created_At'     => $this->DateTime,
+                        'Created_By'         => $this->session->userdata('sys_sba_username'),
+                        'Last_Updated_By'    => $this->session->userdata('sys_sba_username'),
+                        'Last_Updated_At'    => $this->DateTime
+                    ]);
+                }
+            }
         }
 
         $error_msg = $this->db->error()["message"];
@@ -224,58 +249,93 @@ class CbrAppAccounting extends CI_Controller
         $amounts = $this->input->post('amount_termin');
         $dates = $this->input->post('payment_plan_date');
 
-        if (empty($cbreq_no) || empty($amounts)) {
-            echo json_encode(["code" => 400, "msg" => "Data inputan tidak lengkap!"]);
+        if (empty($cbreq_no) || empty($amounts) || empty($dates)) {
+            echo json_encode(["code" => 400, "msg" => "Data inputan tidak lengkap atau tanggal belum dipilih!"]);
             return;
         }
 
-        // Ambil info Currency asli dari tabel Header CBR
-        $this->db->select('Currency_ID');
+        // 1. AMBIL NILAI MAXIMUM AMOUNT CBR DARI DATABASE
+        $this->db->select('Amount, Currency_ID');
         $this->db->where('CBReq_No', $cbreq_no);
         $header = $this->db->get('TaccCashBookReq_Header')->row();
-        $currency_id = (!empty($header)) ? $header->Currency_ID : 'IDR';
 
-        // Ambil data termin yang sudah ada saat ini
+        if (empty($header)) {
+            echo json_encode(["code" => 400, "msg" => "Nomor CBR tidak valid!"]);
+            return;
+        }
+
+        $total_cbr_amount = (float) $header->Amount;
+        $currency_id = $header->Currency_ID;
+
+        // 2. VALIDASI INPUT ARRAY (REQUIRED, TIDAK BOLEH 0, & TOTAL HITUNG)
+        $total_input_amount = 0;
+        foreach ($amounts as $index => $amount) {
+            $clean_amount = (float) $amount;
+            $clean_date = isset($dates[$index]) ? trim($dates[$index]) : '';
+
+            // Validasi per baris nominal tidak boleh 0 atau minus
+            if ($clean_amount <= 0) {
+                echo json_encode(["code" => 400, "msg" => "Gagal! Nominal pembayaran termin pada baris ke-" . ($index + 1) . " tidak boleh 0 atau kosong."]);
+                return;
+            }
+
+            // Validasi tanggal required
+            if (empty($clean_date)) {
+                echo json_encode(["code" => 400, "msg" => "Gagal! Rencana tanggal bayar pada baris ke-" . ($index + 1) . " wajib diisi."]);
+                return;
+            }
+
+            $total_input_amount += $clean_amount;
+        }
+
+        // 3. VALIDASI TOTAL KESELURUHAN TIDAK BOLEH MELEBIHI LIMIT CBR
+        if (($total_input_amount - $total_cbr_amount) > 0.01) {
+            echo json_encode(["code" => 400, "msg" => "Gagal! Akumulasi nominal termin melebihi total batas anggaran CBR asli."]);
+            return;
+        }
+
+        // --- PROSES TRANSAKSI SIMPAN KE DATABASE (Lolos Validasi) ---
         $this->db->where('CBReq_No', $cbreq_no);
         $this->db->order_by('Termin_Ke', 'ASC');
         $current_termin = $this->db->get('Ttrx_Cbr_Approval_Termin')->result_array();
 
-        $approved_termin = [];
+        $locked_termin = [];
         foreach ($current_termin as $row) {
-            // Kunci data jika statusnya Awaiting (0) atau Approved (1)
-            if ($row['Status_AppvPresdir'] == 0 || $row['Status_AppvPresdir'] == 1) {
-                $approved_termin[] = $row;
+            if ($row['Status_AppvPresdir'] == 1 || $row['Status_AppvPresdir'] == 2) {
+                $locked_termin[] = $row;
             }
         }
 
-        $total_approved_count = count($approved_termin);
+        $total_locked_count = count($locked_termin);
         $total_input_count = count($amounts);
 
-        // Validasi Gate
-        if ($total_input_count > ($total_approved_count + 1)) {
-            echo json_encode(["code" => 400, "msg" => "Gagal! Selesaikan approval termin aktif (Awaiting) terlebih dahulu sebelum membuat termin baru."]);
+        if ($total_input_count > ($total_locked_count + 1)) {
+            echo json_encode(["code" => 400, "msg" => "Gagal! Selesaikan approval termin aktif terlebih dahulu."]);
             return;
         }
 
         $this->db->trans_start();
 
-        // Hapus data lama yang berstatus Ditolak/Rejected (2) agar bisa di-input ulang oleh accounting jika direvisi
+        // Bersihkan baris lama yang masih berstatus 0 (Awaiting)
         $this->db->where('CBReq_No', $cbreq_no);
-        $this->db->where('Status_AppvPresdir', 2);
+        $this->db->where('Status_AppvPresdir', 0);
         $this->db->delete('Ttrx_Cbr_Approval_Termin');
 
-        // Simpan baris pengajuan baru dengan default status 0 (Awaiting)
-        for ($i = $total_approved_count; $i < $total_input_count; $i++) {
+        // Insert data baru
+        for ($i = $total_locked_count; $i < $total_input_count; $i++) {
             if (!isset($amounts[$i])) continue;
 
             $this->db->insert('Ttrx_Cbr_Approval_Termin', [
                 'CBReq_No'           => $cbreq_no,
                 'Termin_Ke'          => $i + 1,
-                'Amount_Termin'      => $amounts[$i],
+                'Amount_Termin'      => (float)$amounts[$i],
                 'Currency_ID'        => $currency_id,
                 'Payment_Plan_Date'  => $dates[$i],
-                'Status_AppvPresdir' => 0, // Otomatis berstatus 0 (Awaiting) untuk meja Presdir
-                'Rec_Created_At'     => date('Y-m-d H:i:s')
+                'Status_AppvPresdir' => 0,
+                'Rec_Created_At'     => date('Y-m-d H:i:s'),
+                'Created_By'         => $this->session->userdata('user_id'), // User yang membuat
+                'Last_Updated_By'    => $this->session->userdata('user_id'), // User yang membuat sekaligus update pertama
+                'Last_Updated_At'    => date('Y-m-d H:i:s')
             ]);
         }
 
@@ -287,7 +347,6 @@ class CbrAppAccounting extends CI_Controller
             $response = ["code" => 200, "msg" => "Susunan termin pembayaran berhasil disimpan!"];
         }
 
-        // Kembalikan sebagai JSON (bukan redirect)
         echo json_encode($response);
     }
 }

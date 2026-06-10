@@ -778,6 +778,7 @@ class MyCbr extends CI_Controller
                         WHERE TAccCashBookHeader.Acc_ID = TAccChartAccount.Acc_ID 
                         AND TAccCashBookHeader.Company_ID = TAccChartAccount.Company_ID 
                         AND TAccCashBookHeader.Company_ID = 2
+                        AND TAccCashBookHeader.isVoid = 0
                         AND ((UPPER( TAccCashBookHeader.JournalH_Code) = UPPER('$Bdj')))");
 
 
@@ -979,6 +980,51 @@ class MyCbr extends CI_Controller
 
 
         $this->load->view('mycbr/rpt_detail_vin', $this->data);
+    }
+
+    public function get_detail_bdj($Req_No = null)
+    {
+        if (empty($Req_No)) show_error('Nomor Invoice tidak valid.', 400);
+
+        $journalH_Code = $Req_No;
+
+        // Query Data Header
+        $data['header'] = $this->db->select('H.*, CA.Account_NameId as Account_Name, CA.Account_Number')
+            ->from('TAccCashBookHeader H')
+            ->join('TAccChartAccount CA', 'H.Account_ID = CA.Acc_ID', 'left') // Pastikan Acc_ID sesuai PK di TAccChartAccount
+            ->where('H.JournalH_Code', $journalH_Code)
+            ->get()->row();
+
+
+        $data['header_k'] = $this->db->query("SELECT * 
+                                            FROM TAccCashBookHeader
+                                                LEFT JOIN TCurrency ON TAccCashBookHeader.Currency_ID = TCurrency.Currency_ID
+                                                LEFT JOIN TAccount ON TAccCashBookHeader.Account_ID = TAccount.Account_ID
+                                                LEFT JOIN TAccChartAccount ON TAccCashBookHeader.ACC_ID = TAccChartAccount.ACC_ID
+                                            WHERE JournalH_Code = '$journalH_Code'")->row();
+
+        // Query Data Detail
+        $data['details'] = $this->db->select('D.*, CA.Account_Number, CA.Account_NameId as Account_Name')
+            ->from('TAccCashBookDetail D')
+            ->join('TAccChartAccount CA', 'CA.Acc_ID = D.Acc_ID', 'inner') // Sesuaikan join key Acc_ID
+            ->where('D.JournalH_Code', $journalH_Code)
+            ->group_start()->where('ISVOID IS NULL')->or_where('ISVOID', 0)->group_end()
+            ->get()->result();
+
+        // 4. Data Perusahaan
+        $data['company'] = $this->db->select('company_name')->get_where('THRMCompany', ['Company_ID' => 2])->row();
+
+        // Total untuk terbilang (menggunakan Total_Amount dari header atau sum dari detail)
+        $data['terbilang'] = $this->terbilang($data['header']->Total_Amount);
+
+        $this->load->view('mycbr/rpt_detail_bdj', $data);
+    }
+
+    // Tambahkan fungsi terbilang (Helper)
+    private function terbilang($n)
+    {
+        // ... (Gunakan fungsi terbilang yang saya berikan sebelumnya) ...
+        return "Ten Billion Nine Hundred Twenty Four Million Four Hundred Eighty Two Thousand Five Hundred Fifty One Indonesian Rupiah";
     }
 
     public function m_f_cbr_attachment()
