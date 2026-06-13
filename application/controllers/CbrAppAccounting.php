@@ -327,6 +327,7 @@ class CbrAppAccounting extends CI_Controller
         for ($i = $total_locked_count; $i < $total_input_count; $i++) {
             if (!isset($amounts[$i])) continue;
 
+            $trx = $this->db->where('CBReq_No', $cbreq_no)->get('Ttrx_Cbr_Approval')->row();
             $this->db->insert('Ttrx_Cbr_Approval_Termin', [
                 'CBReq_No'           => $cbreq_no,
                 'Termin_Ke'          => $i + 1,
@@ -334,6 +335,7 @@ class CbrAppAccounting extends CI_Controller
                 'Currency_ID'        => $currency_id,
                 'Payment_Plan_Date'  => $dates[$i],
                 'Status_AppvPresdir' => 0,
+                'AppvPresdir_By'     => $trx->AppvPresidentDirector_By,
                 'Rec_Created_At'     => date('Y-m-d H:i:s'),
                 'Created_By'         => $this->session->userdata('user_id'), // User yang membuat
                 'Last_Updated_By'    => $this->session->userdata('user_id'), // User yang membuat sekaligus update pertama

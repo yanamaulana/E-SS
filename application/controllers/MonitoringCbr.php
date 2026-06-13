@@ -392,7 +392,7 @@ class MonitoringCbr extends CI_Controller
             9 => 'curr_rate',
             10 => 'Approval_Status',
             11 => 'CBReq_Status',
-            12 => 'Paid_Status',
+            12 => 'Payment_Status',
             13 => 'Creation_DateTime',
             14 => 'Created_By',
             15 => 'First_Name',
@@ -421,7 +421,7 @@ class MonitoringCbr extends CI_Controller
          Ttrx_Cbr_Approval.AppvDirector_Name, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_Name, Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.Legitimate,
         Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_Name,
         IsAppvFinancePerson,Status_AppvFinancePerson,AppvFinancePerson_By,AppvFinancePerson_Name,AppvFinancePerson_At,
-        Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision
+        Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision,Ttrx_Cbr_Approval.Payment_Status
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
@@ -467,6 +467,7 @@ class MonitoringCbr extends CI_Controller
             $nestedData['Approval_Status']                  = $row['Approval_Status'];
             $nestedData['CBReq_Status']                     = $row['CBReq_Status'];
             $nestedData['Paid_Status']                      = $row['Paid_Status'];
+            $nestedData['Payment_Status']                      = $row['Payment_Status'];
             $nestedData['Creation_DateTime']                = $row['Creation_DateTime'];
             $nestedData['Created_By']                       = $row['Created_By'];
             $nestedData['First_Name']                       = $row['Created_By_Name'];

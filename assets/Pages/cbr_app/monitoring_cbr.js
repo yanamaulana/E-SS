@@ -132,17 +132,19 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "Paid_Status",
-                    name: "Paid_Status",
+                    data: "Payment_Status", // <-- Ganti data dan name ke Payment_Status
+                    name: "Payment_Status",
                     render: function (data) {
-                        if (data == 'NP') {
-                            return `<span class="text-dark badge badge-danger">Not Having BDJ</span>`
-                        } else if (data == 'HP') {
-                            return `<span class="text-dark badge badge-warning">Having BDJ</span>`
-                        } else if (data == 'FP') {
-                            return `<span class="text-dark badge badge-success">Having BDJ</span>`
+                        if (data == 0 || data == null || data == '') {
+                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                        } else if (data == 3) {
+                            return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
+                        } else if (data == 1) {
+                            return `<span class="text-white badge badge-success">Fully Paid</span>`;
+                        } else if (data == 2) {
+                            return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
                         } else {
-                            return ''
+                            return `<span class="text-dark badge badge-light">-</span>`;
                         }
                     }
                 },

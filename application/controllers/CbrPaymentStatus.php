@@ -351,7 +351,7 @@ class CbrPaymentStatus extends CI_Controller
                 INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
                 INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
                 WHERE H.Type='D' AND H.Company_ID = 2 AND ISNULL(H.isSPJ,0) = 0
-                AND TA.Legitimate = 1 
+                -- AND TA.Legitimate = 1 
                 AND TM.Status_AppvPresdir = 1 
                 AND TM.Termin_Payment_status = 0 ";
 
@@ -364,6 +364,9 @@ class CbrPaymentStatus extends CI_Controller
                       OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
                       OR H.Descript LIKE '%$searchValue%' ESCAPE '!') ";
         }
+
+        // var_dump($sql); // Debug: Tampilkan query sebelum eksekusi
+        // die;
 
         $totalFiltered = $this->db->query($sql)->num_rows();
         $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
@@ -393,7 +396,7 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['Last_Update'] = $row['Last_Update'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];
             $nestedData['Approve_Date'] = $row['Approve_Date'];
-            $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
+            $nestedData['Payment_Plan_Date'] = date('Y-m-d', strtotime($row['Payment_Plan_Date']));
 
             $data[] = $nestedData;
         }
@@ -471,7 +474,7 @@ class CbrPaymentStatus extends CI_Controller
         AND CBReq_Status = 3
         AND (isClose IS NULL OR isClose = 0)
         AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND Legitimate = 1
+        -- AND Legitimate = 1
         AND Payment_Status <>0
         ";
 

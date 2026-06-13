@@ -278,6 +278,7 @@ class CbrAppPresidentDirector extends CI_Controller
                 OR CAST(TM.Amount_Termin AS VARCHAR) LIKE '%$searchValue%'
             )";
         }
+
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();
         $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
@@ -677,22 +678,50 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['Payment_Status'] = $row['Payment_Status'];
             $nestedData['Payment_Status_Time_Change'] = !empty($row['Payment_Status_Time_Change']) ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-';
 
+            // Assistant Manager
+            $nestedData['IsAppvAsstManager'] = $row['IsAppvAsstManager'];
             $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
             $nestedData['AppvAsstManager_At'] = !empty($row['AppvAsstManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-';
+
+            // Manager
+            $nestedData['IsAppvManager'] = $row['IsAppvManager'];
             $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
             $nestedData['AppvManager_At'] = !empty($row['AppvManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-';
+
+            // Senior Manager
+            $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
             $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
             $nestedData['AppvSeniorManager_At'] = !empty($row['AppvSeniorManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-';
+
+            // General Manager
+            $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
             $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
             $nestedData['AppvGeneralManager_At'] = !empty($row['AppvGeneralManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-';
+
+            // Additional Approval
+            $nestedData['IsAppvAdditional'] = $row['IsAppvAdditional'];
             $nestedData['Status_AppvAdditional'] = $row['Status_AppvAdditional'];
             $nestedData['AppvAdditional_At'] = !empty($row['AppvAdditional_At']) ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-';
+
+            // Finance Person
+            $nestedData['IsAppvFinancePerson'] = $row['IsAppvFinancePerson'];
             $nestedData['Status_AppvFinancePerson'] = $row['Status_AppvFinancePerson'];
             $nestedData['AppvFinancePerson_At'] = !empty($row['AppvFinancePerson_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-';
+
+            // Director
+            $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
             $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
             $nestedData['AppvDirector_At'] = !empty($row['AppvDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-';
+
+            // Finance Director
+            $nestedData['IsAppvFinanceDirector'] = $row['IsAppvFinanceDirector'];
             $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
             $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
+
+            // President Director (Tambahan jika di-render juga di frontend)
+            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'] ?? 0;
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'] ?? 0;
+            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
 
             $data[] = $nestedData;
         }

@@ -637,13 +637,14 @@
     <?= $script_page ?>
     <script>
         window.renderApprovalStatus = function(data, status) {
+            console.log(data, status)
             if (data == 0) {
                 return `<span style="font-size:12pt;" data-bs-toggle="tooltip" title="No approval needed." class="badge bg-secondary text-dark">🛇</span>`;
             }
 
             // Perbaikan: Cek status hanya sekali
             if (data == 1) {
-                if (status == null || status === undefined || status === '') {} else if (status == 0) {
+                if (status == null || status === undefined || status === '' || status == 0) {
                     return `<span style="font-size:12pt;" data-bs-toggle="tooltip" title="Approval In Progress" class="badge bg-light">⌛</span>`;
                 } else if (status == 1) {
                     return `<span style="font-size:12pt;" data-bs-toggle="tooltip" title="Aproved" class="badge bg-light">✅</span>`;
