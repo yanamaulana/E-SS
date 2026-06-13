@@ -49,6 +49,7 @@
                                                     </div>
                                                 </th>
                                                 <th class="text-center text-white">Doc Numb</th>
+                                                <th class="text-center text-white">Termin</th>
                                                 <th class="text-center text-white">Type</th>
                                                 <th class="text-center text-white">Date</th>
                                                 <th class="text-center text-white">Curr</th>
@@ -83,9 +84,9 @@
                                     <div class="py-2 col-md-2">
                                         <div class="input-group">
                                             <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                <option value="Ttrx_Cbr_Approval.AppvPresidentDirector_At" selected>Approved Date</option>
-                                                <option value="Ttrx_Cbr_Approval.Rec_Created_At">Submission Date</option>
-                                                <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                                <option value="H.Document_Date">Document Date</option>
+                                                <option value="TA.AppvPresidentDirector_At" selected>Approved Date</option>
+                                                <option value="TA.Rec_Created_At">Submission Date</option>
                                             </select>
                                         </div>
                                     </div>
@@ -111,6 +112,7 @@
                                         <tr class="text-white fw-bolder text-uppercase">
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
+                                            <th class="text-center text-white">Termin</th>
                                             <!-- <th class="text-center text-white">Type</th> -->
                                             <th class="text-center text-white">Date</th>
                                             <th class="text-center text-white">Curr</th>

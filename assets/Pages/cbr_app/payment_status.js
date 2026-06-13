@@ -30,132 +30,142 @@ $(document).ready(function () {
             dataType: "json",
             type: "POST",
         },
-        columns: [{
-            data: 'CBReq_No',
-            name: "CheckBox",
-            orderable: false,
-            render: function (data, type, row, meta) {
-                return `<div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="${row.CBReq_No}" id="${row.CBReq_No}" name="CBReq_No[]">
+        columns: [
+            {
+                data: 'CBReq_No',
+                name: "CheckBox",
+                orderable: false,
+                render: function (data, type, row, meta) {
+                    // Value sekarang adalah gabungan CBR_No dan Termin_Ke
+                    let val = row.CBReq_No + '|' + row.Termin_Ke;
+                    return `<div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="${val}" id="${val}" name="CBReq_No[]">
                   </div>`
-            }
-        },
-        {
-            data: "CBReq_No",
-            name: "CBReq_No",
-        },
-        {
-            data: "Type",
-            name: "Type",
-            visible: false
-        },
-        {
-            data: "Document_Date",
-            name: "Document_Date",
-            render: function (data) {
-                return data.substring(0, data.indexOf(' '));
-            }
-        },
-        {
-            data: "Currency_Id",
-            name: "Currency_Id",
-        },
-        {
-            data: "Amount",
-            name: "Amount",
-            render: function (data) {
-                return parseFloat(data).toLocaleString('en-US', {
-                    minimumFractionDigits: 4,
-                    maximumFractionDigits: 4
-                });
-            }
-        },
-        {
-            data: "Document_Number",
-            name: "Document_Number",
-        },
-        {
-            data: "Descript",
-            name: "Descript",
-        },
-        {
-            data: "baseamount",
-            name: "baseamount",
-            visible: false
-        },
-        {
-            data: "curr_rate",
-            name: "curr_rate",
-            visible: false
-        },
-        {
-            data: "Approval_Status",
-            name: "Approval_Status",
-            visible: false
-        },
-        {
-            data: "Legitimate",
-            name: "Legitimate",
-            render: function (data) {
-                if (data == 0) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Waiting Approval" class="text-dark badge badge-warning btn-icon">Waiting</a>`
-                } else if (data == 1) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Finish Approved</a>`
-                } else if (data == 2) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon">Rejected</a>`
                 }
-            }
-        },
-        {
-            data: "Payment_Status",
-            name: "Payment_Status",
-            render: function (data) {
-                if (data == 0) {
-                    return `<span class="text-white badge badge-warning">Pending Payment</span>`
-                } else if (data == 1) {
-                    return `<span class="text-white badge badge-success">Paid</span>`
-                } else {
-                    return `<span class="text-white badge badge-danger">Payment Rejected</span>`
+            },
+            {
+                data: "CBReq_No",
+                name: "CBReq_No",
+            },
+            {
+                data: "Termin_Ke",
+                name: "Termin_Ke",
+                render: function (data) {
+                    return `<span class="badge badge-light-primary border text-dark">Termin ${data}</span>`;
                 }
+            },
+            {
+                data: "Type",
+                name: "Type",
+                visible: false
+            },
+            {
+                data: "Document_Date",
+                name: "Document_Date",
+                render: function (data) {
+                    return data.substring(0, data.indexOf(' '));
+                }
+            },
+            {
+                data: "Currency_Id",
+                name: "Currency_Id",
+            },
+            {
+                data: "Amount",
+                name: "Amount",
+                render: function (data) {
+                    return parseFloat(data).toLocaleString('en-US', {
+                        minimumFractionDigits: 4,
+                        maximumFractionDigits: 4
+                    });
+                }
+            },
+            {
+                data: "Document_Number",
+                name: "Document_Number",
+            },
+            {
+                data: "Descript",
+                name: "Descript",
+            },
+            {
+                data: "baseamount",
+                name: "baseamount",
+                visible: false
+            },
+            {
+                data: "curr_rate",
+                name: "curr_rate",
+                visible: false
+            },
+            {
+                data: "Approval_Status",
+                name: "Approval_Status",
+                visible: false
+            },
+            {
+                data: "Legitimate",
+                name: "Legitimate",
+                render: function (data) {
+                    if (data == 0) {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Waiting Approval" class="text-dark badge badge-warning btn-icon">Waiting</a>`
+                    } else if (data == 1) {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Finish Approved</a>`
+                    } else if (data == 2) {
+                        return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon">Rejected</a>`
+                    }
+                }
+            },
+            {
+                data: "Payment_Status",
+                name: "Payment_Status",
+                render: function (data) {
+                    if (data == 0) {
+                        return `<span class="text-white badge badge-warning">Pending Payment</span>`
+                    } else if (data == 1) {
+                        return `<span class="text-white badge badge-success">Paid</span>`
+                    } else {
+                        return `<span class="text-white badge badge-danger">Payment Rejected</span>`
+                    }
+                }
+            },
+            {
+                data: "Creation_DateTime",
+                name: "Creation_DateTime",
+                visible: false
+            },
+            {
+                data: "Created_By",
+                name: "Created_By",
+                visible: false
+            },
+            {
+                data: "UserDivision",
+                name: "UserDivision",
+            },
+            {
+                data: "First_Name",
+                name: "First_Name",
+            },
+            {
+                data: "Last_Update",
+                name: "Last_Update",
+                visible: false
+            },
+            {
+                data: "Acc_ID",
+                name: "Acc_ID",
+                visible: false
+            },
+            {
+                data: "Approve_Date",
+                name: "Approve_Date",
+                visible: false
+            },
+            {
+                data: "Payment_Plan_Date",
+                name: "Payment_Plan_Date",
             }
-        },
-        {
-            data: "Creation_DateTime",
-            name: "Creation_DateTime",
-            visible: false
-        },
-        {
-            data: "Created_By",
-            name: "Created_By",
-            visible: false
-        },
-        {
-            data: "UserDivision",
-            name: "UserDivision",
-        },
-        {
-            data: "First_Name",
-            name: "First_Name",
-        },
-        {
-            data: "Last_Update",
-            name: "Last_Update",
-            visible: false
-        },
-        {
-            data: "Acc_ID",
-            name: "Acc_ID",
-            visible: false
-        },
-        {
-            data: "Approve_Date",
-            name: "Approve_Date",
-            visible: false
-        },
-        {
-            data: "Payment_Plan_Date",
-            name: "Payment_Plan_Date",
-        }
         ],
         order: [
             [3, "DESC"]

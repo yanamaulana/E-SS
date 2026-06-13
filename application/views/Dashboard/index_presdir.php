@@ -196,7 +196,7 @@
                     // ++ AKHIR TAMBAHAN ++
                     ?>
 
-                    <table class="table table-row-dashed table-row-gray-500 align-middle gs-0 gy-4">
+                    <table class="table table-row-dashed table-hover table-row-gray-500 align-middle gs-0 gy-4">
                         <thead>
                             <tr class="fw-bolder text-muted">
                                 <th class="w-25px">
@@ -339,7 +339,7 @@
             </div>
             <div class="card-body py-3">
                 <div class="table-responsive">
-                    <table class="table table-row-dashed table-striped table-row-gray-500 align-middle gs-0 gy-4" id="history_table">
+                    <table class="table table-row-dashed table-striped table-hover table-row-gray-500 align-middle gs-0 gy-4" id="history_table">
                         <thead id="history_head">
                             <tr class="fw-bolder text-muted">
                                 <th class="w-25px">

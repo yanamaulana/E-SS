@@ -35,17 +35,15 @@ class HistoryApproval_Accounting extends CI_Controller
             8 => 'baseamount',
             9 => 'curr_rate',
             10 => 'Approval_Status',
-            11 => 'CBReq_Status',
-            12 => 'Paid_Status',
+            11 => 'TAccCashBookReq_Header.isClose', // <-- DIPERBAIKI
+            12 => 'Ttrx_Cbr_Approval.Payment_Status', // <-- SUDAH BENAR
             13 => 'Creation_DateTime',
             14 => 'Created_By',
             15 => 'UserDivision',
             16 => 'First_Name',
             17 => 'Last_Update',
-            18 => 'Update_By',
-            19 => 'TAccCashBookReq_Header.Acc_ID ',
-            20 => 'TAccCashBookReq_Header.Approve_Date',
-
+            18 => 'TAccCashBookReq_Header.Acc_ID', // <-- DIPERBAIKI
+            19 => 'TAccCashBookReq_Header.Approve_Date', // <-- DIPERBAIKI
         );
         $order  = $columns[$requestData['order']['0']['column']];
         $dir    = $requestData['order']['0']['dir'];
@@ -86,7 +84,8 @@ class HistoryApproval_Accounting extends CI_Controller
             $nestedData['curr_rate'] = $row['curr_rate'];
             $nestedData['Approval_Status'] = $row['Approval_Status'];
             $nestedData['CBReq_Status'] = $row['CBReq_Status'];
-            $nestedData['Paid_Status'] = $row['Paid_Status'];
+            // $nestedData['Paid_Status'] = $row['Paid_Status'];
+            $nestedData['Payment_Status'] = $row['Payment_Status'];
             $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
             $nestedData['Created_By'] = $row['Created_By'];
             $nestedData['First_Name'] = $row['Created_By_Name'];

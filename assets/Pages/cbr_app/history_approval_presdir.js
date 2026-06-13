@@ -41,11 +41,17 @@ $(document).ready(function () {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     }
                 },
-                { data: "CBReq_No", name: "CBReq_No", },
-                // { data: "Type", name: "Type", visible: false },
+                { data: "CBReq_No", name: "CBReq_No" },
+                {
+                    data: "Termin_Ke",
+                    name: "Termin_Ke",
+                    render: function (data) {
+                        return `<span class="badge badge-light-primary text-dark border">Termin ${data}</span>`;
+                    }
+                },
                 {
                     data: "Document_Date", name: "Document_Date", render: function (data) {
-                        return data ? data.substring(0, data.indexOf(' ')) : '-'; // Tambah cek NULL
+                        return data ? data.substring(0, data.indexOf(' ')) : '-';
                     }
                 },
                 { data: "Currency_Id", name: "Currency_Id" },
@@ -54,54 +60,35 @@ $(document).ready(function () {
                         return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     }
                 },
-                // { data: "Document_Number", name: "Document_Number" },
                 { data: "Descript", name: "Descript" },
-                // { data: "baseamount", name: "baseamount", visible: false },
-                // { data: "curr_rate", name: "curr_rate", visible: false },
-                // { data: "Approval_Status", name: "Approval_Status", visible: false },
                 {
                     data: "isClose", name: "isClose",
                     render: function (data) {
-                        if (data == 0 || data == '' || data == null) {
-                            return `<span class="text-dark badge badge-success">Open</span>`;
-                        } else {
-                            return `<span class="text-dark badge badge-danger">VOID</span>`;
-                        }
+                        return (data == 0 || data == '' || data == null) ?
+                            `<span class="text-dark badge badge-success">Open</span>` :
+                            `<span class="text-dark badge badge-danger">VOID</span>`;
                     }
                 },
                 {
-                    data: "Status_AppvPresidentDirector", name: "Status_AppvPresidentDirector", visible: true, render: function (data) {
-                        if (data == 0) {
-                            return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Waiting Approval" class="text-dark badge badge-warning btn-icon">Waiting</a>`
-                        } else if (data == 1) {
-                            return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-success btn-icon">Approved</a>`
-                        } else if (data == 2) {
-                            return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-danger btn-icon"> Rejected</a>`
-                        }
+                    data: "Status_AppvPresidentDirector",
+                    name: "Status_AppvPresidentDirector",
+                    render: function (data, type, row, meta) {
+                        if (data == 0) return `<span class="text-dark badge badge-warning">Waiting</span>`;
+                        if (data == 1) return `<span class="badge badge-success">Approved</span><br>${row.AppvPresidentDirector_At}`;
+                        if (data == 2) return `<span class="badge badge-danger">Rejected</span><br>${row.AppvPresidentDirector_At}`;
                     }
                 },
-                // { data: "Paid_Status", name: "Paid_Status", visible: false },
                 {
-                    data: "Payment_Status", name: "Payment_Status",
+                    data: "Payment_Status",
+                    name: "Payment_Status",
                     render: function (data) {
-                        if (data == 0) {
-                            return `<span class="text-dark badge badge-warning">Pending Payment</span>`
-                        } else if (data == 1) {
-                            return `<span class="text-white badge badge-success">Paid</span>`
-                        } else {
-                            return `<span class="text-white badge badge-danger">Payment Rejected</span>`
-                        }
+                        if (data == 0) return `<span class="text-dark badge badge-warning">Pending</span>`;
+                        if (data == 1) return `<span class="text-white badge badge-success">Paid</span>`;
+                        if (data == 2) return `<span class="text-white badge badge-danger">Rejected</span>`;
                     }
                 },
-                // { data: "Creation_DateTime", name: "Creation_DateTime", visible: false },
-                // { data: "Created_By", name: "Created_By", visible: false },
-                { data: "UserDivision", name: "UserDivision", orderable: true },
-                { data: "First_Name", name: "First_Name", orderable: false },
-                // { data: "Last_Update", name: "Last_Update", visible: false },
-                // { data: "Acc_ID", name: "Acc_ID", visible: false },
-                // { data: "Approve_Date", name: "Approve_Date", visible: false },
-                // { data: "IsAppvStaff", name: "IsAppvStaff", visible: false },
-                // { data: "IsAppvChief", name: "IsAppvChief", visible: false },
+                { data: "UserDivision", name: "UserDivision" },
+                { data: "First_Name", name: "First_Name" },
                 {
                     data: "IsAppvAsstManager", name: "IsAppvAsstManager", orderable: false, visible: false, render: function (data, type, row, meta) {
                         return renderApprovalStatus(data, row.Status_AppvAsstManager) + ' <br/> ' + row.AppvAsstManager_At;
@@ -147,24 +134,36 @@ $(document).ready(function () {
                         return renderApprovalStatus(data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
                     }
                 },
-                { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" },
+                { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" }
             ],
+            // 1. Order: Berdasarkan Document_Date sekarang berada di kolom indeks 3 (karena ada kolom Termin di indeks 2)
             order: [
-                [2, "DESC"]
+                [3, "DESC"]
             ],
-            columnDefs: [{
-                width: 220,
-                targets: 7
-            }, {
-                className: "text-center dt-nowrap",
-                targets: [0, 2, 3, 6, 7, 8, 9, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-            }, {
-                className: "details-control pr-4 dt-nowrap",
-                targets: [1]
-            }, {
-                className: "dt-nowrap text-end",
-                targets: [4]
-            }],
+
+            // 2. Gabungan ColumnDefs yang rapi
+            columnDefs: [
+                {
+                    // Pengaturan lebar khusus untuk kolom Description (sekarang di indeks 6)
+                    width: "220px",
+                    targets: [6]
+                },
+                {
+                    // Alignment center untuk kolom yang sifatnya status/ID/tanggal
+                    className: "text-center dt-nowrap",
+                    targets: [0, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+                },
+                {
+                    // Ikon detail
+                    className: "details-control pr-4 dt-nowrap",
+                    targets: [1]
+                },
+                {
+                    // Alignment kanan untuk angka (Amount di indeks 4)
+                    className: "dt-nowrap text-end",
+                    targets: [4]
+                }
+            ],
             // orderCellsTop: true,
             // fixedColumns: true,
             scrollCollapse: true,

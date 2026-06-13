@@ -37,6 +37,7 @@
                                                     </div>
                                                 </th>
                                                 <th class="text-center text-white">Doc Numb</th>
+                                                <th class="text-center text-white">Termin</th>
                                                 <th class="text-center text-white">Type</th>
                                                 <th class="text-center text-white">Date</th>
                                                 <th class="text-center text-white">Curr</th>
@@ -88,7 +89,7 @@
                                                         <br />
                                                         <strong>Jangan merubah tipe data, kolom action harus diisi dengan : 1 Untuk Approve & 2 Untuk Reject.</strong>
                                                         <br />
-                                                        <a href="<?= base_url('assets/templates/Template_Mass_Action.xlsx') ?>" class="fw-bolder fs-6 text-primary border-bottom border-primary" download>
+                                                        <a href="<?= base_url('assets/templates/Mass_Action_Temp.xlsx') ?>" class="fw-bolder fs-6 text-primary border-bottom border-primary" download>
                                                             <i class="fas fa-file-excel text-primary me-1"></i> Download Template .xlsx
                                                         </a>
                                                     </span>

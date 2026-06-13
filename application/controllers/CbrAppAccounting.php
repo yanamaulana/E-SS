@@ -45,6 +45,7 @@ class CbrAppAccounting extends CI_Controller
 
             // 2. Ambil data Header untuk keperluan Termin
             $header = $this->db->where('CBReq_No', $CBReq_No)->get('TaccCashBookReq_Header')->row();
+            $trx = $this->db->where('CBReq_No', $CBReq_No)->get('Ttrx_Cbr_Approval')->row();
 
             if ($header) {
                 // Cek apakah data termin sudah ada (mencegah duplikasi jika tombol diklik berkali-kali)
@@ -59,6 +60,7 @@ class CbrAppAccounting extends CI_Controller
                         'Amount_Termin'      => (float)$header->Amount,
                         'Payment_Plan_Date'  => $this->DateTime, // Default tanggal sekarang, bisa disesuaikan jika ada logika khusus
                         'Status_AppvPresdir' => 0, // Awaiting
+                        'AppvPresdir_By'     => $trx->AppvPresidentDirector_By,
                         'Rec_Created_At'     => $this->DateTime,
                         'Created_By'         => $this->session->userdata('sys_sba_username'),
                         'Last_Updated_By'    => $this->session->userdata('sys_sba_username'),

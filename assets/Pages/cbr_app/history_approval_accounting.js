@@ -61,7 +61,7 @@ $(document).ready(function () {
 
                         // Jika data aktif, tampilkan tombolnya
                         return `<div class="btn-group btn-group-sm" role="group" aria-label="Basic example">
-                    <button type="button" class="btn btn-sm btn-primary btn-list-attachment" data-bs-toggle="tooltip" title="Upload Attachment">
+                    <button type="button" class="btn btn-sm btn-primary btn-list-attachment" data-bs-toggle="tooltip" title="Upload Attachment" value="${data}">
                         <i class="fas fa-paperclip"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-info btn-set-termin" 
@@ -104,16 +104,19 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "Paid_Status", name: "Paid_Status",
+                    data: "Payment_Status", // <-- Ganti data dan name ke Payment_Status
+                    name: "Payment_Status",
                     render: function (data) {
-                        if (data == 'NP') {
-                            return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                        } else if (data == 'HP') {
-                            return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                        } else if (data == 'FP') {
-                            return `<span class="text-dark badge badge-success">Full Paid</span>`
+                        if (data == 0 || data == null || data == '') {
+                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                        } else if (data == 3) {
+                            return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
+                        } else if (data == 1) {
+                            return `<span class="text-white badge badge-success">Fully Paid</span>`;
+                        } else if (data == 2) {
+                            return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
                         } else {
-                            return ''
+                            return `<span class="text-dark badge badge-light">-</span>`;
                         }
                     }
                 },
@@ -586,39 +589,6 @@ $(document).ready(function () {
             }
         });
     }
-
-    $(document).on('click', '.btn-attachment', function () {
-        $('#txt-cbr').text($(this).val());
-        $.ajax({
-            // dataType: "json",
-            type: "GET",
-            url: $('meta[name="base_url"]').attr('content') + "MyCbr/m_list_cbr_attachment",
-            data: {
-                CbrNo: $(this).val(),
-            }, beforeSend: function () {
-                Swal.fire({
-                    title: 'Loading....',
-                    html: '<div class="spinner-border text-primary"></div>',
-                    showConfirmButton: false,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                })
-            },
-            success: function (ajaxData) {
-                Swal.close()
-                $("#location").html(ajaxData);
-                $("#ModalAttachment").modal('show');
-            }, error: function (xhr, status, error) {
-                var statusCode = xhr.status;
-                var errorMessage = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : xhr.responseText ? xhr.responseText : "Terjadi kesalahan: " + error;
-                Swal.fire({
-                    icon: "error",
-                    title: "Error!",
-                    html: `Kode HTTP: ${statusCode}<br\>message: ${errorMessage}`,
-                });
-            }
-        });
-    })
 
 
     $(document).on('click', '.btn-cbr', function () {

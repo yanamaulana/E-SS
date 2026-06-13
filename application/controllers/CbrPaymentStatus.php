@@ -35,19 +35,102 @@ class CbrPaymentStatus extends CI_Controller
         $this->load->view($this->layout, $this->data);
     }
 
+    private function Sync_Header_Status($cbreq_no, $last_reason = NULL)
+    {
+        // Ambil data user dan waktu saat ini
+        $change_by = $this->session->userdata('sys_sba_nama');
+        $time_change = $this->DateTime;
+
+        // 1. Ambil nilai total nominal CBR dari Header
+        $cbr_header = $this->db->query("SELECT Amount FROM TAccCashBookReq_Header WHERE CBReq_No = '$cbreq_no'")->row_array();
+        $total_cbr_amount = (float)($cbr_header['Amount'] ?? 0);
+
+        // 2. Hitung akumulasi dari Termin (Approve Presdir)
+        $sum_approved = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Status_AppvPresdir = 1")->row_array();
+        $total_approved_termin = (float)($sum_approved['total'] ?? 0);
+
+        // 3. Hitung akumulasi dari Termin yang DIBAYAR Bank (Payment Status = 1)
+        $sum_paid = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 1")->row_array();
+        $total_paid_termin = (float)($sum_paid['total'] ?? 0);
+
+        // 4. Hitung akumulasi dari Termin yang DI-REJECT Bank (Payment Status = 2)
+        $sum_rejected_payment = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 2")->row_array();
+        $total_rejected_payment_termin = (float)($sum_rejected_payment['total'] ?? 0);
+
+        // 5. Cek apakah ada termin yang di REJECT PRESDIR (Status 2)
+        $check_rejected_presdir = $this->db->query("SELECT COUNT(*) AS count FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Status_AppvPresdir = 2")->row_array();
+        $is_any_termin_rejected = (int)($check_rejected_presdir['count'] ?? 0);
+
+        // 6. Cek jumlah baris yang di-reject bank untuk validasi flag
+        $check_rejected_payment = $this->db->query("SELECT COUNT(*) AS count FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 2")->row_array();
+        $is_any_payment_rejected = (int)($check_rejected_payment['count'] ?? 0);
+
+        // --- UPDATE STATUS PRESDIR ---
+        if ($total_approved_termin == $total_cbr_amount) {
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, ['Status_AppvPresidentDirector' => 1]);
+        } elseif ($is_any_termin_rejected > 0 && $total_approved_termin < $total_cbr_amount) {
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, ['Status_AppvPresidentDirector' => 2]);
+        }
+
+        // --- UPDATE STATUS PAYMENT (BANK) ---
+        if ($total_paid_termin == $total_cbr_amount) {
+            // Fully Paid
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, [
+                'Payment_Status' => 1,
+                'Payment_Status_Time_Change' => $time_change,
+                'Payment_Status_Change_By' => $change_by
+            ]);
+        } elseif ($is_any_payment_rejected > 0) {
+            // Siapkan data update dasar untuk kondisi penolakan
+            $update_payment_data = [
+                'Payment_Status' => 2, // Payment Rejected
+                'Payment_Status_Time_Change' => $time_change,
+                'Payment_Status_Change_By' => $change_by
+            ];
+
+            // LOGIKA BARU: Gunakan abs() bawaan PHP, bukan Math.abs()
+            if (abs($total_rejected_payment_termin - $total_cbr_amount) < 0.01 && !empty($last_reason)) {
+                $update_payment_data['Reject_Payment_Reason'] = $last_reason;
+            }
+
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, $update_payment_data);
+        } elseif ($total_paid_termin > 0 && $total_paid_termin < $total_cbr_amount) {
+            // Partially Paid
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, [
+                'Payment_Status' => 3,
+                'Payment_Status_Time_Change' => $time_change,
+                'Payment_Status_Change_By' => $change_by
+            ]);
+        }
+    }
+
 
     public function approve_submission()
     {
-        $Cbrs = $this->input->post('CBReq_No');
+        $Inputs = $this->input->post('CBReq_No'); // Berisi array: ["CBR001|1", "CBR001|2"]
+        $unique_cbr = [];
 
         $this->db->trans_start();
-        foreach ($Cbrs as $CBReq_No) {
-            $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Payment_Status' => 1,
-                'Payment_Status_Change_By' => $this->session->userdata('sys_sba_nama'),
-                // 'AppvAsstManager_By' => $this->session->userdata('sys_sba_username'),
-                'Payment_Status_Time_Change' => $this->DateTime,
-            ]);
+        foreach ($Inputs as $val) {
+            $parts = explode('|', $val);
+            if (count($parts) !== 2) continue;
+
+            $CBReq_No = $parts[0];
+            $Termin_Ke = $parts[1];
+            $unique_cbr[$CBReq_No] = true; // Simpan CBR untuk di-sync nanti
+
+            $this->db->where('CBReq_No', $CBReq_No)
+                ->where('Termin_Ke', $Termin_Ke)
+                ->update('Ttrx_Cbr_Approval_Termin', [
+                    'Termin_Payment_status' => 1,
+                    'Termin_Payment_status_by' => $this->session->userdata('sys_sba_nama'),
+                    'Termin_Payment_status_at' => $this->DateTime,
+                ]);
+        }
+
+        // Sinkronisasi Header
+        foreach (array_keys($unique_cbr) as $cbr) {
+            $this->Sync_Header_Status($cbr);
         }
 
         $error_msg = $this->db->error()["message"];
@@ -69,18 +152,35 @@ class CbrPaymentStatus extends CI_Controller
 
     public function reject_submission()
     {
-        $Cbrs = $this->input->post('CBReq_No');
+        $Inputs = $this->input->post('CBReq_No');
         $rejection_reason = $this->input->post('rejection_reason');
+        $unique_cbr = [];
 
         $this->db->trans_start();
-        foreach ($Cbrs as $CBReq_No) {
-            $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
-                'Payment_Status' => 2,
-                'Payment_Status_Change_By' => $this->session->userdata('sys_sba_nama'),
-                'Payment_Status_Time_Change' => $this->DateTime,
-                'Reject_Payment_Reason' => $rejection_reason,
-            ]);
-            $this->help->record_history_approval($CBReq_No, $rejection_reason);
+        foreach ($Inputs as $val) {
+            $parts = explode('|', $val);
+            if (count($parts) !== 2) continue;
+
+            $CBReq_No = $parts[0];
+            $Termin_Ke = $parts[1];
+            $unique_cbr[$CBReq_No] = true;
+
+            // UPDATE SEKARANG MENYIMPAN ALASAN REJECT PER TERMIN
+            $this->db->where('CBReq_No', $CBReq_No)
+                ->where('Termin_Ke', $Termin_Ke)
+                ->update('Ttrx_Cbr_Approval_Termin', [
+                    'Termin_Payment_status' => 2,
+                    'Termin_Payment_status_by' => $this->session->userdata('sys_sba_nama'),
+                    'Termin_Payment_status_at' => $this->DateTime,
+                    'Reject_Payment_Reason' => $rejection_reason, // <-- SEKARANG SUDAH AKTIF bray!
+                ]);
+
+            // Tetap catat ke history approval global sebagai audit trail tambahan
+            $this->help->record_history_approval($CBReq_No, "Termin $Termin_Ke: " . $rejection_reason);
+        }
+
+        foreach (array_keys($unique_cbr) as $cbr) {
+            $this->Sync_Header_Status($cbr, $rejection_reason);
         }
 
         $error_msg = $this->db->error()["message"];
@@ -137,24 +237,29 @@ class CbrPaymentStatus extends CI_Controller
 
                 $cbr_no = trim($row['A'] ?? '');
                 $action = trim($row['B'] ?? '');
+                $termin_ke = trim($row['C'] ?? ''); // BACA KOLOM C UNTUK TERMIN KE
 
-                if (!empty($cbr_no) && $action !== '') {
+                // Pastikan ketiga kolom (CBR, Action, dan Termin) tidak kosong
+                if (!empty($cbr_no) && $action !== '' && $termin_ke !== '') {
                     $selected_cbr[] = [
                         'CBR_NUMBER' => $cbr_no,
-                        'ACTION'     => (int)$action // Pastikan tipe datanya integer
+                        'ACTION'     => (int)$action,
+                        'TERMIN_KE'  => (int)$termin_ke // Simpan Termin Ke
                     ];
                 }
             }
 
             if (empty($selected_cbr)) {
-                echo json_encode(['code' => 500, 'msg' => 'Data Excel kosong atau format tidak sesuai.']);
+                echo json_encode(['code' => 500, 'msg' => 'Data Excel kosong atau format tidak sesuai. Pastikan Kolom CBR, Action, dan Termin terisi.']);
                 return;
             }
+
             $username = $this->session->userdata('sys_sba_username');
+            $unique_cbr = []; // Array untuk menampung CBR unik agar sinkronisasi lebih efisien
+
             $this->db->trans_start();
 
             foreach ($selected_cbr as $data) {
-
                 $action_flag = $data['ACTION']; // Angka 1 (Approve) atau 2 (Reject) dari Excel
 
                 if ($action_flag == 1) {
@@ -164,24 +269,39 @@ class CbrPaymentStatus extends CI_Controller
                 } else {
                     continue; // Skip jika angka action tidak valid (bukan 1 atau 2)
                 }
+
+                // Kumpulkan CBR_NUMBER unik
+                $unique_cbr[$data['CBR_NUMBER']] = true;
+
+                // UPDATE KE TABEL TERMIN
                 $this->db->where('CBReq_No', $data['CBR_NUMBER']);
-                $this->db->update('Ttrx_Cbr_Approval', [
-                    'Payment_Status' => $status_update,
-                    'Payment_Status_Time_Change' => $this->DateTime,
-                    'Payment_Status_Change_By' => $username
+                $this->db->where('Termin_Ke', $data['TERMIN_KE']);
+                $this->db->update('Ttrx_Cbr_Approval_Termin', [
+                    'Termin_Payment_status' => $status_update,
+                    'Termin_Payment_status_at' => $this->DateTime,
+                    'Termin_Payment_status_by' => $username
                 ]);
             }
+
+            // JALANKAN SINKRONISASI HEADER
+            foreach (array_keys($unique_cbr) as $cbr) {
+                $this->Sync_Header_Status($cbr);
+            }
+
             $this->db->trans_complete();
+
             if ($this->db->trans_status() === FALSE) {
                 echo json_encode([
                     'code' => 500,
                     'msg' => 'Gagal memproses data. Terjadi kesalahan pada database dan transaksi telah dibatalkan.'
                 ]);
+                return; // Tambahkan return agar tidak lanjut ke echo sukses
             }
+
             $total_processed = count($selected_cbr);
             echo json_encode([
                 'code' => 200,
-                'msg' => "Berhasil memproses $total_processed dokumen CBR dari Excel!"
+                'msg' => "Berhasil memproses $total_processed dokumen termin CBR dari Excel!"
             ]);
         } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
             echo json_encode([
@@ -201,115 +321,89 @@ class CbrPaymentStatus extends CI_Controller
     {
         $requestData = $_REQUEST;
         $columns = array(
-            0 => 'TAccCashBookReq_Header.CBReq_No',
-            1 => 'TAccCashBookReq_Header.CBReq_No',
-            2 => 'Type',
-            3 => 'Document_Date',
-            4 => 'TAccCashBookReq_Header.Currency_Id',
-            5 => 'Amount',
-            6 => 'Document_Number',
-            7 => 'Descript',
-            8 => 'baseamount',
-            9 => 'curr_rate',
-            10 => 'Approval_Status',
-            11 => 'Legitimate',
-            12 => 'Payment_Status',
-            13 => 'Creation_DateTime',
-            14 => 'Created_By',
-            15 => 'First_Name',
-            16 => 'Last_Update',
-            17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID ',
-            19 => 'TAccCashBookReq_Header.Approve_Date',
-            20 => 'TAccCashBookReq_Header.Payment_Plan_Date',
-
+            0 => 'H.CBReq_No',
+            1 => 'H.CBReq_No',
+            2 => 'TM.Termin_Ke', // Tambahan Termin
+            3 => 'H.Type',
+            4 => 'H.Document_Date',
+            5 => 'H.Currency_Id',
+            6 => 'TM.Amount_Termin', // Amount dari termin
+            7 => 'H.Document_Number',
+            8 => 'H.Descript',
+            9 => 'TM.Termin_Payment_status', // Status dari termin
+            10 => 'TA.UserDivision',
+            11 => 'U.First_Name',
+            12 => 'TM.Payment_Plan_Date' // Plan date dari termin
         );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $username = $this->session->userdata('sys_sba_username');
+        $order  = $columns[$requestData['order']['0']['column']] ?? 'H.Document_Date';
+        $dir    = $requestData['order']['0']['dir'] ?? 'DESC';
 
-        $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision, Legitimate, Payment_Status,Payment_Status_Time_Change,Payment_Status_Change_By, Payment_Plan_Date
-        FROM TAccCashBookReq_Header
-        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3
-        AND (isClose IS NULL OR isClose = 0)
-        AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND Legitimate = 1
-        AND Payment_Status = 0
-        AND ((IsAppvStaff = 0)          or (IsAppvStaff = 1 and Status_AppvStaff = 1))
-        AND ((IsAppvChief = 0)          or (IsAppvChief = 1 and Status_AppvChief = 1))
-        AND ((IsAppvAsstManager = 0)    or (IsAppvAsstManager = 1 and Status_AppvAsstManager = 1))
-        AND ((IsAppvManager = 0)        or (IsAppvManager = 1 and Status_AppvManager = 1))
-        AND ((IsAppvSeniorManager = 0)  or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
-        AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
-        AND ((IsAppvAdditional = 0)     or (IsAppvAdditional = 1 and Status_AppvAdditional = 1))
-        AND ((IsAppvDirector = 0)       or (IsAppvDirector = 1 and Status_AppvDirector = 1))
-        AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) 
-        AND ((IsAppvFinanceDirector = 0) or (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector = 1)) 
-        AND ((IsAppvPresidentDirector = 0) or (IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector = 1)) 
-        
-        ";
+        // Hanya tarik Termin yang sudah di-Approve Presdir (1) dan Belum Dibayar (0)
+        $sql = "SELECT DISTINCT 
+                H.CBReq_No, TM.Termin_Ke, H.Type, H.Document_Date, H.Document_Number, 
+                H.Descript, TM.Amount_Termin AS Amount, H.Currency_Id, 
+                TA.UserDivision, U.First_Name, TM.Termin_Payment_status AS Payment_Status, 
+                TM.Payment_Plan_Date, TA.Legitimate,
+                H.baseamount, H.curr_rate, H.Approval_Status, H.Creation_DateTime, 
+                H.Created_By, H.Last_Update, H.Acc_ID, H.Approve_Date
+                FROM Ttrx_Cbr_Approval_Termin TM
+                INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
+                INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
+                WHERE H.Type='D' AND H.Company_ID = 2 AND ISNULL(H.isSPJ,0) = 0
+                AND TA.Legitimate = 1 
+                AND TM.Status_AppvPresdir = 1 
+                AND TM.Termin_Payment_status = 0 ";
 
         $totalData = $this->db->query($sql)->num_rows();
+
         if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Payment_Plan_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+            $searchValue = $this->db->escape_like_str($requestData['search']['value']);
+            $sql .= " AND (H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
+                      OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
+                      OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
+                      OR H.Descript LIKE '%$searchValue%' ESCAPE '!') ";
         }
-        //----------------------------------------------------------------------------------
+
         $totalFiltered = $this->db->query($sql)->num_rows();
         $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
         $query = $this->db->query($sql);
+
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
+
             $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['Termin_Ke'] = $row['Termin_Ke'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
-            $nestedData['Acc_ID'] = $row['Acc_ID'];
-            $nestedData['Descript'] = $row['Descript'];
-            $nestedData['Document_Number'] = $row['Document_Number'];
+            $nestedData['Currency_Id'] = $row['Currency_Id'];
             $nestedData['Amount'] = $row['Amount'];
+            $nestedData['Document_Number'] = $row['Document_Number'];
+            $nestedData['Descript'] = $row['Descript'];
             $nestedData['baseamount'] = $row['baseamount'];
             $nestedData['curr_rate'] = $row['curr_rate'];
             $nestedData['Approval_Status'] = $row['Approval_Status'];
-            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
-            $nestedData['Paid_Status'] = $row['Paid_Status'];
-            $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
-            $nestedData['Created_By'] = $row['Created_By'];
-            $nestedData['First_Name'] = $row['Created_By_Name'];
-            $nestedData['Last_Update'] = $row['Last_Update'];
-            $nestedData['Update_By'] = $row['Update_By'];
-            $nestedData['Currency_Id'] = $row['Currency_Id'];
-            $nestedData['Approve_Date'] = $row['Approve_Date'];
-            $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
+            $nestedData['Created_By'] = $row['Created_By'];
+            $nestedData['UserDivision'] = $row['UserDivision'];
+            $nestedData['First_Name'] = $row['First_Name'];
+            $nestedData['Last_Update'] = $row['Last_Update'];
+            $nestedData['Acc_ID'] = $row['Acc_ID'];
+            $nestedData['Approve_Date'] = $row['Approve_Date'];
             $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
 
             $data[] = $nestedData;
         }
-        //----------------------------------------------------------------------------------
-        $json_data = array(
+
+        echo json_encode([
             "draw" => intval($requestData['draw']),
             "recordsTotal" => intval($totalData),
             "recordsFiltered" => intval($totalFiltered),
             "data" => $data,
-        );
-        //----------------------------------------------------------------------------------
-        echo json_encode($json_data);
+        ]);
     }
 
     public function DT_List_History_Approval()

@@ -283,7 +283,7 @@ class m_helper extends CI_Model
         Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_Name,
         Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By,
         Ttrx_Cbr_Approval.AppvFinanceDirector_Name, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.Legitimate,
-        Ttrx_Cbr_Approval.UserDivision, TAccCashBookReq_Header.Payment_Plan_Date
+        Ttrx_Cbr_Approval.UserDivision, TAccCashBookReq_Header.Payment_Plan_Date, Ttrx_Cbr_Approval.Payment_Status
         FROM TAccCashBookReq_Header
         INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
         INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
@@ -310,6 +310,20 @@ class m_helper extends CI_Model
             ->count_all_results();
 
         $CountTry = $count + 1;
+
+        // --- A. COPY DATA TERMIN KE TABEL HISTORY TERMIN ---
+        $sql_termin = "INSERT INTO Thst_Trx_Cbr_Approval_Termin (
+            SubmissionCount, SysID, CBReq_No, Termin_Ke, Amount_Termin, 
+            Payment_Plan_Date, Status_AppvPresdir, Termin_Payment_status, 
+            Reject_Payment_Reason, Created_By, Created_at
+        )
+        SELECT 
+            $CountTry, SysID, CBReq_No, Termin_Ke, Amount_Termin, 
+            Payment_Plan_Date, Status_AppvPresdir, Termin_Payment_status, 
+            Reject_Payment_Reason, Last_Updated_By, GETDATE()
+        FROM Ttrx_Cbr_Approval_Termin
+        WHERE CBReq_No = ?";
+        $this->db->query($sql_termin, [$CBReq_No]);
 
         $sql_att = "INSERT INTO Thst_trx_Dtl_Attachment_Cbr_Rejected (
                     SubmissionCount,
@@ -386,7 +400,7 @@ class m_helper extends CI_Model
         // ✅ Eksekusi query dengan binding
         $result = $this->db->query($sql, $bindings);
 
-        return $result;
+        return $result ? true : false;
     }
 
     public function generate_so_number($tableName, $documentType, $documentNoName, $type, $companyID, $locationID, $trxNoName)

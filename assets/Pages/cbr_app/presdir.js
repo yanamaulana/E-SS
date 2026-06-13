@@ -40,19 +40,19 @@ $(document).ready(function () {
             orderable: false,
             render: function (data, type, row, meta) {
                 var isChecked = selected_cbr.includes(row.CBReq_No) ? 'checked' : '';
-                // 🔥 TAMBAHKAN data-curr dan data-amount DI SINI
                 return `<div class="form-check">
-            <input class="form-check-input row-checkbox" type="checkbox" 
-                value="${row.CBReq_No}" 
-                id="${row.CBReq_No}" 
-                name="CBReq_No[]" 
-                ${isChecked}
-                data-curr="${row.Currency_Id}" 
-                data-amount="${row.Amount}">
-          </div>`
+                            <input class="form-check-input row-checkbox" type="checkbox" 
+                                value="${row.CBReq_No}" 
+                                id="${row.CBReq_No}" 
+                                name="CBReq_No[]" 
+                                ${isChecked}
+                                data-curr="${row.Currency_Id}"
+                                data-amount="${row.Amount}">
+                        </div>`
             }
         },
         { data: "CBReq_No", name: "CBReq_No" },
+        { data: "Termin_Ke", name: "Termin_Ke" },
         { data: "Type", name: "Type", visible: false },
         { data: "Document_Date", name: "Document_Date", render: function (data) { return data.substring(0, data.indexOf(' ')); } },
         { data: "Currency_Id", name: "Currency_Id" },
@@ -70,10 +70,14 @@ $(document).ready(function () {
             }
         },
         {
-            data: "Payment_Status", name: "Payment_Status", render: function (data) {
-                if (data == 0) return `<span class="text-dark badge badge-warning">Pending Payment</span>`;
-                if (data == 1) return `<span class="text-white badge badge-success">Paid</span>`;
-                return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
+            data: "Payment_Status", // Mengambil dari TA.Payment_Status
+            name: "Payment_Status",
+            render: function (data) {
+                if (data == 0) return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                if (data == 3) return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
+                if (data == 1) return `<span class="text-white badge badge-success">Fully Paid</span>`;
+                if (data == 2) return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
+                return `<span class="text-dark badge badge-light">Unknown</span>`;
             }
         },
         { data: "Creation_DateTime", name: "Creation_DateTime", visible: false },
@@ -90,7 +94,7 @@ $(document).ready(function () {
         ],
         columnDefs: [{
             className: "text-center",
-            targets: [0, 2, 3, 4, 6, 8, 9, 10, 11, 12, 13, 14, 17],
+            targets: [0, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15, 18],
         }, {
             className: "details-control pr-4 dt-nowrap",
             targets: [1]

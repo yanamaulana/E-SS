@@ -83,8 +83,8 @@
                                         <div class="col-xl-2 py-2 col-md-2">
                                             <div class="input-group">
                                                 <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
-                                                    <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                                    <option value="TaccCashBookReq_Header.Document_Date" selected>Document Date</option>
+                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At">Submission Date</option>
                                                 </select>
                                             </div>
                                         </div>

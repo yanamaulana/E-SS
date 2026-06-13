@@ -753,11 +753,26 @@ class MyCbr extends CI_Controller
         $ValidateCashbook = $CashbookCheck->num_rows();
         $code_having_bdj = 200;
         $dataBdjs = array();
+
         if ($ValidateCashbook == 0) {
             $code_having_bdj = 404;
         } else {
-            $Bdj = $CashbookCheck->row()->JournalH_Code;
-            $SqlBdj = $this->db->query("SELECT TAccCashBookHeader.JournalH_Code, 
+            // 1. Ambil SEMUA JournalH_Code dan masukkan ke dalam array
+            $bdj_array = array();
+            foreach ($CashbookCheck->result() as $row) {
+                // Pastikan kodenya tidak kosong sebelum dimasukkan
+                if (!empty($row->JournalH_Code)) {
+                    $bdj_array[] = "'" . $this->db->escape_str($row->JournalH_Code) . "'";
+                }
+            }
+
+            // 2. Pastikan array tidak kosong sebelum melanjutkan ke query utama
+            if (count($bdj_array) > 0) {
+                // Ubah array ['BDJ001', 'BDJ002'] menjadi string "'BDJ001', 'BDJ002'"
+                $bdj_list = implode(",", $bdj_array);
+
+                // 3. Modifikasi Query menggunakan WHERE IN
+                $SqlBdj = $this->db->query("SELECT TAccCashBookHeader.JournalH_Code, 
                         TAccCashBookHeader.isvoid,
                         TAccCashBookHeader.CashBookDate,
                         TAccCashBookHeader.CashBookType,
@@ -779,35 +794,37 @@ class MyCbr extends CI_Controller
                         AND TAccCashBookHeader.Company_ID = TAccChartAccount.Company_ID 
                         AND TAccCashBookHeader.Company_ID = 2
                         AND TAccCashBookHeader.isVoid = 0
-                        AND ((UPPER( TAccCashBookHeader.JournalH_Code) = UPPER('$Bdj')))");
+                        -- GUNAKAN IN (...) BUKAN = (...)
+                        AND UPPER(TAccCashBookHeader.JournalH_Code) IN ($bdj_list)");
 
+                if ($SqlBdj->num_rows() > 0) {
+                    foreach ($SqlBdj->result_array() as $li) {
+                        $nestedData = array();
+                        $nestedData['JournalH_Code'] = $li['JournalH_Code'];
+                        $nestedData['isvoid'] = $li['isvoid'];
+                        $nestedData['CashBookDate'] = substr($li['CashBookDate'], 0, 10);
+                        $nestedData['CashBookType'] = $li['CashBookType'];
+                        $nestedData['Currency_ID'] = $li['Currency_ID'];
+                        $nestedData['Total_Amount'] = $li['Total_Amount'];
+                        $nestedData['Memo'] = $li['Memo'];
+                        $nestedData['Account_Name'] = $li['Account_Name'];
+                        $nestedData['ClearingBank'] = $li['ClearingBank'];
+                        $nestedData['Payor_Payee'] = $li['Payor_Payee'];
+                        $nestedData['status'] = $li['status'];
+                        $nestedData['approval_status'] = $li['approval_status'];
+                        $nestedData['CashFlow_Type'] = $li['CashFlow_Type'];
+                        $nestedData['CashFlow_Name'] = $li['CashFlow_Name'];
+                        $nestedData['Type_NameEn'] = $li['Type_NameEn'];
+                        $nestedData['Notes'] = $li['Notes'];
+                        $nestedData['Company_ID'] = $li['Company_ID'];
 
-            if ($SqlBdj->num_rows() > 0) {
-                foreach ($SqlBdj->result_array() as $li) {
-                    $nestedData = array();
-
-                    $nestedData['JournalH_Code'] = $li['JournalH_Code'];
-                    $nestedData['isvoid'] = $li['isvoid'];
-                    $nestedData['CashBookDate'] = substr($li['CashBookDate'], 0, 10);
-                    $nestedData['CashBookType'] = $li['CashBookType'];
-                    $nestedData['Currency_ID'] = $li['Currency_ID'];
-                    $nestedData['Total_Amount'] = $li['Total_Amount'];
-                    $nestedData['Memo'] = $li['Memo'];
-                    $nestedData['Account_Name'] = $li['Account_Name'];
-                    $nestedData['ClearingBank'] = $li['ClearingBank'];
-                    $nestedData['Payor_Payee'] = $li['Payor_Payee'];
-                    $nestedData['status'] = $li['status'];
-                    $nestedData['approval_status'] = $li['approval_status'];
-                    $nestedData['CashFlow_Type'] = $li['CashFlow_Type'];
-                    $nestedData['CashFlow_Name'] = $li['CashFlow_Name'];
-                    $nestedData['Type_NameEn'] = $li['Type_NameEn'];
-                    $nestedData['Notes'] = $li['Notes'];
-                    $nestedData['Company_ID'] = $li['Company_ID'];
-
-                    $dataBdjs[] = $nestedData;
+                        $dataBdjs[] = $nestedData;
+                    }
+                } else {
+                    $code_having_bdj = 404;
                 }
             } else {
-                $code_having_bdj = 404;
+                $code_having_bdj = 404; // Jika ada detail invoice tapi Journal Code nya kosong semua
             }
         }
 
@@ -1048,6 +1065,7 @@ class MyCbr extends CI_Controller
     public function m_list_cbr_attachment()
     {
         $CbrNo = $this->input->get('CbrNo');
+
         $this->data['CbrNo'] = $CbrNo;
         $this->data['Attachments'] = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
         $this->data['Types'] = $this->db->get($this->Tmst_Attachment_Type_CBR);
