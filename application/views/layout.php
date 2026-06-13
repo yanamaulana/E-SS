@@ -637,7 +637,6 @@
     <?= $script_page ?>
     <script>
         window.renderApprovalStatus = function(data, status) {
-            console.log(data, status)
             if (data == 0) {
                 return `<span style="font-size:12pt;" data-bs-toggle="tooltip" title="No approval needed." class="badge bg-secondary text-dark">🛇</span>`;
             }
