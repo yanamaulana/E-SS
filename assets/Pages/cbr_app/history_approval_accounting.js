@@ -425,7 +425,6 @@ $(document).ready(function () {
             </div>
         `;
         }
-        // Bagian BDJ (Kolom Kanan pada Row Kedua)
         container += `
                     </div>
                         <div class="row bg-primary">
