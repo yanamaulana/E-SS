@@ -194,37 +194,12 @@ class CbrAppPresidentDirector extends CI_Controller
             20 => 'H.Approve_Date',
             21 => 'H.Payment_Plan_Date',
         );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $username = $this->session->userdata('sys_sba_username');
+        $columnIndex = isset($requestData['order'][0]['column']) ? (int) $requestData['order'][0]['column'] : 0;
+        $order = isset($columns[$columnIndex]) ? $columns[$columnIndex] : 'H.CBReq_No';
+        $dir = (isset($requestData['order'][0]['dir']) && strtolower($requestData['order'][0]['dir']) === 'asc') ? 'ASC' : 'DESC';
+        $username = $this->db->escape($this->session->userdata('sys_sba_username'));
 
-        // $sql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, UserDivision, Status_AppvPresidentDirector, Payment_Status,Payment_Status_Time_Change,Payment_Status_Change_By, Payment_Plan_Date
-        // FROM TAccCashBookReq_Header
-        // INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        // INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        // LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        // WHERE TAccCashBookReq_Header.Type='D'
-        // AND TAccCashBookReq_Header.Company_ID = 2 
-        // AND isNull(isSPJ,0) = 0
-        // AND Approval_Status  = 3
-        // AND CBReq_Status = 3
-        // AND (isClose IS NULL OR isClose = 0)
-        // AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        // AND IsAppvPresidentDirector = 1
-        // AND Status_AppvPresidentDirector = 0
-        // AND Ttrx_Cbr_Approval.AppvPresidentDirector_By = '$username'
-        // AND ((IsAppvStaff = 0)          or (IsAppvStaff = 1 and Status_AppvStaff = 1))
-        // AND ((IsAppvChief = 0)          or (IsAppvChief = 1 and Status_AppvChief = 1))
-        // AND ((IsAppvAsstManager = 0)    or (IsAppvAsstManager = 1 and Status_AppvAsstManager = 1))
-        // AND ((IsAppvManager = 0)        or (IsAppvManager = 1 and Status_AppvManager = 1))
-        // AND ((IsAppvSeniorManager = 0)  or (IsAppvSeniorManager = 1 and Status_AppvSeniorManager = 1))
-        // AND ((IsAppvGeneralManager = 0) or (IsAppvGeneralManager = 1 and Status_AppvGeneralManager = 1))
-        // AND ((IsAppvAdditional = 0)     or (IsAppvAdditional = 1 and Status_AppvAdditional = 1))
-        // AND ((IsAppvDirector = 0)       or (IsAppvDirector = 1 and Status_AppvDirector = 1))
-        // AND ((IsAppvFinancePerson = 0)  or (IsAppvFinancePerson = 1 and Status_AppvFinancePerson = 1)) 
-        // AND ((IsAppvFinanceDirector = 0) or (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector = 1)) ";
-
-        $sql = "SELECT DISTINCT 
+        $select = "SELECT DISTINCT 
             H.CBReq_No, 
             TM.SysID AS Termin_SysID,
             TM.Termin_Ke, 
@@ -235,7 +210,9 @@ class CbrAppPresidentDirector extends CI_Controller
             H.Creation_DateTime, H.Created_By, U.First_Name AS Created_By_Name, 
             H.Last_Update, H.Update_By, H.Currency_Id, H.Approve_Date, TA.UserDivision, 
             TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
-            TA.Payment_Status, TA.Payment_Status_Time_Change, TA.Payment_Status_Change_By
+            TA.Payment_Status, TA.Payment_Status_Time_Change, TA.Payment_Status_Change_By";
+
+        $fromWhere = "
             FROM TAccCashBookReq_Header H
             INNER JOIN TUserGroupL GL ON H.Created_By = GL.User_ID
             INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
@@ -249,7 +226,7 @@ class CbrAppPresidentDirector extends CI_Controller
                 AND (H.isClose IS NULL OR H.isClose = 0)
                 AND TA.IsAppvPresidentDirector = 1
                 AND TM.Status_AppvPresdir = 0 
-                AND TM.AppvPresdir_By = '$username'
+                AND TM.AppvPresdir_By = $username
                 AND ((TA.IsAppvStaff = 0)          OR (TA.IsAppvStaff = 1 AND TA.Status_AppvStaff = 1))
                 AND ((TA.IsAppvChief = 0)          OR (TA.IsAppvChief = 1 AND TA.Status_AppvChief = 1))
                 AND ((TA.IsAppvAsstManager = 0)    OR (TA.IsAppvAsstManager = 1 AND TA.Status_AppvAsstManager = 1))
@@ -261,13 +238,11 @@ class CbrAppPresidentDirector extends CI_Controller
                 AND ((TA.IsAppvFinancePerson = 0)  OR (TA.IsAppvFinancePerson = 1 AND TA.Status_AppvFinancePerson = 1)) 
                 AND ((TA.IsAppvFinanceDirector = 0) OR (TA.IsAppvFinanceDirector = 1 AND TA.Status_AppvFinanceDirector = 1))";
 
-        $totalData = $this->db->query($sql)->num_rows();
-
-        // PERBAIKAN 2: Blok Search dirapikan dan disesuaikan aliasnya
-        // PERBAIKAN 2: Blok Search dirapikan, disesuaikan aliasnya, dan DITAMBAH ESCAPE '!'
+        // Search filter (LIKE escape via '!')
+        $searchSql = '';
         if (!empty($requestData['search']['value'])) {
             $searchValue = $this->db->escape_like_str($requestData['search']['value']);
-            $sql .= " AND (
+            $searchSql = " AND (
                 H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Payment_Plan_Date LIKE '%$searchValue%' ESCAPE '!'
                 OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
@@ -278,10 +253,15 @@ class CbrAppPresidentDirector extends CI_Controller
             )";
         }
 
-        //----------------------------------------------------------------------------------
-        $totalFiltered = $this->db->query($sql)->num_rows();
-        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
-        $query = $this->db->query($sql);
+        // Count via wrapped DISTINCT subquery (no full-row hydration like num_rows())
+        $totalData     = (int) $this->db->query("SELECT COUNT(*) AS total FROM ($select $fromWhere) AS sub")->row()->total;
+        $totalFiltered = (int) $this->db->query("SELECT COUNT(*) AS total FROM ($select $fromWhere $searchSql) AS sub")->row()->total;
+
+        $start  = isset($requestData['start']) ? (int) $requestData['start'] : 0;
+        $length = isset($requestData['length']) ? (int) $requestData['length'] : 10;
+
+        $dataSql = "$select $fromWhere $searchSql ORDER BY $order $dir OFFSET $start ROWS FETCH NEXT $length ROWS ONLY";
+        $query = $this->db->query($dataSql);
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
