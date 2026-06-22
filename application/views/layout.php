@@ -269,6 +269,18 @@
                                     </a>
                                 </div>
                             <?php endif; ?>
+                            <?php if ($sess_dept == 'Accounting' || $is_admin == true) : ?>
+                                <div class="menu-item" data-bs-toggle="tooltip" title="Monitoring Termin Belum Lengkap">
+                                    <a class="menu-link <?= ($Menu == 'MonitoringTermin') ? 'active' : null ?>" href="<?= base_url('MonitoringTermin') ?>">
+                                        <span class="menu-icon">
+                                            <span class="svg-icon svg-icon-muted svg-icon-2qx">
+                                                <i class="fas fa-clock fs-3"></i>
+                                            </span>
+                                        </span>
+                                        <span class="menu-title">Monitoring Termin</span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                             <?php if ($isSalesPerson == 1) : ?>
                                 <?php
                                 $accessCount = $this->db->where_in('sf_ufunc_access', ['write', 'delete'])
