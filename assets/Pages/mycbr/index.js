@@ -348,15 +348,22 @@ $(document).ready(function () {
                     orderable: false,
                     render: function (data, type, row, meta) {
                         var isChecked = selected_cbr_history.includes(row.CBReq_No) ? 'checked' : '';
-                        return `<div class="form-check">
-                                    <input class="form-check-input row-checkbox" type="checkbox" 
-                                        value="${row.CBReq_No}" 
-                                        id="${row.CBReq_No}" 
-                                        name="CBReq_No_History[]" 
-                                        ${isChecked}
-                                        data-curr="${row.Currency_Id}" 
-                                        data-amount="${row.Amount}">
-                                </div>`
+                        return `
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" value="${row.CBReq_No}" class="btn btn-icon btn-danger btn-sm btn-view-termin" data-cbr-no="${row.CBReq_No}" data-header-amount="${row.Amount}">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input row-checkbox" type="checkbox" 
+                                    value="${row.CBReq_No}" 
+                                    id="${row.CBReq_No}" 
+                                    name="CBReq_No_History[]" 
+                                    ${isChecked}
+                                    data-curr="${row.Currency_Id}" 
+                                    data-amount="${row.Amount}"
+                                    style="width: 1.6rem; height: 1.6rem;">
+                            </div>
+                        </div>`
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No", },
@@ -699,6 +706,112 @@ $(document).ready(function () {
         $("#TableDataHistory").DataTable().clear().destroy(), Fn_Initialized_DataTable(), DataTable.tables({ visible: true, api: true }).columns.adjust();
     })
 
+    // Pasang listener untuk tombol view termin
+    $('#TableDataHistory tbody').on('click', '.btn-view-termin', function () {
+        var cbreqNo = $(this).data('cbr-no');
+        var headerAmount = parseFloat($(this).data('header-amount')) || 0;
+        var headerCurrency = $(this).data('header-currency') || '';
+
+        // Set CBR No di modal
+        $('#txt_view_cbr_no').text(cbreqNo);
+
+        // Load termin data via AJAX
+        $.ajax({
+            url: $('meta[name="base_url"]').attr('content') + "MyCbr/get_termin_data/" + encodeURIComponent(cbreqNo),
+            type: "GET",
+            dataType: "JSON",
+            success: function (response) {
+                var tbody = $('#view_termin_table_body');
+                tbody.empty();
+
+                var totalTermin = response.length;
+                var totalAmount = 0;
+                var submittedAmount = 0;
+                var approvedAmount = 0;
+                var pendingAmount = 0;
+
+                if (response.length > 0) {
+                    response.forEach(function (termin, index) {
+                        var statusBadge = '';
+                        var statusValue = parseInt(termin.Status_AppvPresdir, 10);
+                        var amountTermin = parseFloat(termin.Amount_Termin) || 0;
+
+                        if (statusValue === 0) {
+                            statusBadge = '<span class="badge badge-warning">Awaiting</span>';
+                        } else if (statusValue === 1) {
+                            statusBadge = '<span class="badge badge-success">Approved</span>';
+                            approvedAmount += amountTermin;
+                            submittedAmount += amountTermin;
+                        } else if (statusValue === 2) {
+                            statusBadge = '<span class="badge badge-danger">Rejected</span>';
+                            submittedAmount += amountTermin;
+                        } else {
+                            statusBadge = '<span class="badge badge-secondary">Unknown</span>';
+                        }
+
+                        var paymentDate = termin.Payment_Plan_Date ? termin.Payment_Plan_Date.substring(0, 10) : '-';
+                        var amount = amountTermin.toLocaleString('en-US', {
+                            minimumFractionDigits: 4,
+                            maximumFractionDigits: 4
+                        });
+
+                        totalAmount += amountTermin;
+
+                        tbody.append(`
+                                <tr>
+                                    <td class="text-center">${index + 1}</td>
+                                    <td class="text-center">${statusBadge}</td>
+                                    <td>${amount}</td>
+                                    <td>${paymentDate}</td>
+                                </tr>
+                            `);
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="4" class="text-center">Belum ada termin</td></tr>');
+                }
+
+                // Update total info
+                pendingAmount = headerAmount - approvedAmount;
+                if (pendingAmount < 0) {
+                    pendingAmount = 0;
+                }
+
+                var totalAmountText = headerCurrency ? headerCurrency + ' ' + totalAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                }) : totalAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                });
+
+                var pendingAmountText = headerCurrency ? headerCurrency + ' ' + pendingAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                }) : pendingAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                });
+
+                $('#txt_view_total_amount').text(totalAmountText);
+                $('#txt_view_termin_pending').text(pendingAmountText);
+                $('#txt_view_termin_approved').text(approvedAmount.toLocaleString('en-US', {
+                    minimumFractionDigits: 4,
+                    maximumFractionDigits: 4
+                }));
+
+                // Show modal
+                $('#modal_view_termin').modal('show');
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    text: "Gagal memuat data termin: " + error
+                });
+            }
+        });
+    });
+
     $(document).on('click', 'td.details-control', function () {
         var tr = $(this).closest('tr');
         var row = tr.closest('table').DataTable().row(tr);
@@ -719,7 +832,7 @@ $(document).ready(function () {
     });
 
     function format(d, is_hst_table) {
-        console.log(is_hst_table)
+        // console.log(is_hst_table)
         var attachmentButton = (is_hst_table == 1)
             ? `<button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-primary btn-list-attachment"><i class="fas fa-paperclip"></i> List Attachment</button>`
             : `<button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-primary btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button>`;
