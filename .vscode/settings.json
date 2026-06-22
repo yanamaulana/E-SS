@@ -20,6 +20,7 @@
         "**/node_modules/**",
         "**/vendor/**",
         "**/storage/framework/views/**" // Khusus Laravel
-    ]
+    ],
+    "cflint.enabled": false
 }
 

@@ -278,6 +278,51 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Termin Information -->
+<div class="modal fade" id="modal_view_termin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-4">
+                <h5 class="modal-title fs-4">Informasi Termin - <span id="txt_view_cbr_no" class="text-primary"></span></h5>
+                <div class="btn btn-sm btn-icon btn-active-color-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-x fs-1"></i>
+                </div>
+            </div>
+            <div class="modal-body pt-4">
+                <div class="notice d-flex bg-light-info rounded border-info border border-dashed p-3 mb-4">
+                    <div class="fw-semibold">
+                        <div class="mb-2">
+                            <span class="text-gray-700 fs-6">Total Amount: <span id="txt_view_total_amount" class="text-primary fw-bold">0</span></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-700 fs-6">Sisa : <span id="txt_view_termin_pending" class="text-warning fw-bold">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-row-gray-300 align-middle gs-2 gy-2">
+                        <thead>
+                            <tr class="fw-bold text-muted fs-7 text-uppercase bg-light">
+                                <th class="w-50px text-center ps-2">No</th>
+                                <th class="w-120px text-center">Status</th>
+                                <th class="min-w-150px">Nominal Pembayaran</th>
+                                <th class="min-w-150px">Rencana Tgl Bayar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view_termin_table_body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-3">
+                <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="location">
 
 </div>

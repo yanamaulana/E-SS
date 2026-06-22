@@ -1431,4 +1431,16 @@ class MyCbr extends CI_Controller
 
         return FALSE; // Berbeda
     }
+
+    // Get termin data for modal view
+    public function get_termin_data($cbreq_no)
+    {
+        $cbreq_no = urldecode($cbreq_no);
+
+        $this->db->where('CBReq_No', $cbreq_no);
+        $this->db->order_by('Termin_Ke', 'ASC');
+        $query = $this->db->get('Ttrx_Cbr_Approval_Termin');
+
+        echo json_encode($query->result());
+    }
 }

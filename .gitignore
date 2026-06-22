@@ -34,3 +34,5 @@ application/config/database.php
 
 # Abaikan folder 'Files' di dalam 'assets'
 /assets/Files/
+/assets/Metronic/
+/assets/global-assets/
