@@ -264,18 +264,17 @@ class CbrAppPresidentDirector extends CI_Controller
         $totalData = $this->db->query($sql)->num_rows();
 
         // PERBAIKAN 2: Blok Search dirapikan dan disesuaikan aliasnya
+        // PERBAIKAN 2: Blok Search dirapikan, disesuaikan aliasnya, dan DITAMBAH ESCAPE '!'
         if (!empty($requestData['search']['value'])) {
             $searchValue = $this->db->escape_like_str($requestData['search']['value']);
             $sql .= " AND (
                 H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
+                OR H.Payment_Plan_Date LIKE '%$searchValue%' ESCAPE '!'
                 OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Currency_Id LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Descript LIKE '%$searchValue%' ESCAPE '!'
                 OR TA.UserDivision LIKE '%$searchValue%' ESCAPE '!'
-                OR CAST(H.Document_Date AS VARCHAR) LIKE '%$searchValue%' 
-                OR CAST(H.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' 
-                OR CAST(TM.Amount_Termin AS VARCHAR) LIKE '%$searchValue%'
             )";
         }
 

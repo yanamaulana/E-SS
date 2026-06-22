@@ -16,6 +16,7 @@ $(document).ready(function () {
     // 1. Variabel Global Penampung ID
     var selected_cbr = [];
     var selected_details = {};
+    var lastClickedBox = null;
 
     var TableData = $("#TableData").DataTable({
         destroy: true,
@@ -113,6 +114,7 @@ $(document).ready(function () {
         },
         // 2. Draw Callback: Menjaga konsistensi visual saat pindah page
         drawCallback: function () {
+            lastClickedBox = null;
             $("#TableData tbody td").addClass("blurry");
             setTimeout(function () {
                 $("#TableData tbody td").removeClass("blurry");
@@ -194,32 +196,61 @@ $(document).ready(function () {
         }],
     }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
 
-    // 3. Listener Checkbox Individu
-    $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function () {
-        var id = $(this).val();
+    // 3. Listener Checkbox Individu (Support SHIFT + CLICK)
+    $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function (e) {
+        var $chkboxes = $('input[name="CBReq_No[]"]'); // Ambil semua checkbox di halaman aktif
         var isChecked = $(this).is(':checked');
 
-        // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG (Lebih Stabil)
-        var curr = $(this).data('curr');
-        var amount = parseFloat($(this).data('amount'));
+        // JIKA USER MENEKAN TOMBOL SHIFT + KLIK (Dan sebelumnya sudah ada yg di-klik)
+        if (e.shiftKey && lastClickedBox) {
+            var start = $chkboxes.index(this);
+            var end = $chkboxes.index(lastClickedBox);
 
-        if (isChecked) {
-            if (!selected_cbr.includes(id)) {
-                selected_cbr.push(id);
-                // Simpan detail
-                selected_details[id] = {
-                    curr: curr,
-                    amount: amount
-                };
-            }
+            // Tentukan titik potong baris awal dan baris akhir
+            var groupSubset = $chkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
+
+            groupSubset.each(function () {
+                var $item = $(this);
+                var id = $item.val();
+                var curr = $item.data('curr');
+                var amount = parseFloat($item.data('amount'));
+
+                // 1. Ubah visual centangnya mengikuti target
+                $item.prop('checked', isChecked);
+
+                // 2. Masukkan/Keluarkan dari Array sistem
+                if (isChecked) {
+                    if (!selected_cbr.includes(id)) {
+                        selected_cbr.push(id);
+                        selected_details[id] = { curr: curr, amount: amount };
+                    }
+                } else {
+                    selected_cbr = selected_cbr.filter(val => val !== id);
+                    delete selected_details[id];
+                }
+            });
         } else {
-            selected_cbr = selected_cbr.filter(item => item !== id);
-            // Hapus detail
-            delete selected_details[id];
+            // NORMAL SINGLE CLICK (Tanpa menekan Shift)
+            var id = $(this).val();
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = { curr: curr, amount: amount };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(val => val !== id);
+                delete selected_details[id];
+            }
         }
 
+        // Simpan elemen yang baru saja di-klik sebagai "titik pijak" untuk Shift-Click berikutnya
+        lastClickedBox = this;
+
         updateCheckAllStatus();
-        renderSummaryHTML(); // Hitung ulang total
+        renderSummaryHTML();
     });
 
     // 4. Listener Tombol "Check All" di Header (Pastikan ID checkbox header Anda adalah #CheckAll)
@@ -255,6 +286,8 @@ $(document).ready(function () {
         });
         renderSummaryHTML();
     }
+
+
 
     // function renderSummaryHTML() {
     //     if (selected_cbr.length === 0) {
