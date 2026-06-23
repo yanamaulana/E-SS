@@ -22,6 +22,102 @@ class MonitoringCbr extends CI_Controller
         $this->load->model('m_DataTable', 'M_Datatables');
     }
 
+    private function get_datatable_order(array $requestData, array $columns): array
+    {
+        $columnIndex = isset($requestData['order'][0]['column']) ? intval($requestData['order'][0]['column']) : 0;
+        $direction = strtoupper($requestData['order'][0]['dir'] ?? 'ASC');
+
+        if (!isset($columns[$columnIndex])) {
+            $columnIndex = 0;
+        }
+
+        if ($direction !== 'ASC' && $direction !== 'DESC') {
+            $direction = 'ASC';
+        }
+
+        return [$columns[$columnIndex], $direction];
+    }
+
+    private function build_search_condition(string $searchValue, array $searchColumns): string
+    {
+        if ($searchValue === '') {
+            return '';
+        }
+
+        $escapedSearch = $this->db->escape_like_str($searchValue);
+        $conditions = array_map(function ($column) use ($escapedSearch) {
+            return "$column LIKE '%{$escapedSearch}%'";
+        }, $searchColumns);
+
+        return ' AND (' . implode(' OR ', $conditions) . ') ';
+    }
+
+    private function build_fts_condition(string $searchValue, array $searchColumns): string
+    {
+        if ($searchValue === '') {
+            return '';
+        }
+
+        $ftsKeyword = "'\"*" . $this->db->escape_str($searchValue) . "*\"'";
+        $columnStr = implode(', ', $searchColumns);
+
+        return " AND (CONTAINS(($columnStr), $ftsKeyword) OR CONTAINS(TUserPersonal.First_Name, $ftsKeyword)) ";
+    }
+
+    private function format_datetime(?string $datetime, string $format = 'Y-m-d H:i'): string
+    {
+        return !empty($datetime) ? date($format, strtotime($datetime)) : '-';
+    }
+
+    private function map_row_with_transform(array $row, array $fieldMap, array $transforms = []): array
+    {
+        $result = [];
+        foreach ($fieldMap as $outputKey => $rowKey) {
+            $value = $row[$rowKey] ?? null;
+
+            if (isset($transforms[$outputKey])) {
+                $value = call_user_func($transforms[$outputKey], $value);
+            }
+
+            $result[$outputKey] = $value;
+        }
+        return $result;
+    }
+
+    private function build_datatable_response(string $baseSql, array $orderColumns, array $searchColumns, array $fieldMap, array $requestData, bool $useFts = false, array $transforms = []): array
+    {
+        list($order, $dir) = $this->get_datatable_order($requestData, $orderColumns);
+        $start = isset($requestData['start']) ? intval($requestData['start']) : 0;
+        $length = isset($requestData['length']) ? intval($requestData['length']) : 10;
+        $searchValue = trim($requestData['search']['value'] ?? '');
+
+        if ($useFts) {
+            $searchCondition = $this->build_fts_condition($searchValue, $searchColumns);
+        } else {
+            $searchCondition = $this->build_search_condition($searchValue, $searchColumns);
+        }
+
+        $filteredSql = $baseSql . $searchCondition;
+
+        $totalData = $this->db->query($baseSql)->num_rows();
+        $totalFiltered = $this->db->query($filteredSql)->num_rows();
+
+        $pageSql = $filteredSql . " ORDER BY $order $dir OFFSET $start ROWS FETCH NEXT $length ROWS ONLY ";
+        $query = $this->db->query($pageSql);
+
+        $data = [];
+        foreach ($query->result_array() as $row) {
+            $data[] = $this->map_row_with_transform($row, $fieldMap, $transforms);
+        }
+
+        return [
+            'draw' => intval($requestData['draw'] ?? 0),
+            'recordsTotal' => intval($totalData),
+            'recordsFiltered' => intval($totalFiltered),
+            'data' => $data,
+        ];
+    }
+
     public function index()
     {
         $this->data['page_title'] = "Monitoring Cash Book Requisition";
@@ -128,7 +224,12 @@ class MonitoringCbr extends CI_Controller
     public function DT_List_To_Approve()
     {
         $requestData = $_REQUEST;
-        $columns = array(
+        $from = $this->input->post('from');
+        $until = $this->input->post('until');
+        $createdBy = $this->input->post('employee');
+        $sqlCreatedBy = ($createdBy !== 'ALL') ? "AND TAccCashBookReq_Header.Created_By = '" . $this->db->escape_str($createdBy) . "'" : '';
+
+        $orderColumns = [
             0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
@@ -147,93 +248,62 @@ class MonitoringCbr extends CI_Controller
             15 => 'First_Name',
             16 => 'Last_Update',
             17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID ',
+            18 => 'TAccCashBookReq_Header.Acc_ID',
             19 => 'TAccCashBookReq_Header.Approve_Date',
+        ];
 
-        );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $from   = $this->input->post('from');
-        $until  = $this->input->post('until');
+        $searchColumns = ['TAccCashBookReq_Header.CBReq_No', 'First_Name', 'Document_Number', 'Document_Date', 'TAccCashBookReq_Header.Currency_Id', 'Descript', 'CBReq_Status', 'Amount'];
 
-        $created_by = $this->input->post('employee');
-        $sqlCreatedBy = "";
-        if ($created_by != 'ALL') {
-            $sqlCreatedBy = " AND TAccCashBookReq_Header.Created_By = '$created_by' ";
-        }
+        $fieldMap = [
+            'CBReq_No' => 'CBReq_No',
+            'Type' => 'Type',
+            'Document_Date' => 'Document_Date',
+            'Acc_ID' => 'Acc_ID',
+            'Descript' => 'Descript',
+            'Document_Number' => 'Document_Number',
+            'Amount' => 'Amount',
+            'baseamount' => 'baseamount',
+            'curr_rate' => 'curr_rate',
+            'Approval_Status' => 'Approval_Status',
+            'CBReq_Status' => 'CBReq_Status',
+            'Paid_Status' => 'Paid_Status',
+            'Creation_DateTime' => 'Creation_DateTime',
+            'Created_By' => 'Created_By',
+            'First_Name' => 'Created_By_Name',
+            'Last_Update' => 'Last_Update',
+            'Update_By' => 'Update_By',
+            'Currency_Id' => 'Currency_Id',
+            'Approve_Date' => 'Approve_Date',
+        ];
 
-        $sql = "Select  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date
-        FROM TAccCashBookReq_Header
-        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        And TAccCashBookReq_Header.Document_Date >= {d '$from'}
-        And TAccCashBookReq_Header.Document_Date <= {d '$until'} $sqlCreatedBy
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3
-        AND Paid_Status = 'NP'
-        AND Ttrx_Cbr_Approval.CBReq_No IS NULL";
-        // AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
-        // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
+        $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date
+            FROM TAccCashBookReq_Header
+            INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
+            INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
+            LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
+            WHERE TAccCashBookReq_Header.Type = 'D'
+            AND TAccCashBookReq_Header.Document_Date >= {d '" . $this->db->escape_str($from) . "'}
+            AND TAccCashBookReq_Header.Document_Date <= {d '" . $this->db->escape_str($until) . "'}
+            AND TAccCashBookReq_Header.Company_ID = 2
+            AND isNull(isSPJ, 0) = 0
+            AND Approval_Status = 3
+            AND CBReq_Status = 3
+            AND Paid_Status = 'NP'
+            AND Ttrx_Cbr_Approval.CBReq_No IS NULL
+            $sqlCreatedBy";
 
-        $totalData = $this->db->query($sql)->num_rows();
-        if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
-        }
-        //----------------------------------------------------------------------------------
-        $totalFiltered = $this->db->query($sql)->num_rows();
-        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
-        $query = $this->db->query($sql);
-        $data = array();
-        foreach ($query->result_array() as $row) {
-            $nestedData = array();
-            $nestedData['CBReq_No'] = $row['CBReq_No'];
-            $nestedData['Type'] = $row['Type'];
-            $nestedData['Document_Date'] = $row['Document_Date'];
-            $nestedData['Acc_ID'] = $row['Acc_ID'];
-            $nestedData['Descript'] = $row['Descript'];
-            $nestedData['Document_Number'] = $row['Document_Number'];
-            $nestedData['Amount'] = $row['Amount'];
-            $nestedData['baseamount'] = $row['baseamount'];
-            $nestedData['curr_rate'] = $row['curr_rate'];
-            $nestedData['Approval_Status'] = $row['Approval_Status'];
-            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
-            $nestedData['Paid_Status'] = $row['Paid_Status'];
-            $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
-            $nestedData['Created_By'] = $row['Created_By'];
-            $nestedData['First_Name'] = $row['Created_By_Name'];
-            $nestedData['Last_Update'] = $row['Last_Update'];
-            $nestedData['Update_By'] = $row['Update_By'];
-            $nestedData['Currency_Id'] = $row['Currency_Id'];
-            $nestedData['Approve_Date'] = $row['Approve_Date'];
-
-            $data[] = $nestedData;
-        }
-        //----------------------------------------------------------------------------------
-        $json_data = array(
-            "draw" => intval($requestData['draw']),
-            "recordsTotal" => intval($totalData),
-            "recordsFiltered" => intval($totalFiltered),
-            "data" => $data,
-        );
-        //----------------------------------------------------------------------------------
-        echo json_encode($json_data);
+        $response = $this->build_datatable_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData);
+        echo json_encode($response);
     }
 
     public function DT_List_History_Submission()
     {
         $requestData = $_REQUEST;
-        $columns = array(
+        $from = $this->input->post('from');
+        $until = $this->input->post('until');
+        $username = $this->session->userdata('sys_sba_userid');
+
+        $orderColumns = [
             0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
@@ -252,134 +322,111 @@ class MonitoringCbr extends CI_Controller
             15 => 'First_Name',
             16 => 'Last_Update',
             17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID ',
+            18 => 'TAccCashBookReq_Header.Acc_ID',
             19 => 'TAccCashBookReq_Header.Approve_Date',
+        ];
 
-        );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $from   = $this->input->post('from');
-        $until  = $this->input->post('until');
+        $searchColumns = ['TAccCashBookReq_Header.CBReq_No', 'First_Name', 'Document_Number', 'Document_Date', 'TAccCashBookReq_Header.Currency_Id', 'Descript', 'CBReq_Status', 'Amount'];
 
-        $sql = "Select  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
-        Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.IsAppvFinanceStaff, Ttrx_Cbr_Approval.Status_AppvFinanceStaff, Ttrx_Cbr_Approval.AppvFinanceStaff_By, Ttrx_Cbr_Approval.AppvFinanceStaff_At, Ttrx_Cbr_Approval.IsAppvFinanceManager, Ttrx_Cbr_Approval.Status_AppvFinanceManager, Ttrx_Cbr_Approval.AppvFinanceManager_By, Ttrx_Cbr_Approval.AppvFinanceManager_At, Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision
-        FROM TAccCashBookReq_Header
-        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        And TAccCashBookReq_Header.Document_Date >= {d '$from'}
-        And TAccCashBookReq_Header.Document_Date <= {d '$until'}
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3
-        AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
-        // ORDER BY TAccCashBookReq_Header.Document_Date DESC,TAccCashBookReq_Header.CBReq_No DESC 
+        $fieldMap = [
+            'CBReq_No' => 'CBReq_No',
+            'Type' => 'Type',
+            'Document_Date' => 'Document_Date',
+            'Acc_ID' => 'Acc_ID',
+            'Descript' => 'Descript',
+            'Document_Number' => 'Document_Number',
+            'Amount' => 'Amount',
+            'baseamount' => 'baseamount',
+            'curr_rate' => 'curr_rate',
+            'Approval_Status' => 'Approval_Status',
+            'CBReq_Status' => 'CBReq_Status',
+            'Paid_Status' => 'Paid_Status',
+            'Creation_DateTime' => 'Creation_DateTime',
+            'Created_By' => 'Created_By',
+            'First_Name' => 'Created_By_Name',
+            'Last_Update' => 'Last_Update',
+            'Update_By' => 'Update_By',
+            'Currency_Id' => 'Currency_Id',
+            'Approve_Date' => 'Approve_Date',
+            'IsAppvStaff' => 'IsAppvStaff',
+            'Status_AppvStaff' => 'Status_AppvStaff',
+            'AppvStaff_By' => 'AppvStaff_By',
+            'AppvStaff_At' => 'AppvStaff_At',
+            'IsAppvChief' => 'IsAppvChief',
+            'Status_AppvChief' => 'Status_AppvChief',
+            'AppvChief_By' => 'AppvChief_By',
+            'AppvChief_At' => 'AppvChief_At',
+            'IsAppvAsstManager' => 'IsAppvAsstManager',
+            'Status_AppvAsstManager' => 'Status_AppvAsstManager',
+            'AppvAsstManager_By' => 'AppvAsstManager_By',
+            'AppvAsstManager_At' => 'AppvAsstManager_At',
+            'IsAppvManager' => 'IsAppvManager',
+            'Status_AppvManager' => 'Status_AppvManager',
+            'AppvManager_By' => 'AppvManager_By',
+            'AppvManager_At' => 'AppvManager_At',
+            'IsAppvSeniorManager' => 'IsAppvSeniorManager',
+            'Status_AppvSeniorManager' => 'Status_AppvSeniorManager',
+            'AppvSeniorManager_By' => 'AppvSeniorManager_By',
+            'AppvSeniorManager_At' => 'AppvSeniorManager_At',
+            'IsAppvGeneralManager' => 'IsAppvGeneralManager',
+            'Status_AppvGeneralManager' => 'Status_AppvGeneralManager',
+            'AppvGeneralManager_By' => 'AppvGeneralManager_By',
+            'AppvGeneralManager_At' => 'AppvGeneralManager_At',
+            'IsAppvDirector' => 'IsAppvDirector',
+            'Status_AppvDirector' => 'Status_AppvDirector',
+            'AppvDirector_By' => 'AppvDirector_By',
+            'AppvDirector_At' => 'AppvDirector_At',
+            'IsAppvPresidentDirector' => 'IsAppvPresidentDirector',
+            'Status_AppvPresidentDirector' => 'Status_AppvPresidentDirector',
+            'AppvPresidentDirector_By' => 'AppvPresidentDirector_By',
+            'AppvPresidentDirector_At' => 'AppvPresidentDirector_At',
+            'IsAppvFinanceStaff' => 'IsAppvFinanceStaff',
+            'Status_AppvFinanceStaff' => 'Status_AppvFinanceStaff',
+            'AppvFinanceStaff_By' => 'AppvFinanceStaff_By',
+            'AppvFinanceStaff_At' => 'AppvFinanceStaff_At',
+            'IsAppvFinanceManager' => 'IsAppvFinanceManager',
+            'Status_AppvFinanceManager' => 'Status_AppvFinanceManager',
+            'AppvFinanceManager_By' => 'AppvFinanceManager_By',
+            'AppvFinanceManager_At' => 'AppvFinanceManager_At',
+            'IsAppvFinanceDirector' => 'IsAppvFinanceDirector',
+            'Status_AppvFinanceDirector' => 'Status_AppvFinanceDirector',
+            'AppvFinanceDirector_By' => 'AppvFinanceDirector_By',
+            'AppvFinanceDirector_At' => 'AppvFinanceDirector_At',
+            'UserName_User' => 'UserName_User',
+            'Rec_Created_At' => 'Rec_Created_At',
+            'UserDivision' => 'UserDivision',
+        ];
 
-        $totalData = $this->db->query($sql)->num_rows();
-        if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
-        }
-        //----------------------------------------------------------------------------------
-        $totalFiltered = $this->db->query($sql)->num_rows();
-        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
-        $query = $this->db->query($sql);
-        $data = array();
-        foreach ($query->result_array() as $row) {
-            $nestedData = array();
-            $nestedData['CBReq_No'] = $row['CBReq_No'];
-            $nestedData['Type'] = $row['Type'];
-            $nestedData['Document_Date'] = $row['Document_Date'];
-            $nestedData['Acc_ID'] = $row['Acc_ID'];
-            $nestedData['Descript'] = $row['Descript'];
-            $nestedData['Document_Number'] = $row['Document_Number'];
-            $nestedData['Amount'] = $row['Amount'];
-            $nestedData['baseamount'] = $row['baseamount'];
-            $nestedData['curr_rate'] = $row['curr_rate'];
-            $nestedData['Approval_Status'] = $row['Approval_Status'];
-            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
-            $nestedData['Paid_Status'] = $row['Paid_Status'];
-            $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
-            $nestedData['Created_By'] = $row['Created_By'];
-            $nestedData['First_Name'] = $row['Created_By_Name'];
-            $nestedData['Last_Update'] = $row['Last_Update'];
-            $nestedData['Update_By'] = $row['Update_By'];
-            $nestedData['Currency_Id'] = $row['Currency_Id'];
-            $nestedData['Approve_Date'] = $row['Approve_Date'];
-            $nestedData['IsAppvStaff'] = $row['IsAppvStaff'];
-            $nestedData['Status_AppvStaff'] = $row['Status_AppvStaff'];
-            $nestedData['AppvStaff_By'] = $row['AppvStaff_By'];
-            $nestedData['AppvStaff_At'] = $row['AppvStaff_At'];
-            $nestedData['IsAppvChief'] = $row['IsAppvChief'];
-            $nestedData['Status_AppvChief'] = $row['Status_AppvChief'];
-            $nestedData['AppvChief_By'] = $row['AppvChief_By'];
-            $nestedData['AppvChief_At'] = $row['AppvChief_At'];
-            $nestedData['IsAppvAsstManager'] = $row['IsAppvAsstManager'];
-            $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
-            $nestedData['AppvAsstManager_By'] = $row['AppvAsstManager_By'];
-            $nestedData['AppvAsstManager_At'] = $row['AppvAsstManager_At'];
-            $nestedData['IsAppvManager'] = $row['IsAppvManager'];
-            $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
-            $nestedData['AppvManager_By'] = $row['AppvManager_By'];
-            $nestedData['AppvManager_At'] = $row['AppvManager_At'];
-            $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
-            $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
-            $nestedData['AppvSeniorManager_By'] = $row['AppvSeniorManager_By'];
-            $nestedData['AppvSeniorManager_At'] = $row['AppvSeniorManager_At'];
-            $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
-            $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
-            $nestedData['AppvGeneralManager_By'] = $row['AppvGeneralManager_By'];
-            $nestedData['AppvGeneralManager_At'] = $row['AppvGeneralManager_At'];
-            $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
-            $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
-            $nestedData['AppvDirector_By'] = $row['AppvDirector_By'];
-            $nestedData['AppvDirector_At'] = $row['AppvDirector_At'];
-            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'];
-            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
-            $nestedData['AppvPresidentDirector_By'] = $row['AppvPresidentDirector_By'];
-            $nestedData['AppvPresidentDirector_At'] = $row['AppvPresidentDirector_At'];
-            $nestedData['IsAppvFinanceStaff'] = $row['IsAppvFinanceStaff'];
-            $nestedData['Status_AppvFinanceStaff'] = $row['Status_AppvFinanceStaff'];
-            $nestedData['AppvFinanceStaff_By'] = $row['AppvFinanceStaff_By'];
-            $nestedData['AppvFinanceStaff_At'] = $row['AppvFinanceStaff_At'];
-            $nestedData['IsAppvFinanceManager'] = $row['IsAppvFinanceManager'];
-            $nestedData['Status_AppvFinanceManager'] = $row['Status_AppvFinanceManager'];
-            $nestedData['AppvFinanceManager_By'] = $row['AppvFinanceManager_By'];
-            $nestedData['AppvFinanceManager_At'] = $row['AppvFinanceManager_At'];
-            $nestedData['IsAppvFinanceDirector'] = $row['IsAppvFinanceDirector'];
-            $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
-            $nestedData['AppvFinanceDirector_By'] = $row['AppvFinanceDirector_By'];
-            $nestedData['AppvFinanceDirector_At'] = $row['AppvFinanceDirector_At'];
-            $nestedData['UserName_User'] = $row['UserName_User'];
-            $nestedData['Rec_Created_At'] = $row['Rec_Created_At'];
-            $nestedData['UserDivision'] = $row['UserDivision'];
+        $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
+            Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.IsAppvFinanceStaff, Ttrx_Cbr_Approval.Status_AppvFinanceStaff, Ttrx_Cbr_Approval.AppvFinanceStaff_By, Ttrx_Cbr_Approval.AppvFinanceStaff_At, Ttrx_Cbr_Approval.IsAppvFinanceManager, Ttrx_Cbr_Approval.Status_AppvFinanceManager, Ttrx_Cbr_Approval.AppvFinanceManager_By, Ttrx_Cbr_Approval.AppvFinanceManager_At, Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision
+            FROM TAccCashBookReq_Header
+            INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
+            INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
+            LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
+            WHERE TAccCashBookReq_Header.Type = 'D'
+            AND TAccCashBookReq_Header.Document_Date >= {d '" . $this->db->escape_str($from) . "'}
+            AND TAccCashBookReq_Header.Document_Date <= {d '" . $this->db->escape_str($until) . "'}
+            AND TAccCashBookReq_Header.Company_ID = 2
+            AND isNull(isSPJ, 0) = 0
+            AND Approval_Status = 3
+            AND CBReq_Status = 3
+            AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
+            AND Created_By = '" . $this->db->escape_str($username) . "'";
 
-            $data[] = $nestedData;
-        }
-        //----------------------------------------------------------------------------------
-        $json_data = array(
-            "draw" => intval($requestData['draw']),
-            "recordsTotal" => intval($totalData),
-            "recordsFiltered" => intval($totalFiltered),
-            "data" => $data,
-        );
-        //----------------------------------------------------------------------------------
-        echo json_encode($json_data);
+        $response = $this->build_datatable_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData);
+        echo json_encode($response);
     }
 
     public function DT_Monitoring_global()
     {
         $requestData = $_REQUEST;
-        $columns = array(
+        $from = $this->input->post('from');
+        $until = $this->input->post('until');
+        $columnRange = $this->input->post('column_range');
+        $createdBy = $this->input->post('employee');
+        $sqlCreatedBy = ($createdBy !== 'ALL') ? "AND TAccCashBookReq_Header.Created_By = '" . $this->db->escape_str($createdBy) . "'" : '';
+
+        $orderColumns = [
             0 => 'TAccCashBookReq_Header.CBReq_No',
             1 => 'TAccCashBookReq_Header.CBReq_No',
             2 => 'Type',
@@ -398,164 +445,172 @@ class MonitoringCbr extends CI_Controller
             15 => 'First_Name',
             16 => 'Last_Update',
             17 => 'Update_By',
-            18 => 'TAccCashBookReq_Header.Acc_ID ',
+            18 => 'TAccCashBookReq_Header.Acc_ID',
             19 => 'TAccCashBookReq_Header.Approve_Date',
+        ];
 
-        );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $from   = $this->input->post('from');
-        $until  = $this->input->post('until');
-        $column_range  = $this->input->post('column_range');
+        $ftsColumns = ['TAccCashBookReq_Header.CBReq_No', 'TAccCashBookReq_Header.Document_Number', 'TAccCashBookReq_Header.Descript', 'TAccCashBookReq_Header.Payment_Plan_Date'];
+        $fieldMap = [
+            'CBReq_No' => 'CBReq_No',
+            'isClose' => 'isClose',
+            'Type' => 'Type',
+            'Document_Date' => 'Document_Date',
+            'Acc_ID' => 'Acc_ID',
+            'Descript' => 'Descript',
+            'Document_Number' => 'Document_Number',
+            'Amount' => 'Amount',
+            'baseamount' => 'baseamount',
+            'curr_rate' => 'curr_rate',
+            'Approval_Status' => 'Approval_Status',
+            'CBReq_Status' => 'CBReq_Status',
+            'Paid_Status' => 'Paid_Status',
+            'Payment_Status' => 'Payment_Status',
+            'Creation_DateTime' => 'Creation_DateTime',
+            'Created_By' => 'Created_By',
+            'First_Name' => 'Created_By_Name',
+            'Last_Update' => 'Last_Update',
+            'Update_By' => 'Update_By',
+            'Currency_Id' => 'Currency_Id',
+            'Approve_Date' => 'Approve_Date',
+            'Has_Submitted_Approval' => 'Has_Submitted_Approval',
+            'IsAppvStaff' => 'IsAppvStaff',
+            'Status_AppvStaff' => 'Status_AppvStaff',
+            'AppvStaff_By' => 'AppvStaff_By',
+            'AppvStaff_Name' => 'AppvStaff_Name',
+            'AppvStaff_At' => 'AppvStaff_At',
+            'IsAppvChief' => 'IsAppvChief',
+            'Status_AppvChief' => 'Status_AppvChief',
+            'AppvChief_By' => 'AppvChief_By',
+            'AppvChief_Name' => 'AppvChief_Name',
+            'AppvChief_At' => 'AppvChief_At',
+            'IsAppvAsstManager' => 'IsAppvAsstManager',
+            'Status_AppvAsstManager' => 'Status_AppvAsstManager',
+            'AppvAsstManager_By' => 'AppvAsstManager_By',
+            'AppvAsstManager_Name' => 'AppvAsstManager_Name',
+            'AppvAsstManager_At' => 'AppvAsstManager_At',
+            'IsAppvManager' => 'IsAppvManager',
+            'Status_AppvManager' => 'Status_AppvManager',
+            'AppvManager_By' => 'AppvManager_By',
+            'AppvManager_Name' => 'AppvManager_Name',
+            'AppvManager_At' => 'AppvManager_At',
+            'IsAppvSeniorManager' => 'IsAppvSeniorManager',
+            'Status_AppvSeniorManager' => 'Status_AppvSeniorManager',
+            'AppvSeniorManager_By' => 'AppvSeniorManager_By',
+            'AppvSeniorManager_Name' => 'AppvSeniorManager_Name',
+            'AppvSeniorManager_At' => 'AppvSeniorManager_At',
+            'IsAppvGeneralManager' => 'IsAppvGeneralManager',
+            'Status_AppvGeneralManager' => 'Status_AppvGeneralManager',
+            'AppvGeneralManager_By' => 'AppvGeneralManager_By',
+            'AppvGeneralManager_Name' => 'AppvGeneralManager_Name',
+            'AppvGeneralManager_At' => 'AppvGeneralManager_At',
+            'IsAppvAdditional' => 'IsAppvAdditional',
+            'Status_AppvAdditional' => 'Status_AppvAdditional',
+            'AppvAdditional_By' => 'AppvAdditional_By',
+            'AppvAdditional_At' => 'AppvAdditional_At',
+            'IsAppvFinancePerson' => 'IsAppvFinancePerson',
+            'Status_AppvFinancePerson' => 'Status_AppvFinancePerson',
+            'AppvFinancePerson_By' => 'AppvFinancePerson_By',
+            'AppvFinancePerson_Name' => 'AppvFinancePerson_Name',
+            'AppvFinancePerson_At' => 'AppvFinancePerson_At',
+            'IsAppvDirector' => 'IsAppvDirector',
+            'Status_AppvDirector' => 'Status_AppvDirector',
+            'AppvDirector_By' => 'AppvDirector_By',
+            'AppvDirector_Name' => 'AppvDirector_Name',
+            'AppvDirector_At' => 'AppvDirector_At',
+            'IsAppvPresidentDirector' => 'IsAppvPresidentDirector',
+            'Status_AppvPresidentDirector' => 'Status_AppvPresidentDirector',
+            'AppvPresidentDirector_By' => 'AppvPresidentDirector_By',
+            'AppvPresidentDirector_Name' => 'AppvPresidentDirector_Name',
+            'AppvPresidentDirector_At' => 'AppvPresidentDirector_At',
+            'IsAppvFinanceDirector' => 'IsAppvFinanceDirector',
+            'Status_AppvFinanceDirector' => 'Status_AppvFinanceDirector',
+            'AppvFinanceDirector_By' => 'AppvFinanceDirector_By',
+            'AppvFinanceDirector_Name' => 'AppvFinanceDirector_Name',
+            'AppvFinanceDirector_At' => 'AppvFinanceDirector_At',
+            'UserName_User' => 'UserName_User',
+            'Rec_Created_At' => 'Rec_Created_At',
+            'UserDivision' => 'UserDivision',
+            'Legitimate' => 'Legitimate',
+        ];
 
-        $created_by = $this->input->post('employee');
-        $sqlCreatedBy = "";
-        if ($created_by != 'ALL') {
-            $sqlCreatedBy = "AND TAccCashBookReq_Header.Created_By = '$created_by' ";
-        }
+        $transforms = [
+            'AppvAsstManager_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvManager_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvSeniorManager_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvGeneralManager_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvAdditional_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvFinancePerson_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvDirector_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvPresidentDirector_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvFinanceDirector_At' => function ($val) {
+                return $this->format_datetime($val);
+            },
+            'AppvStaff_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvChief_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvAsstManager_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvManager_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvSeniorManager_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvGeneralManager_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvDirector_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvPresidentDirector_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'AppvFinanceDirector_Name' => function ($val) {
+                return $val ?? '';
+            },
+            'UserDivision' => function ($val) {
+                return $val ?? '-';
+            },
+        ];
 
-        $sql = "Select distinct TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.isClose, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
-        CASE WHEN Ttrx_Cbr_Approval.CBReq_No IS NOT NULL OR Ttrx_Cbr_Approval.CBReq_No != '' THEN 1 ELSE 0 END AS Has_Submitted_Approval,
-         Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_Name, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_Name, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_Name, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_Name, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_Name, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_Name, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, 
-         Ttrx_Cbr_Approval.IsAppvAdditional,Ttrx_Cbr_Approval.Status_AppvAdditional,Ttrx_Cbr_Approval.AppvAdditional_By,Ttrx_Cbr_Approval.AppvAdditional_Name,Ttrx_Cbr_Approval.AppvAdditional_At,
-         Ttrx_Cbr_Approval.AppvDirector_Name, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_Name, Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.Legitimate,
-        Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_Name,
-        IsAppvFinancePerson,Status_AppvFinancePerson,AppvFinancePerson_By,AppvFinancePerson_Name,AppvFinancePerson_At,
-        Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision,Ttrx_Cbr_Approval.Payment_Status
-        FROM TAccCashBookReq_Header
-        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        And $column_range >= {d '$from'}
-        And $column_range <= {d '$until'}
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3  $sqlCreatedBy";
+        $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.isClose, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
+            CASE WHEN Ttrx_Cbr_Approval.CBReq_No IS NOT NULL OR Ttrx_Cbr_Approval.CBReq_No != '' THEN 1 ELSE 0 END AS Has_Submitted_Approval,
+            Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_Name, Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_Name, Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By, Ttrx_Cbr_Approval.AppvAsstManager_Name, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By, Ttrx_Cbr_Approval.AppvManager_Name, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager, Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_Name, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager, Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_Name, Ttrx_Cbr_Approval.AppvGeneralManager_At, Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, Ttrx_Cbr_Approval.AppvDirector_Name, Ttrx_Cbr_Approval.AppvDirector_At, Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_Name, Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.Legitimate, Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By, Ttrx_Cbr_Approval.AppvFinanceDirector_Name, Ttrx_Cbr_Approval.IsAppvFinancePerson, Ttrx_Cbr_Approval.Status_AppvFinancePerson, Ttrx_Cbr_Approval.AppvFinancePerson_By, Ttrx_Cbr_Approval.AppvFinancePerson_Name, Ttrx_Cbr_Approval.AppvFinancePerson_At, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.UserDivision, Ttrx_Cbr_Approval.Payment_Status, Ttrx_Cbr_Approval.IsAppvAdditional, Ttrx_Cbr_Approval.Status_AppvAdditional, Ttrx_Cbr_Approval.AppvAdditional_By, Ttrx_Cbr_Approval.AppvAdditional_At
+            FROM TAccCashBookReq_Header
+            INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
+            INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
+            LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
+            WHERE TAccCashBookReq_Header.Type = 'D'
+            AND $columnRange >= {d '" . $this->db->escape_str($from) . "'}
+            AND $columnRange <= {d '" . $this->db->escape_str($until) . "'}
+            AND TAccCashBookReq_Header.Company_ID = 2
+            AND isNull(isSPJ, 0) = 0
+            AND Approval_Status = 3
+            AND CBReq_Status = 3
+            $sqlCreatedBy";
 
-        $totalData = $this->db->query($sql)->num_rows();
-        if (!empty($requestData['search']['value'])) {
-            $keyword = $requestData['search']['value'];
-            $fts_keyword = "'\"*$keyword*\"'";
-
-            $sql .= " AND (";
-            $sql .= " CONTAINS((TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.Document_Number, TAccCashBookReq_Header.Descript, TAccCashBookReq_Header.Payment_Plan_Date), $fts_keyword)";
-            $sql .= " OR ";
-            $sql .= " CONTAINS(TUserPersonal.First_Name, $fts_keyword)";
-            $sql .= " )";
-        }
-        //----------------------------------------------------------------------------------
-        $totalFiltered = $this->db->query($sql)->num_rows();
-        $sql .= " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
-        // var_dump($sql);
-        // die;
-        $query = $this->db->query($sql);
-        $data = array();
-        foreach ($query->result_array() as $row) {
-            $nestedData = array();
-            $nestedData['CBReq_No']                         = $row['CBReq_No'];
-            $nestedData['isClose']                          = $row['isClose'];
-            $nestedData['Type']                             = $row['Type'];
-            $nestedData['Document_Date']                    = $row['Document_Date'];
-            $nestedData['Acc_ID']                           = $row['Acc_ID'];
-            $nestedData['Descript']                         = $row['Descript'];
-            $nestedData['Document_Number']                  = $row['Document_Number'];
-            $nestedData['Amount']                           = $row['Amount'];
-            $nestedData['baseamount']                       = $row['baseamount'];
-            $nestedData['curr_rate']                        = $row['curr_rate'];
-            $nestedData['Approval_Status']                  = $row['Approval_Status'];
-            $nestedData['CBReq_Status']                     = $row['CBReq_Status'];
-            $nestedData['Paid_Status']                      = $row['Paid_Status'];
-            $nestedData['Payment_Status']                      = $row['Payment_Status'];
-            $nestedData['Creation_DateTime']                = $row['Creation_DateTime'];
-            $nestedData['Created_By']                       = $row['Created_By'];
-            $nestedData['First_Name']                       = $row['Created_By_Name'];
-            $nestedData['Last_Update']                      = $row['Last_Update'];
-            $nestedData['Update_By']                        = $row['Update_By'];
-            $nestedData['Currency_Id']                      = $row['Currency_Id'];
-            $nestedData['Approve_Date']                     = $row['Approve_Date'];
-            $nestedData['IsAppvStaff']                      = $row['IsAppvStaff'];
-            $nestedData['Status_AppvStaff']                 = $row['Status_AppvStaff'];
-            $nestedData['AppvStaff_By']                     = $row['AppvStaff_By'];
-            $nestedData['AppvStaff_Name']                   = $row['AppvStaff_Name'] ?? '';
-            $nestedData['AppvStaff_At']                     = $row['AppvStaff_At'];
-            $nestedData['IsAppvChief']                      = $row['IsAppvChief'];
-            $nestedData['Status_AppvChief']                 = $row['Status_AppvChief'];
-            $nestedData['AppvChief_By']                     = $row['AppvChief_By'];
-            $nestedData['AppvChief_Name']                   = $row['AppvChief_Name'] ?? '';
-            $nestedData['AppvChief_At']                     = $row['AppvChief_At'];
-            $nestedData['IsAppvAsstManager']                = $row['IsAppvAsstManager'];
-            $nestedData['Status_AppvAsstManager']           = $row['Status_AppvAsstManager'];
-            $nestedData['AppvAsstManager_By']               = $row['AppvAsstManager_By'];
-            $nestedData['AppvAsstManager_Name']             = $row['AppvAsstManager_Name'] ?? '';
-            $nestedData['AppvAsstManager_At']               = !empty($row['AppvAsstManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-';
-            $nestedData['IsAppvManager']                    = $row['IsAppvManager'];
-            $nestedData['Status_AppvManager']               = $row['Status_AppvManager'];
-            $nestedData['AppvManager_By']                   = $row['AppvManager_By'];
-            $nestedData['AppvManager_Name']                 = $row['AppvManager_Name'] ?? '';
-            $nestedData['AppvManager_At']                   = !empty($row['AppvManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-';
-            $nestedData['IsAppvSeniorManager']              = $row['IsAppvSeniorManager'];
-            $nestedData['Status_AppvSeniorManager']         = $row['Status_AppvSeniorManager'];
-            $nestedData['AppvSeniorManager_By']             = $row['AppvSeniorManager_By'];
-            $nestedData['AppvSeniorManager_Name']           = $row['AppvSeniorManager_Name'] ?? '';
-            $nestedData['AppvSeniorManager_At'] = !empty($row['AppvSeniorManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-';
-            $nestedData['IsAppvGeneralManager']             = $row['IsAppvGeneralManager'];
-            $nestedData['Status_AppvGeneralManager']        = $row['Status_AppvGeneralManager'];
-            $nestedData['AppvGeneralManager_By']            = $row['AppvGeneralManager_By'];
-            $nestedData['AppvGeneralManager_Name']          = $row['AppvGeneralManager_Name'] ?? '';
-            $nestedData['AppvGeneralManager_At'] = !empty($row['AppvGeneralManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-';
-            $nestedData['IsAppvAdditional']                 = $row['IsAppvAdditional'];
-            $nestedData['Status_AppvAdditional']            = $row['Status_AppvAdditional'];
-            $nestedData['AppvAdditional_By']                = $row['AppvAdditional_By'];
-            $nestedData['AppvAdditional_At'] = !empty($row['AppvAdditional_At']) ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-';
-            $nestedData['IsAppvFinancePerson']              = $row['IsAppvFinancePerson'];
-            $nestedData['Status_AppvFinancePerson']         = $row['Status_AppvFinancePerson'];
-            $nestedData['AppvFinancePerson_By']             = $row['AppvFinancePerson_By'];
-            $nestedData['AppvFinancePerson_Name']           = $row['AppvFinancePerson_Name'];
-            $nestedData['AppvFinancePerson_At'] = !empty($row['AppvFinancePerson_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-';
-            $nestedData['IsAppvDirector']                   = $row['IsAppvDirector'];
-            $nestedData['Status_AppvDirector']              = $row['Status_AppvDirector'];
-            $nestedData['AppvDirector_By']                  = $row['AppvDirector_By'];
-            $nestedData['AppvDirector_Name']                = $row['AppvDirector_Name'] ?? '';
-            $nestedData['AppvDirector_At'] = !empty($row['AppvDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-';
-            $nestedData['IsAppvPresidentDirector']          = $row['IsAppvPresidentDirector'];
-            $nestedData['Status_AppvPresidentDirector']     = $row['Status_AppvPresidentDirector'];
-            $nestedData['AppvPresidentDirector_By']         = $row['AppvPresidentDirector_By'];
-            $nestedData['AppvPresidentDirector_Name']       = $row['AppvPresidentDirector_Name'] ?? '';
-            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
-            // $nestedData['IsAppvFinanceStaff'] = $row['IsAppvFinanceStaff'];
-            // $nestedData['Status_AppvFinanceStaff'] = $row['Status_AppvFinanceStaff'];
-            // $nestedData['AppvFinanceStaff_By'] = $row['AppvFinanceStaff_By'];
-            // $nestedData['AppvFinanceStaff_Name'] = $row['AppvFinanceStaff_Name'] ?? '';
-            // $nestedData['AppvFinanceStaff_At'] = $row['AppvFinanceStaff_At'];
-            // $nestedData['IsAppvFinanceManager'] = $row['IsAppvFinanceManager'];
-            // $nestedData['Status_AppvFinanceManager'] = $row['Status_AppvFinanceManager'];
-            // $nestedData['AppvFinanceManager_By'] = $row['AppvFinanceManager_By'];
-            // $nestedData['AppvFinanceManager_Name'] = $row['AppvFinanceManager_Name'] ?? '';
-            // $nestedData['AppvFinanceManager_At'] = $row['AppvFinanceManager_At'];
-            $nestedData['IsAppvFinanceDirector']            = $row['IsAppvFinanceDirector'];
-            $nestedData['Status_AppvFinanceDirector']       = $row['Status_AppvFinanceDirector'];
-            $nestedData['AppvFinanceDirector_By']           = $row['AppvFinanceDirector_By'];
-            $nestedData['AppvFinanceDirector_Name']         = $row['AppvFinanceDirector_Name'] ?? '';
-            $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
-            $nestedData['UserName_User']                    = $row['UserName_User'];
-            $nestedData['Rec_Created_At']                   = $row['Rec_Created_At'];
-            $nestedData['UserDivision']                     = $row['UserDivision'] ?? '-';
-            $nestedData['Has_Submitted_Approval']           = $row['Has_Submitted_Approval'];
-            $nestedData['Legitimate']                       = $row['Legitimate'];
-
-            $data[] = $nestedData;
-        }
-        //----------------------------------------------------------------------------------
-        $json_data = array(
-            "draw" => intval($requestData['draw']),
-            "recordsTotal" => intval($totalData),
-            "recordsFiltered" => intval($totalFiltered),
-            "data" => $data,
-        );
-        //----------------------------------------------------------------------------------
-        echo json_encode($json_data);
+        $response = $this->build_datatable_response($baseSql, $orderColumns, $ftsColumns, $fieldMap, $requestData, true, $transforms);
+        echo json_encode($response);
     }
 
     public function get_detail_cbr()
