@@ -20,102 +20,7 @@ class MonitoringCbr extends CI_Controller
         $this->DateTime = date("Y-m-d H:i:s");
         $this->load->model('m_helper', 'help');
         $this->load->model('m_DataTable', 'M_Datatables');
-    }
-
-    private function get_datatable_order(array $requestData, array $columns): array
-    {
-        $columnIndex = isset($requestData['order'][0]['column']) ? intval($requestData['order'][0]['column']) : 0;
-        $direction = strtoupper($requestData['order'][0]['dir'] ?? 'ASC');
-
-        if (!isset($columns[$columnIndex])) {
-            $columnIndex = 0;
-        }
-
-        if ($direction !== 'ASC' && $direction !== 'DESC') {
-            $direction = 'ASC';
-        }
-
-        return [$columns[$columnIndex], $direction];
-    }
-
-    private function build_search_condition(string $searchValue, array $searchColumns): string
-    {
-        if ($searchValue === '') {
-            return '';
-        }
-
-        $escapedSearch = $this->db->escape_like_str($searchValue);
-        $conditions = array_map(function ($column) use ($escapedSearch) {
-            return "$column LIKE '%{$escapedSearch}%'";
-        }, $searchColumns);
-
-        return ' AND (' . implode(' OR ', $conditions) . ') ';
-    }
-
-    private function build_fts_condition(string $searchValue, array $searchColumns): string
-    {
-        if ($searchValue === '') {
-            return '';
-        }
-
-        $ftsKeyword = "'\"*" . $this->db->escape_str($searchValue) . "*\"'";
-        $columnStr = implode(', ', $searchColumns);
-
-        return " AND (CONTAINS(($columnStr), $ftsKeyword) OR CONTAINS(TUserPersonal.First_Name, $ftsKeyword)) ";
-    }
-
-    private function format_datetime(?string $datetime, string $format = 'Y-m-d H:i'): string
-    {
-        return !empty($datetime) ? date($format, strtotime($datetime)) : '-';
-    }
-
-    private function map_row_with_transform(array $row, array $fieldMap, array $transforms = []): array
-    {
-        $result = [];
-        foreach ($fieldMap as $outputKey => $rowKey) {
-            $value = $row[$rowKey] ?? null;
-
-            if (isset($transforms[$outputKey])) {
-                $value = call_user_func($transforms[$outputKey], $value);
-            }
-
-            $result[$outputKey] = $value;
-        }
-        return $result;
-    }
-
-    private function build_datatable_response(string $baseSql, array $orderColumns, array $searchColumns, array $fieldMap, array $requestData, bool $useFts = false, array $transforms = []): array
-    {
-        list($order, $dir) = $this->get_datatable_order($requestData, $orderColumns);
-        $start = isset($requestData['start']) ? intval($requestData['start']) : 0;
-        $length = isset($requestData['length']) ? intval($requestData['length']) : 10;
-        $searchValue = trim($requestData['search']['value'] ?? '');
-
-        if ($useFts) {
-            $searchCondition = $this->build_fts_condition($searchValue, $searchColumns);
-        } else {
-            $searchCondition = $this->build_search_condition($searchValue, $searchColumns);
-        }
-
-        $filteredSql = $baseSql . $searchCondition;
-
-        $totalData = $this->db->query($baseSql)->num_rows();
-        $totalFiltered = $this->db->query($filteredSql)->num_rows();
-
-        $pageSql = $filteredSql . " ORDER BY $order $dir OFFSET $start ROWS FETCH NEXT $length ROWS ONLY ";
-        $query = $this->db->query($pageSql);
-
-        $data = [];
-        foreach ($query->result_array() as $row) {
-            $data[] = $this->map_row_with_transform($row, $fieldMap, $transforms);
-        }
-
-        return [
-            'draw' => intval($requestData['draw'] ?? 0),
-            'recordsTotal' => intval($totalData),
-            'recordsFiltered' => intval($totalFiltered),
-            'data' => $data,
-        ];
+        $this->load->helper('datatable');
     }
 
     public function index()
@@ -292,7 +197,7 @@ class MonitoringCbr extends CI_Controller
             AND Ttrx_Cbr_Approval.CBReq_No IS NULL
             $sqlCreatedBy";
 
-        $response = $this->build_datatable_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData);
+        $response = dt_build_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData, $this);
         echo json_encode($response);
     }
 
@@ -413,7 +318,7 @@ class MonitoringCbr extends CI_Controller
             AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
             AND Created_By = '" . $this->db->escape_str($username) . "'";
 
-        $response = $this->build_datatable_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData);
+        $response = dt_build_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData, $this);
         echo json_encode($response);
     }
 
@@ -450,6 +355,7 @@ class MonitoringCbr extends CI_Controller
         ];
 
         $ftsColumns = ['TAccCashBookReq_Header.CBReq_No', 'TAccCashBookReq_Header.Document_Number', 'TAccCashBookReq_Header.Descript', 'TAccCashBookReq_Header.Payment_Plan_Date'];
+
         $fieldMap = [
             'CBReq_No' => 'CBReq_No',
             'isClose' => 'isClose',
@@ -535,31 +441,31 @@ class MonitoringCbr extends CI_Controller
 
         $transforms = [
             'AppvAsstManager_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvManager_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvSeniorManager_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvGeneralManager_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvAdditional_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvFinancePerson_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvDirector_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvPresidentDirector_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvFinanceDirector_At' => function ($val) {
-                return $this->format_datetime($val);
+                return dt_format_datetime($val);
             },
             'AppvStaff_Name' => function ($val) {
                 return $val ?? '';
@@ -609,7 +515,7 @@ class MonitoringCbr extends CI_Controller
             AND CBReq_Status = 3
             $sqlCreatedBy";
 
-        $response = $this->build_datatable_response($baseSql, $orderColumns, $ftsColumns, $fieldMap, $requestData, true, $transforms);
+        $response = dt_build_response($baseSql, $orderColumns, $ftsColumns, $fieldMap, $requestData, $this, true, $transforms);
         echo json_encode($response);
     }
 
