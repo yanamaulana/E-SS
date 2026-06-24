@@ -232,22 +232,21 @@ class MyCbr extends CI_Controller
             'Payment_Plan_Date' => 'Payment_Plan_Date',
         ];
 
-        $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, TAccCashBookReq_Header.Payment_Plan_Date
-            FROM TAccCashBookReq_Header
-            INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-            INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-            LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-            WHERE TAccCashBookReq_Header.Type = 'D'
-            AND TAccCashBookReq_Header.Document_Date >= {d '" . $this->db->escape_str($from) . "'}
-            AND TAccCashBookReq_Header.Document_Date <= {d '" . $this->db->escape_str($until) . "'}
-            AND TAccCashBookReq_Header.Company_ID = 2
-            AND isNull(isSPJ, 0) = 0
-            AND Approval_Status = 3
-            AND CBReq_Status = 3
-            AND (Paid_Status = 'NP' OR Paid_Status = 'HP')
-            AND (isClose = 0 OR isClose IS NULL)
-            AND Ttrx_Cbr_Approval.CBReq_No IS NULL
-            AND Created_By = '" . $this->db->escape_str($this->session->userdata('sys_sba_userid')) . "'";
+        $baseSql = "SELECT  distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date, TAccCashBookReq_Header.Payment_Plan_Date
+        FROM TAccCashBookReq_Header
+        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
+        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
+        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
+        WHERE TAccCashBookReq_Header.Type='D'
+        And TAccCashBookReq_Header.Document_Date >= {d '2025-12-01'}
+        AND TAccCashBookReq_Header.Company_ID = 2 
+        AND isNull(isSPJ,0) = 0
+        AND Approval_Status  = 3
+        AND CBReq_Status = 3
+        AND (Paid_Status = 'NP' or Paid_Status = 'HP')
+        AND (isClose = 0 OR isClose IS NULL)
+        AND Ttrx_Cbr_Approval.CBReq_No IS NULL
+        AND Created_By = '" . $this->session->userdata('sys_sba_userid') . "' ";
 
         $response = dt_build_response($baseSql, $orderColumns, $searchColumns, $fieldMap, $requestData, $this);
         echo json_encode($response);

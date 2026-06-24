@@ -114,18 +114,18 @@ class Auth extends CI_Controller
             }
 
             $session_data = array(
-                'sys_sba_isDir'                => $is_dir,
-                'sys_sba_isAdm'                => $is_admin,
-                'sys_sba_isSalesPerson'        => $user['isSalesPerson'],
-                'sys_cbr_divs'                 => $Cbr_Depts,
-                'sys_sba_userid'               => $user['User_ID'],
-                'sys_sba_username'             => $user['User_Name'],
-                'sys_sba_NIK'                  => $user['User_Name'],
-                'sys_sba_nama'                 => $user['First_Name'],
-                'sys_sba_jabatan'              => $jabatan,
-                'sys_sba_email'                => $user['Email_Address'],
-                'sys_sba_department'           => $employee['Division_Name'],
-                'sys_sba_PayemntCheckPermission' => $PayemntCheckPermission,
+                'sys_sba_isDir'                     => $is_dir,
+                'sys_sba_isAdm'                     => $is_admin,
+                'sys_sba_isSalesPerson'             => $user['isSalesPerson'],
+                'sys_cbr_divs'                      => $Cbr_Depts,
+                'sys_sba_userid'                    => $user['User_ID'],
+                'sys_sba_username'                  => $user['User_Name'],
+                'sys_sba_NIK'                       => $user['User_Name'],
+                'sys_sba_nama'                      => $user['First_Name'],
+                'sys_sba_jabatan'                   => $jabatan,
+                'sys_sba_email'                     => $user['Email_Address'],
+                'sys_sba_department'                => $employee['Division_Name'],
+                'sys_sba_PayemntCheckPermission'    => $PayemntCheckPermission,
             );
 
             $this->db->insert('EsbaUserLog', [
