@@ -66,9 +66,9 @@ $(document).ready(function () {
         {
             data: "Document_Date",
             name: "Document_Date",
-            render: function (data) {
-                return data.substring(0, data.indexOf(' '));
-            }
+            render: function (data) { // Render tanggal yang lebih aman
+                return data ? data.split(' ')[0] : '';
+            },
         },
         {
             data: "Currency_Id",
@@ -110,28 +110,29 @@ $(document).ready(function () {
         {
             data: "CBReq_Status",
             name: "CBReq_Status",
-            render: function (data) {
-                if (data == 3) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Close" class="badge badge-success btn-icon"><i class="text-white fas fa-file-archive"></i></a>`
-                } else if (data == 2) {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="Open" class="badge badge-info btn-icon"><i class="text-white fas fa-folder-open"></i></a></button>`
-                } else {
-                    return `<a hreff="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="New" class="badge badge-warning btn-icon"><i class="text-white fas fa-file"></i></a></button>`
-                }
-            }
+            render: function (data) { // Di-refactor untuk kejelasan dan perbaikan bug
+                const statusMap = {
+                    '3': { title: 'Close', class: 'badge-success', icon: 'fa-file-archive' },
+                    '2': { title: 'Open', class: 'badge-info', icon: 'fa-folder-open' },
+                    'default': { title: 'New', class: 'badge-warning', icon: 'fa-file' }
+                };
+                const status = statusMap[String(data)] || statusMap['default'];
+                // Memperbaiki 'hreff' menjadi 'href' dan tag penutup yang salah
+                return `<a href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-custom-class="tooltip-dark" title="${status.title}" class="badge ${status.class} btn-icon"><i class="text-white fas ${status.icon}"></i></a>`;
+            },
         },
         {
             data: "Paid_Status",
             name: "Paid_Status",
-            render: function (data) {
-                if (data == 'NP') {
-                    return `<span class="text-dark badge badge-danger">Not Paid</span>`;
-                } else if (data == 'HP') {
-                    return `<span class="text-dark badge badge-warning">Half Paid</span>`;
-                } else {
-                    return `<span class="text-dark badge badge-success">Full Paid</span>`;
-                }
-            }
+            render: function (data) { // Di-refactor untuk kejelasan
+                const statusMap = {
+                    'NP': { text: 'Not Paid', class: 'badge-danger' },
+                    'HP': { text: 'Half Paid', class: 'badge-warning' },
+                    'default': { text: 'Full Paid', class: 'badge-success' }
+                };
+                const status = statusMap[data] || statusMap['default'];
+                return `<span class="text-dark badge ${status.class}">${status.text}</span>`;
+            },
         },
         {
             data: "Creation_DateTime",
@@ -703,7 +704,14 @@ $(document).ready(function () {
     }
 
     $('#do--filter').on('click', function () {
-        $("#TableDataHistory").DataTable().clear().destroy(), Fn_Initialized_DataTable(), DataTable.tables({ visible: true, api: true }).columns.adjust();
+        // 1. Hancurkan instance DataTable yang ada untuk membersihkan state lama.
+        $("#TableDataHistory").DataTable().clear().destroy();
+
+        // 2. Panggil fungsi untuk menginisialisasi ulang DataTable dengan data & filter baru.
+        Fn_Initialized_DataTable();
+
+        // 3. Sesuaikan ulang lebar kolom, penting jika tabel berada di dalam tab atau container tersembunyi.
+        DataTable.tables({ visible: true, api: true }).columns.adjust();
     })
 
     // Pasang listener untuk tombol view termin
@@ -832,137 +840,121 @@ $(document).ready(function () {
     });
 
     function format(d, is_hst_table) {
-        // console.log(is_hst_table)
-        var attachmentButton = (is_hst_table == 1)
+        /**
+         * Generates the header (<thead> content) for the second details table (Invoice/PO).
+         * This keeps the conditional logic separate from the main HTML structure.
+         * @param {string|null} docNumber - The document number from the row data.
+         * @returns {string} The HTML string for the table header.
+         */
+        const generateSecondTableHeader = (docNumber) => {
+            // Case 1: No document number (or empty string)
+            if (!docNumber) {
+                return `
+                <tr><th class="text-dark" colspan="10">Purchase Invoice: -N/A-</th></tr>
+                <tr class="bg-dark">
+                    <th class="text-center">Invoice No</th>
+                    <th class="text-center">Vendor Invoice Number</th>
+                    <th class="text-center">Invoice Date</th>
+                    <th class="text-center">Due Date</th>
+                    <th class="text-center">Purchase Order Number</th>
+                    <th class="text-center">Vendor Name</th>
+                    <th class="text-center">Payment Status</th>
+                    <th class="text-center">Is Void</th>
+                    <th class="text-center">Document Status</th>
+                    <th class="text-center">Receipt Date</th>
+                </tr>`;
+            }
+            // Case 2: It's a Purchase Order (starts with 'PWU')
+            if (docNumber.startsWith('PWU')) {
+                return `
+                <tr><th class="text-dark" colspan="10">Purchase Order: ${docNumber}</th></tr>
+                <tr class="bg-dark">
+                    <th class="text-center">PO Number</th>
+                    <th class="text-center">Vendor</th>
+                    <th class="text-center">PO Date</th>
+                    <th class="text-center">Pick Up Date</th>
+                    <th class="text-center">Vendor SO Number</th>
+                    <th class="text-center">Document Status</th>
+                    <th class="text-center">PO Status</th>
+                    <th class="text-center">Approval</th>
+                    <th class="text-center">Invoiced</th>
+                    <th class="text-center">Active</th>
+                </tr>`;
+            }
+            // Case 3: It's a Purchase Invoice
+            return `
+            <tr>
+                <th class="text-dark" colspan="7">Purchase Invoice: ${docNumber}</th>
+                <th style="text-align: center;" colspan="3">
+                    <button type="button" value="${docNumber}" class="btn btn-sm btn-info rpt-vin"><i class="fas fa-search"></i> Purchase Invoice</button>
+                </th>
+            </tr>
+            <tr class="bg-dark">
+                <th class="text-center">Invoice No</th>
+                <th class="text-center">Vendor Invoice Number</th>
+                <th class="text-center">Invoice Date</th>
+                <th class="text-center">Due Date</th>
+                <th class="text-center" style="white-space: pre-line; max-width: 200px;">Purchase Order Number</th>
+                <th class="text-center">Vendor Name</th>
+                <th class="text-center">Payment Status</th>
+                <th class="text-center">Is Void</th>
+                <th class="text-center">Document Status</th>
+                <th class="text-center">Receipt Date</th>
+            </tr>`;
+        };
+
+        // Determine which attachment button to show based on the table type
+        const attachmentButton = is_hst_table
             ? `<button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-light-primary btn-list-attachment"><i class="fas fa-paperclip"></i> List Attachment</button>`
             : `<button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-primary btn-attachment"><i class="fas fa-paperclip"></i> Upload Attachment</button>`;
-        let cbr_container = `<div class="row py-3" style="background-color: #CFE2FF;">
-                                <div class="container-fluid">
-                                    <div class="card shadow-sm">
-                                        <div class="card-body">
-                                            <div class="table-responsive overflow-auto">
-                                                <table class="table-sm table-striped overflow-auto table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-dark" colspan="2">Cash Book Requisition Number : ${d.CBReq_No}</th>
-                                                            <th class="text-dark text-center">
-                                                            <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-info btn-cbr"><i class="fas fa-print"></i> Cash Book Requisition</button> 
-                                                            ${attachmentButton}
-                                                        </tr>
-                                                        <tr class="bg-dark">
-                                                            <th class="text-center">Account</th>
-                                                            <th class="text-center">Description</th>
-                                                            <th class="text-center">Amount</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="tbody_${d.CBReq_No}">
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>`;
-        if (d.Document_Number == null || d.Document_Number == '') {
-            let container = cbr_container + `<div class="container-fluid">
-                                                <div class="card shadow-sm mt-5">
-                                                    <div class="card-body">
-                                                        <div class="table-responsive overflow-auto">
-                                                            <table class="table-sm table-striped overflow-auto table-bordered">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="text-dark" colspan="11">Purchase Invoice  : -N/A-</th>
-                                                                    </tr>
-                                                                    <tr class="bg-dark">
-                                                                        <th class="text-center">Invoice No</th>
-                                                                        <th class="text-center">Vendor Invoice Number</th>
-                                                                        <th class="text-center">Invoice Date</th>
-                                                                        <th class="text-center">Due Date</th>
-                                                                        <th class="text-center">Purchase Order Number</th>
-                                                                        <th class="text-center">Vendor Name</th>
-                                                                        <th class="text-center">Payment Status</th>
-                                                                        <th class="text-center">Is Void</th>
-                                                                        <th class="text-center">Document Status</th>
-                                                                        <th class="text-center">Receipt Date</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="tbody_vin_${d.CBReq_No}">
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-            return container;
-        } else if (d.Document_Number.startsWith('PWU')) {
-            let container = cbr_container + `<div class="container-fluid">
-                                                <div class="card shadow-sm mt-5">
-                                                    <div class="card-body">
-                                                        <div class="table-responsive overflow-auto">
-                                                            <table class="table-sm table-striped overflow-auto table-bordered">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="text-dark" colspan="11">Purchase Order  : ${d.Document_Number}</th>
-                                                                    </tr>
-                                                                    <tr class="bg-dark">
-                                                                        <th class="text-center">PO Number</th>
-                                                                        <th class="text-center">Vendor</th>
-                                                                        <th class="text-center">PO Date</th>
-                                                                        <th class="text-center">Pick Up Date</th>
-                                                                        <th class="text-center">Vendor SO Number</th>
-                                                                        <th class="text-center">Document Status</th>
-                                                                        <th class="text-center">PO Status</th>
-                                                                        <th class="text-center">Approval</th>
-                                                                        <th class="text-center">Invoiced</th>
-                                                                        <th class="text-center">Active</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="tbody_vin_${d.CBReq_No}">
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-            return container;
-        } else {
-            let container = cbr_container + `<div class="container-fluid">
-                                                <div class="card shadow-sm mt-5">
-                                                    <div class="card-body">
-                                                            <table class="table-sm table-bordered">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="text-dark" colspan="7">
-                                                                            Purchase Invoice  : ${d.Document_Number}
-                                                                        </th>
-                                                                        <th style="text-align: center;" colspan="3">
-                                                                            <button type="button" value="${d.Document_Number}" class="btn btn-sm btn-info rpt-vin"><i class="fas fa-search"></i> Purchase Invoice</button>
-                                                                        </th>
-                                                                    </tr>
-                                                                    <tr class="bg-dark">
-                                                                        <th class="text-center">Invoice No</th>
-                                                                        <th class="text-center">Vendor Invoice Number</th>
-                                                                        <th class="text-center">Invoice Date</th>
-                                                                        <th class="text-center">Due Date</th>
-                                                                        <th class="text-center" style="white-space: pre-line; max-width: 200px;">Purchase Order Number</th>
-                                                                        <th class="text-center">Vendor Name</th>
-                                                                        <th class="text-center">Payment Status</th>
-                                                                        <th class="text-center">Is Void</th>
-                                                                        <th class="text-center">Document Status</th>
-                                                                        <th class="text-center">Receipt Date</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody id="tbody_vin_${d.CBReq_No}">
-                                                                </tbody>
-                                                            </table>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>`;
-            return container;
-        }
 
+        // Main template for the entire child row.
+        // It's now a single block, making it easier to read and manage.
+        // By removing the Bootstrap grid (.row, .container-fluid) and .w-100 from the tables,
+        // the child content will no longer stretch to the full width of the parent scrolling table.
+        // It will now only be as wide as its content requires.
+        return `<div class="p-3" style="background-color: #CFE2FF;">
+            
+            <!-- 1. CBR Details Table -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="text-dark" colspan="2">Cash Book Requisition Number: ${d.CBReq_No}</th>
+                                    <th class="text-dark text-center">
+                                        <button type="button" value="${d.CBReq_No}" class="btn btn-sm btn-info btn-cbr"><i class="fas fa-print"></i> Cash Book Requisition</button> 
+                                        ${attachmentButton}
+                                    </th>
+                                </tr>
+                                <tr class="bg-dark">
+                                    <th class="text-center">Account</th>
+                                    <th class="text-center">Description</th>
+                                    <th class="text-center">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Related Document (Invoice/PO) Table -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered">
+                            <thead>
+                                ${generateSecondTableHeader(d.Document_Number)}
+                            </thead>
+                            <tbody id="tbody_vin_${d.CBReq_No}"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>`;
     }
     $(document).on('click', '.rpt-vin', function () {
         let vin = $(this).val();
