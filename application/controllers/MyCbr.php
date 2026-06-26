@@ -180,8 +180,8 @@ class MyCbr extends CI_Controller
     public function DT_List_To_Approve()
     {
         $requestData = $_REQUEST;
-        $from = $this->input->post('from');
-        $until = $this->input->post('until');
+        // $from = $this->input->post('from');
+        // $until = $this->input->post('until');
 
         $orderColumns = [
             0 => 'TAccCashBookReq_Header.CBReq_No',
