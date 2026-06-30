@@ -32,15 +32,22 @@ class RND extends CI_Controller
      */
     public function download_report($type)
     {
-        $category_id = 0;
         $filename = 'RND_BOM_Report.csv';
+        $where_clause = '';
+        $bindings = [];
 
         if ($type == 'ag') {
-            $category_id = 8;
             $filename = 'RND_BOM_Report_AG_' . date('Y-m-d') . '.csv';
+            $where_clause = "WHERE CT.ItemCategory_id = ?";
+            $bindings[] = 8;
         } elseif ($type == 'eg') {
-            $category_id = 5;
             $filename = 'RND_BOM_Report_EG_' . date('Y-m-d') . '.csv';
+            $where_clause = "WHERE CT.ItemCategory_id = ?";
+            $bindings[] = 5;
+        } elseif ($type == 'all') {
+            $filename = 'RND_BOM_Report_ALL_' . date('Y-m-d') . '.csv';
+            $where_clause = "WHERE CT.ItemCategory_id IN (5, 8)";
+            // No bindings needed for this part of the WHERE clause
         } else {
             show_error('Tipe laporan tidak valid.', 400);
             return;
@@ -70,8 +77,8 @@ class RND extends CI_Controller
             LEFT JOIN TGSColor cl ON i.Item_color = cl.Color_Code 
             LEFT JOIN TItemCompany C ON C.item_code = i.Item_Code 
             LEFT JOIN TItemCategory CT ON C.ItemCategory_Id = ct.ItemCategory_id 
-            WHERE CT.ItemCategory_id = ?
-            ORDER BY h.BOM_CODE, d.BOMDETAIL_ID
+            " . $where_clause . "
+            ORDER BY CT.ItemCategory_id ASC, h.BOM_CODE, d.BOMDETAIL_ID
         ";
 
         $handle = fopen('php://output', 'w');
@@ -81,7 +88,10 @@ class RND extends CI_Controller
 
         while (true) {
             $chunk_sql = $base_sql . " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-            $query = $this->db->query($chunk_sql, [$category_id, $offset, $limit]);
+
+            // Gabungkan bindings untuk klausa WHERE dengan bindings untuk OFFSET/FETCH
+            $final_bindings = array_merge($bindings, [$offset, $limit]);
+            $query = $this->db->query($chunk_sql, $final_bindings);
 
             if ($query->num_rows() == 0) {
                 break; // Berhenti jika tidak ada data lagi

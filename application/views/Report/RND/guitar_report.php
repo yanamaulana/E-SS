@@ -14,12 +14,15 @@
                         <span>Karena jumlah data yang sangat besar, laporan akan diunduh dalam format <strong>CSV</strong> untuk memastikan performa dan mencegah masalah memori pada server.</span>
                     </div>
                 </div>
-                <div class="d-flex justify-content-center gap-4 mt-10">
+                <div class="d-flex justify-content-center flex-wrap gap-4 mt-10">
                     <a href="<?= base_url('Report/RND/download_report/ag') ?>" class="btn btn-lg btn-primary" target="_blank">
                         <i class="fas fa-file-csv fs-3 me-2"></i> Download Laporan AG (Acoustic Guitar)
                     </a>
                     <a href="<?= base_url('Report/RND/download_report/eg') ?>" class="btn btn-lg btn-success" target="_blank">
                         <i class="fas fa-file-csv fs-3 me-2"></i> Download Laporan EG (Electric Guitar)
+                    </a>
+                    <a href="<?= base_url('Report/RND/download_report/all') ?>" class="btn btn-lg btn-info">
+                        <i class="fas fa-file-archive fs-3 me-2"></i> Download Laporan Gabungan (AG & EG)
                     </a>
                 </div>
             </div>
