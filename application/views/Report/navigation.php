@@ -71,7 +71,7 @@
                                         </ul>
                                     </div>
                                     <div class="text-center px-4">
-                                        <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/undraw_heavy_box_agqi.png">
+                                        <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/undraw_researching_49yy.png">
                                     </div>
                                 </div>
                             </div>
