@@ -374,6 +374,18 @@ $(document).ready(function () {
         });
     });
 
+    // Helper function to prevent XSS
+    function escapeHtml(text) {
+        if (typeof text !== 'string') return text;
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
     function buildRowDetail(data) {
         const totalAmount = data.total_amount || "0.00";
         const notes = data.notes || "";
@@ -384,29 +396,29 @@ $(document).ready(function () {
         <tr class="text-nowrap">
             <td><input type="checkbox" name="chk_item[]"></td>
             <td>
-                ${data.item_code} 
+                ${escapeHtml(data.item_code)} 
                 <input type="hidden" name="item_code[]" value="${data.item_code}">
                 <input type="hidden" name="unit_id[]" value="${data.unit_id}"> 
                 <input type="hidden" name="unit_id2[]" value="${data.unit_id2}">
                 <input type="hidden" name="dim_id[]" value="${data.dim_id}">
             </td>
             <td>
-                ${data.item_name} 
+                ${escapeHtml(data.item_name)} 
                 <input type="hidden" name="item_name[]" value="${data.item_name}">
                 <input type="hidden" name="gen_flag[]" value="0">
                 <input type="hidden" name="parent_item[]" value="0">
                 <input type="hidden" name="parent_path[]" value="0">
             </td>
-            <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm" value="${notes}"></td>
-            <td style="display:none">${data.size}</td>
-            <td>${data.color}</td>
-            <td>${data.brand}</td>
-            <td>${data.type}</td>
+            <td style="min-width: 120px;"><input type="text" name="notes[]" class="form-control form-control-sm" value="${escapeHtml(notes)}"></td>
+            <td style="display:none">${escapeHtml(data.size)}</td>
+            <td>${escapeHtml(data.color)}</td>
+            <td>${escapeHtml(data.brand)}</td>
+            <td>${escapeHtml(data.type)}</td>
             
             <td style="min-width: 85px;">
                 <input type="number" name="qty[]" class="form-control form-control-sm text-right qty-trigger" value="${data.qty}">
             </td>
-            <td class="fw-bold text-muted">${data.unit_name}</td> 
+            <td class="fw-bold text-muted">${escapeHtml(data.unit_name)}</td> 
             <td style="min-width: 85px;">
                 <input type="number" name="qty2[]" class="form-control form-control-sm text-right bg-light" readonly value="0">
             </td>

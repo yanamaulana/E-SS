@@ -59,6 +59,23 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-lg-4 col-md-4">
+                            <div class="card card-bordered shadow-sm">
+                                <div class="card-body p-0">
+                                    <div class="dropdown text-center">
+                                        <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenuRnd" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <strong>RND Guitar Report</strong>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuRnd">
+                                            <li><a href="<?= base_url('Report/RND/guitar_report') ?>" class="dropdown-item">BOM Detail Report</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="text-center px-4">
+                                        <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/undraw_heavy_box_agqi.png">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <?php if ($this->session->userdata('sys_sba_isAdm') == true || $this->session->userdata('sys_sba_NIK') == '09466'): ?>
                             <div class="col-lg-4 col-md-4 mt-4">
                                 <div class="card card-bordered shadow-sm">
