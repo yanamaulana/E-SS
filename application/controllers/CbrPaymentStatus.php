@@ -231,6 +231,7 @@ class CbrPaymentStatus extends CI_Controller
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $selected_cbr = [];
+            $cbr_rejection_reasons = []; // Untuk menyimpan alasan penolakan per CBR jika ada
 
             foreach ($sheetData as $rowIndex => $row) {
                 if ($rowIndex == 1) continue; // Skip baris pertama (header)
@@ -246,6 +247,9 @@ class CbrPaymentStatus extends CI_Controller
                         'ACTION'     => (int)$action,
                         'TERMIN_KE'  => (int)$termin_ke // Simpan Termin Ke
                     ];
+                    if ((int)$action == 2) {
+                        $cbr_rejection_reasons[$cbr_no] = "Rejected via Excel bulk upload"; // Tetapkan alasan generik jika ditolak
+                    }
                 }
             }
 
@@ -255,6 +259,7 @@ class CbrPaymentStatus extends CI_Controller
             }
 
             $username = $this->session->userdata('sys_sba_username');
+            $generic_rejection_reason = "Rejected via Excel bulk upload"; // Alasan generik untuk penolakan massal
             $unique_cbr = []; // Array untuk menampung CBR unik agar sinkronisasi lebih efisien
 
             $this->db->trans_start();
@@ -270,17 +275,23 @@ class CbrPaymentStatus extends CI_Controller
                     continue; // Skip jika angka action tidak valid (bukan 1 atau 2)
                 }
 
+                $update_data_termin = [
+                    'Termin_Payment_status' => $status_update,
+                    'Termin_Payment_status_at' => $this->DateTime,
+                    'Termin_Payment_status_by' => $username
+                ];
+
+                if ($action_flag == 2) { // Jika ini adalah penolakan
+                    $update_data_termin['Reject_Payment_Reason'] = $generic_rejection_reason;
+                    // Catat riwayat penolakan untuk setiap termin yang ditolak
+                    $this->help->record_history_approval($data['CBR_NUMBER'], "Termin " . $data['TERMIN_KE'] . ": " . $generic_rejection_reason);
+                }
+
                 // Kumpulkan CBR_NUMBER unik
                 $unique_cbr[$data['CBR_NUMBER']] = true;
 
                 // UPDATE KE TABEL TERMIN
-                $this->db->where('CBReq_No', $data['CBR_NUMBER']);
-                $this->db->where('Termin_Ke', $data['TERMIN_KE']);
-                $this->db->update('Ttrx_Cbr_Approval_Termin', [
-                    'Termin_Payment_status' => $status_update,
-                    'Termin_Payment_status_at' => $this->DateTime,
-                    'Termin_Payment_status_by' => $username
-                ]);
+                $this->db->where('CBReq_No', $data['CBR_NUMBER'])->where('Termin_Ke', $data['TERMIN_KE'])->update('Ttrx_Cbr_Approval_Termin', $update_data_termin);
             }
 
             // JALANKAN SINKRONISASI HEADER
@@ -288,6 +299,7 @@ class CbrPaymentStatus extends CI_Controller
                 $this->Sync_Header_Status($cbr);
             }
 
+            // Pindahkan trans_complete() ke sini agar mencakup semua update
             $this->db->trans_complete();
 
             if ($this->db->trans_status() === FALSE) {
@@ -396,7 +408,7 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['Last_Update'] = $row['Last_Update'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];
             $nestedData['Approve_Date'] = $row['Approve_Date'];
-            $nestedData['Payment_Plan_Date'] = date('Y-m-d', strtotime($row['Payment_Plan_Date']));
+            $nestedData['Payment_Plan_Date'] = !empty($row['Payment_Plan_Date']) ? date('Y-m-d', strtotime($row['Payment_Plan_Date'])) : '';
 
             $data[] = $nestedData;
         }
