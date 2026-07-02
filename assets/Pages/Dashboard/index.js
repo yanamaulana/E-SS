@@ -53,7 +53,7 @@ $(document).ready(function () {
 
                     // Tambah kolom Header untuk tiap mata uang yang ditemukan
                     $.each(currencies, function (index, curr) {
-                        headRow += '<th>Amount ' + curr + '</th>';
+                        headRow += '<th class="text-end">Amount ' + curr + '</th>';
                     });
 
                     headRow += '</tr>';
@@ -112,13 +112,10 @@ $(document).ready(function () {
 
                             // Format angka desimal sesuai mata uang (IDR/JPY tanpa desimal, selain itu 2 desimal)
                             var formattedAmount = "";
-                            if (curr === 'IDR' || curr === 'JPY') {
-                                formattedAmount = Number(amount).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                            } else {
-                                formattedAmount = Number(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                            }
+                            formattedAmount = Number(amount).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                            bodyRow += '<td>' + formattedAmount + '</td>';
+
+                            bodyRow += '<td class="text-end">' + formattedAmount + '</td>';
                         });
 
                         bodyRow += '</tr>';
@@ -144,13 +141,10 @@ $(document).ready(function () {
                         var totalAmt = grandTotalAmounts[curr];
                         var formattedTotalAmt = "";
 
-                        if (curr === 'IDR' || curr === 'JPY') {
-                            formattedTotalAmt = Number(totalAmt).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                        } else {
-                            formattedTotalAmt = Number(totalAmt).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        }
+                        formattedTotalAmt = Number(totalAmt).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                        totalRow += '<td class="fs-5">' + formattedTotalAmt + '</td>';
+
+                        totalRow += '<td class="text-end">' + formattedTotalAmt + '</td>';
                     });
 
                     totalRow += '</tr>';

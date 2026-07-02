@@ -8,41 +8,11 @@ class m_Dashboard extends CI_Model
 
     public function get_Count_Awaiting_Approvals($username)
     {
-        $query = $this->db->query("SELECT COUNT(1) as Awaiting_Approvals
-                                    FROM TAccCashBookReq_Header H
-                                    JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
-                                    WHERE H.Type = 'D'
-                                    AND H.Company_ID = 2 
-                                    AND (H.isSPJ IS NULL OR H.isSPJ = 0) 
-                                    AND H.Approval_Status = 3 
-                                    AND H.CBReq_Status = 3
-                                    AND (H.isClose IS NULL OR H.isClose = 0)
-                                    AND A.IsAppvPresidentDirector = 1
-                                    AND A.Status_AppvPresidentDirector = 0
-                                    AND A.AppvPresidentDirector_By = '$username'
-                                    AND (A.IsAppvStaff = 0          OR A.Status_AppvStaff = 1)
-                                    AND (A.IsAppvChief = 0          OR A.Status_AppvChief = 1)
-                                    AND (A.IsAppvAsstManager = 0    OR A.Status_AppvAsstManager = 1)
-                                    AND (A.IsAppvManager = 0        OR A.Status_AppvManager = 1)
-                                    AND (A.IsAppvSeniorManager = 0  OR A.Status_AppvSeniorManager = 1)
-                                    AND (A.IsAppvGeneralManager = 0 OR A.Status_AppvGeneralManager = 1)
-                                    AND (A.IsAppvAdditional = 0     OR A.Status_AppvAdditional = 1)
-                                    AND (A.IsAppvDirector = 0       OR A.Status_AppvDirector = 1)
-                                    AND (A.IsAppvFinancePerson = 0  OR A.Status_AppvFinancePerson = 1) 
-                                    AND (A.IsAppvFinanceDirector = 0 OR A.Status_AppvFinanceDirector = 1)");
-        return $query->row()->Awaiting_Approvals;
-    }
-
-    public function get_Count_After_Approvals($username, $status)
-    {
-        // 1. Siapkan format tanggal dan waktu secara penuh dari PHP
-        $first_date_on_month = date('Y-m-01 00:00:00');
-        $last_date_on_month = date('Y-m-t 23:59:59');
-
-        // 2. Gunakan tanda tanya (?) untuk tempat variabel
-        $sql = "SELECT COUNT(1) as After_Approvals
-                FROM TAccCashBookReq_Header H
-                JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
+        // Menggunakan Query Binding untuk keamanan dan JOIN ke tabel termin
+        $sql = "SELECT COUNT(DISTINCT H.CBReq_No) as Awaiting_Approvals
+                FROM Ttrx_Cbr_Approval_Termin TM
+                JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                JOIN Ttrx_Cbr_Approval A ON TM.CBReq_No = A.CBReq_No
                 WHERE H.Type = 'D'
                 AND H.Company_ID = 2 
                 AND (H.isSPJ IS NULL OR H.isSPJ = 0) 
@@ -50,10 +20,10 @@ class m_Dashboard extends CI_Model
                 AND H.CBReq_Status = 3
                 AND (H.isClose IS NULL OR H.isClose = 0)
                 AND A.IsAppvPresidentDirector = 1
-                AND A.Status_AppvPresidentDirector = ?
-                AND A.AppvPresidentDirector_At >= ?
-                AND A.AppvPresidentDirector_At <= ?
-                AND A.AppvPresidentDirector_By = ?
+                -- Kondisi utama sekarang ada di tabel termin
+                AND TM.Status_AppvPresdir = 0
+                AND TM.AppvPresdir_By = ?
+                -- Mempertahankan validasi rantai approval dari tabel lama
                 AND (A.IsAppvStaff = 0          OR A.Status_AppvStaff = 1)
                 AND (A.IsAppvChief = 0          OR A.Status_AppvChief = 1)
                 AND (A.IsAppvAsstManager = 0    OR A.Status_AppvAsstManager = 1)
@@ -65,8 +35,41 @@ class m_Dashboard extends CI_Model
                 AND (A.IsAppvFinancePerson = 0  OR A.Status_AppvFinancePerson = 1) 
                 AND (A.IsAppvFinanceDirector = 0 OR A.Status_AppvFinanceDirector = 1)";
 
-        // 3. Masukkan variabel ke dalam array sebagai argumen kedua $this->db->query()
-        // Urutan array HARUS sama dengan urutan tanda tanya (?) di query atas
+        $query = $this->db->query($sql, array($username));
+        return $query->row()->Awaiting_Approvals;
+    }
+
+    public function get_Count_After_Approvals($username, $status)
+    {
+        $first_date_on_month = date('Y-m-01 00:00:00');
+        $last_date_on_month = date('Y-m-t 23:59:59');
+
+        $sql = "SELECT COUNT(DISTINCT H.CBReq_No) as After_Approvals
+                FROM Ttrx_Cbr_Approval_Termin TM
+                JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                JOIN Ttrx_Cbr_Approval A ON TM.CBReq_No = A.CBReq_No
+                WHERE H.Type = 'D'
+                AND H.Company_ID = 2 
+                AND (H.isSPJ IS NULL OR H.isSPJ = 0) 
+                AND H.Approval_Status = 3 
+                AND H.CBReq_Status = 3
+                AND (H.isClose IS NULL OR H.isClose = 0)
+                AND A.IsAppvPresidentDirector = 1
+                AND TM.Status_AppvPresdir = ?
+                AND TM.AppvPresdir_At >= ?
+                AND TM.AppvPresdir_At <= ?
+                AND TM.AppvPresdir_By = ?
+                AND (A.IsAppvStaff = 0          OR A.Status_AppvStaff = 1)
+                AND (A.IsAppvChief = 0          OR A.Status_AppvChief = 1)
+                AND (A.IsAppvAsstManager = 0    OR A.Status_AppvAsstManager = 1)
+                AND (A.IsAppvManager = 0        OR A.Status_AppvManager = 1)
+                AND (A.IsAppvSeniorManager = 0  OR A.Status_AppvSeniorManager = 1)
+                AND (A.IsAppvGeneralManager = 0 OR A.Status_AppvGeneralManager = 1)
+                AND (A.IsAppvAdditional = 0     OR A.Status_AppvAdditional = 1)
+                AND (A.IsAppvDirector = 0       OR A.Status_AppvDirector = 1)
+                AND (A.IsAppvFinancePerson = 0  OR A.Status_AppvFinancePerson = 1) 
+                AND (A.IsAppvFinanceDirector = 0 OR A.Status_AppvFinanceDirector = 1)";
+
         $query = $this->db->query($sql, array(
             $status,
             $first_date_on_month,
@@ -79,16 +82,16 @@ class m_Dashboard extends CI_Model
 
     public function get_Amount_Approved($username)
     {
-        // 1. Siapkan format tanggal dan waktu secara penuh dari PHP
         $first_date_on_month = date('Y-m-01 00:00:00');
         $last_date_on_month = date('Y-m-t 23:59:59');
         $status = 1;
 
-        // 2. Gunakan tanda tanya (?) untuk tempat variabel (Query Binding)
-        // Tambahkan fungsi SUM() dan GROUP BY untuk mengelompokkan per mata uang
-        $sql = "SELECT H.Currency_Id, SUM(H.Amount) as Total_Amount
-                FROM TAccCashBookReq_Header H
-                JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
+        $sql = "SELECT 
+                    TM.Currency_ID, 
+                    SUM(TM.Amount_Termin) as Total_Amount
+                FROM Ttrx_Cbr_Approval_Termin TM
+                JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                JOIN Ttrx_Cbr_Approval A ON TM.CBReq_No = A.CBReq_No
                 WHERE H.Type = 'D'
                 AND H.Company_ID = 2 
                 AND (H.isSPJ IS NULL OR H.isSPJ = 0) 
@@ -96,10 +99,10 @@ class m_Dashboard extends CI_Model
                 AND H.CBReq_Status = 3
                 AND (H.isClose IS NULL OR H.isClose = 0)
                 AND A.IsAppvPresidentDirector = 1
-                AND A.Status_AppvPresidentDirector = ?
-                AND A.AppvPresidentDirector_At >= ?
-                AND A.AppvPresidentDirector_At <= ?
-                AND A.AppvPresidentDirector_By = ?
+                AND TM.Status_AppvPresdir = ?
+                AND TM.AppvPresdir_At >= ?
+                AND TM.AppvPresdir_At <= ?
+                AND TM.AppvPresdir_By = ?
                 AND (A.IsAppvStaff = 0          OR A.Status_AppvStaff = 1)
                 AND (A.IsAppvChief = 0          OR A.Status_AppvChief = 1)
                 AND (A.IsAppvAsstManager = 0    OR A.Status_AppvAsstManager = 1)
@@ -110,9 +113,8 @@ class m_Dashboard extends CI_Model
                 AND (A.IsAppvDirector = 0       OR A.Status_AppvDirector = 1)
                 AND (A.IsAppvFinancePerson = 0  OR A.Status_AppvFinancePerson = 1) 
                 AND (A.IsAppvFinanceDirector = 0 OR A.Status_AppvFinanceDirector = 1)
-                GROUP BY H.Currency_Id";
+                GROUP BY TM.Currency_ID";
 
-        // 3. Eksekusi query dengan memasukkan variabel ke dalam array
         $query = $this->db->query($sql, array(
             $status,
             $first_date_on_month,
@@ -120,21 +122,15 @@ class m_Dashboard extends CI_Model
             $username
         ));
 
-        // 4. Siapkan array kosong untuk menampung mata uang secara dinamis
         $totals = [];
 
-        // 5. Looping hasil query
         foreach ($query->result() as $row) {
-            // Bersihkan dan jadikan huruf kapital agar seragam (misal ' idr ' jadi 'IDR')
-            $currency = strtoupper(trim($row->Currency_Id));
-
-            // Masukkan ke array jika mata uangnya ada isinya
+            $currency = strtoupper(trim($row->Currency_ID));
             if (!empty($currency)) {
                 $totals[$currency] = (float) $row->Total_Amount;
             }
         }
 
-        // Kembalikan array berisi total masing-masing mata uang (dinamis)
         return $totals;
     }
 
@@ -147,18 +143,19 @@ class m_Dashboard extends CI_Model
 
         $sql_range =  "";
         if ($status == 1) {
-            $sql_range =  "AND A.AppvPresidentDirector_At >= ?
-                           AND A.AppvPresidentDirector_At <= ? ";
+            $sql_range =  "AND TM.AppvPresdir_At >= ?
+                           AND TM.AppvPresdir_At <= ? ";
         }
 
 
         $sql = "SELECT 
                 A.UserDivision, 
-                H.Currency_ID,
-                COUNT(H.CBReq_No) AS Total_CBRs,
-                SUM(H.Amount) AS Total_Amount
-            FROM TAccCashBookReq_Header H
-            JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
+                TM.Currency_ID,
+                COUNT(DISTINCT H.CBReq_No) AS Total_CBRs,
+                SUM(TM.Amount_Termin) AS Total_Amount
+            FROM Ttrx_Cbr_Approval_Termin TM
+            JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+            JOIN Ttrx_Cbr_Approval A ON TM.CBReq_No = A.CBReq_No
             WHERE H.Type = 'D'
             AND H.Company_ID = 2 
             AND (H.isSPJ IS NULL OR H.isSPJ = 0) 
@@ -166,8 +163,8 @@ class m_Dashboard extends CI_Model
             AND H.CBReq_Status = 3
             AND (H.isClose IS NULL OR H.isClose = 0)
             AND A.IsAppvPresidentDirector = 1
-            AND A.Status_AppvPresidentDirector = ?
-            AND A.AppvPresidentDirector_By = ?
+            AND TM.Status_AppvPresdir = ?
+            AND TM.AppvPresdir_By = ?
             $sql_range
             AND (A.IsAppvStaff = 0          OR A.Status_AppvStaff = 1)
             AND (A.IsAppvChief = 0          OR A.Status_AppvChief = 1)
@@ -179,7 +176,7 @@ class m_Dashboard extends CI_Model
             AND (A.IsAppvDirector = 0       OR A.Status_AppvDirector = 1)
             AND (A.IsAppvFinancePerson = 0  OR A.Status_AppvFinancePerson = 1) 
             AND (A.IsAppvFinanceDirector = 0 OR A.Status_AppvFinanceDirector = 1)
-            GROUP BY A.UserDivision, H.Currency_ID";
+            GROUP BY A.UserDivision, TM.Currency_ID";
 
         if ($status == 1) {
             $query = $this->db->query($sql, array($status, $username, $first_date, $last_date));

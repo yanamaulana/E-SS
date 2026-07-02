@@ -207,7 +207,7 @@
                                 <th>Division</th>
                                 <th>Total CBRs</th>
                                 <?php foreach ($currencies as $curr): ?>
-                                    <th>Total Amount (<?= $curr; ?>)</th>
+                                    <th class="text-end">Total Amount (<?= $curr; ?>)</th>
                                 <?php endforeach; ?>
                             </tr>
                         </thead>
@@ -238,21 +238,15 @@
                                         <span class="text-muted fw-bold text-muted d-block fs-7">Total CBR Submitted</span>
                                     </td>
                                     <?php foreach ($currencies as $curr): ?>
-                                        <td>
+                                        <td class="text-end">
                                             <?php
                                             // Cek apakah ada nominal untuk mata uang ini di divisi ini
                                             $amount = isset($data['Amounts'][$curr]) ? $data['Amounts'][$curr] : 0;
-
                                             // ++ TAMBAHAN UNTUK TOTAL: Akumulasi nilai mata uang ++
                                             $grandTotalAmounts[$curr] += $amount;
                                             // ++ AKHIR TAMBAHAN ++
+                                            echo number_format($amount, 0, '.', ',');
 
-                                            // Format angka (IDR & JPY tanpa desimal, selainnya 2 desimal)
-                                            if ($curr === 'IDR' || $curr === 'JPY') {
-                                                echo number_format($amount, 0, ',', '.');
-                                            } else {
-                                                echo number_format($amount, 2, '.', ',');
-                                            }
                                             ?>
                                         </td>
                                     <?php endforeach; ?>
@@ -266,14 +260,10 @@
                                 <td class="fs-5"><?= $grandTotalCBRs; ?></td>
 
                                 <?php foreach ($currencies as $curr): ?>
-                                    <td class="fs-5">
+                                    <td class="text-end">
                                         <?php
                                         $totalAmt = $grandTotalAmounts[$curr];
-                                        if ($curr === 'IDR' || $curr === 'JPY') {
-                                            echo number_format($totalAmt, 0, ',', '.');
-                                        } else {
-                                            echo number_format($totalAmt, 2, '.', ',');
-                                        }
+                                        echo number_format($totalAmt, 2, '.', ',');
                                         ?>
                                     </td>
                                 <?php endforeach; ?>
