@@ -76,7 +76,7 @@
                                 </div>
                             </div>
                         </div>
-                        <?php if ($this->session->userdata('sys_sba_isAdm') == true || $this->session->userdata('sys_sba_NIK') == '09466'): ?>
+                        <?php if ($this->session->userdata('sys_sba_isAdm') == true || $this->session->userdata('sys_sba_NIK') == '09466' || $this->session->userdata('sys_sba_NIK') == '09460'): ?>
                             <div class="col-lg-4 col-md-4 mt-4">
                                 <div class="card card-bordered shadow-sm">
                                     <div class="card-body p-0">
