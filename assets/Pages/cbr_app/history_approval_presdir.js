@@ -22,8 +22,8 @@ $(document).ready(function () {
             dom: '<"row mb-3"<"col-sm-12"B>><"row"<"col-sm-11"f><"col-sm-1"l>>rtip',
             select: true,
             "lengthMenu": [
-                [10, 100, 1000, 10000],
-                [10, 100, 1000, 10000]
+                [10, 100, 1000, 4999],
+                [10, 100, 1000, 4999]
             ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_History_Approval",
