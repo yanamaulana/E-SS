@@ -222,31 +222,31 @@ class HistoryApproval extends CI_Controller
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
+        $sheet->setCellValue('A1', 'ESBA: History Approval Report (' . $from . ' to ' . $until . ') downloaded at ' . date('Y-m-d H:i'));
+        $sheet->mergeCells('A1:U1');
+        $sheet->getStyle('A1:U1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1:U1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:U1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setARGB('DDEBF7');
+
         // Set Header
-        $sheet->setCellValue('A1', 'No');
-        $sheet->setCellValue('B1', 'CBReq No');
-        $sheet->setCellValue('C1', 'Document Date');
-        $sheet->setCellValue('D1', 'Currency');
-        $sheet->setCellValue('E1', 'Amount');
-        $sheet->setCellValue('F1', 'Document Number');
-        $sheet->setCellValue('G1', 'Description');
-        $sheet->setCellValue('H1', 'Status');
-        $sheet->setCellValue('I1', 'Paid Status');
-        $sheet->setCellValue('J1', 'Division');
-        $sheet->setCellValue('K1', 'Created By');
-        $sheet->setCellValue('L1', 'Asst. Manager');
-        $sheet->setCellValue('M1', 'Manager');
-        $sheet->setCellValue('N1', 'Senior Manager');
-        $sheet->setCellValue('O1', 'General Manager');
-        $sheet->setCellValue('P1', 'Additional');
-        $sheet->setCellValue('Q1', 'Finance Person');
-        $sheet->setCellValue('R1', 'Director');
-        $sheet->setCellValue('S1', 'Finance Director');
-        $sheet->setCellValue('T1', 'President Director');
-        $sheet->setCellValue('U1', 'Payment Plan Date');
+        $headers = ['A2' => 'No', 'B2' => 'CBReq No', 'C2' => 'Document Date', 'D2' => 'Currency', 'E2' => 'Amount', 'F2' => 'Document Number', 'G2' => 'Description', 'H2' => 'Status', 'I2' => 'Paid Status', 'J2' => 'Division', 'K2' => 'Created By', 'L2' => 'Asst. Manager', 'M2' => 'Manager', 'N2' => 'Senior Manager', 'O2' => 'General Manager', 'P2' => 'Additional', 'Q2' => 'Finance Person', 'R2' => 'Director', 'S2' => 'Finance Director', 'T2' => 'President Director', 'U2' => 'Payment Plan Date'];
+        foreach ($headers as $cell => $value) {
+            $sheet->setCellValue($cell, $value);
+        }
+
+        $sheet->getStyle('A2:U2')->getFont()->setBold(true);
+        $sheet->getStyle('A2:U2')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setARGB('D9EAF7');
+        $sheet->getStyle('A2:U2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:U2')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
         // Set Data
-        $rowNum = 2;
+        $rowNum = 3;
         foreach ($data as $key => $row) {
             $sheet->setCellValue('A' . $rowNum, $key + 1);
             $sheet->setCellValue('B' . $rowNum, $row['CBReq_No']);
@@ -298,6 +298,8 @@ class HistoryApproval extends CI_Controller
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()
             ->setARGB('E9ECEF');
+        $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
 
         $summaryRow = $summaryStartRow + 1;
         foreach ($currencySummary as $currency => $total) {
@@ -328,6 +330,6 @@ class HistoryApproval extends CI_Controller
                 return 'Rejected';
             }
         }
-        return '';
+        return " -";
     }
 }
