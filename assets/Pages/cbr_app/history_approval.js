@@ -209,9 +209,14 @@ $(document).ready(function () {
                 className: "btn btn-light-warning",
             }, {
                 text: `<i class="far fa-file-excel fs-2"></i>`,
-                extend: 'excelHtml5',
-                title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
                 className: "btn btn-light-success",
+                action: function (e, dt, node, config) {
+                    var from = $('#from').val();
+                    var until = $('#until').val();
+                    var column_range = $('#column_range').val();
+                    var url = $('meta[name="base_url"]').attr('content') + 'HistoryApproval/export_excel?from=' + from + '&until=' + until + '&column_range=' + column_range;
+                    window.open(url, '_blank');
+                }
             }
             ],
         }).buttons().container().appendTo('TableDataHistory_wrapper .col-md-6:eq(0)');

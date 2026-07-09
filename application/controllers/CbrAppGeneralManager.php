@@ -12,7 +12,7 @@ class CbrAppGeneralManager extends CI_Controller
     {
         parent::__construct();
         is_logged_in();
-        $this->Date = date("Y-m-d");
+        $this->Date     = date("Y-m-d");
         $this->DateTime = date("Y-m-d H:i:s");
         $this->load->model('m_helper', 'help');
         $this->load->model('m_DataTable', 'M_Datatables');
@@ -20,9 +20,9 @@ class CbrAppGeneralManager extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "General Manager Approval-Cash Book Requisition";
+        $this->data['page_title']   = "General Manager Approval-Cash Book Requisition";
         $this->data['page_content'] = "cbr_app/approval";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/generalmanager.js?v=' . time() . '"></script>
+        $this->data['script_page']  =  '<script src="' . base_url() . 'assets/Pages/cbr_app/generalmanager.js?v=' . time() . '"></script>
                                        <script src="' . base_url() . 'assets/Pages/cbr_app/history_approval.js?v=' . time() . '"></script>';
 
         $this->load->view($this->layout, $this->data);
@@ -40,18 +40,18 @@ class CbrAppGeneralManager extends CI_Controller
             if ($RowApproval->AppvGeneralManager_By == $this->session->userdata('sys_sba_username')) {
                 $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                     'Status_AppvGeneralManager' => 1,
-                    'AppvGeneralManager_Name' => $this->session->userdata('sys_sba_nama'),
+                    'AppvGeneralManager_Name'   => $this->session->userdata('sys_sba_nama'),
                     // 'AppvGeneralManager_By' => $this->session->userdata('sys_sba_username'),
-                    'AppvGeneralManager_At' => $this->DateTime,
+                    'AppvGeneralManager_At'     => $this->DateTime,
                 ]);
             }
 
             if ($RowApproval->AppvAdditional_By == $this->session->userdata('sys_sba_username')) {
                 $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                     'Status_AppvAdditional' => 1,
-                    'AppvAdditional_Name' => $this->session->userdata('sys_sba_nama'),
+                    'AppvAdditional_Name'   => $this->session->userdata('sys_sba_nama'),
                     // 'AppvAdditional_By' => $this->session->userdata('sys_sba_username'),
-                    'AppvAdditional_At' => $this->DateTime,
+                    'AppvAdditional_At'     => $this->DateTime,
                 ]);
             }
         }
@@ -68,7 +68,7 @@ class CbrAppGeneralManager extends CI_Controller
             $this->db->trans_commit();
             return $this->help->Fn_resulting_response([
                 'code' => 200,
-                'msg' => 'Cash Book Requisition successfully approved !',
+                'msg'  => 'Cash Book Requisition successfully approved !',
             ]);
         }
     }
@@ -86,18 +86,18 @@ class CbrAppGeneralManager extends CI_Controller
             if ($RowApproval->AppvGeneralManager_By == $this->session->userdata('sys_sba_username')) {
                 $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                     'Status_AppvGeneralManager' => 2,
-                    'AppvGeneralManager_Name' => $this->session->userdata('sys_sba_nama'),
-                    'AppvGeneralManager_By' => $this->session->userdata('sys_sba_username'),
-                    'AppvGeneralManager_At' => $this->DateTime,
+                    'AppvGeneralManager_Name'   => $this->session->userdata('sys_sba_nama'),
+                    'AppvGeneralManager_By'     => $this->session->userdata('sys_sba_username'),
+                    'AppvGeneralManager_At'     => $this->DateTime,
                 ]);
             }
 
             if ($RowApproval->AppvAdditional_By == $this->session->userdata('sys_sba_username')) {
                 $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                     'Status_AppvAdditional' => 2,
-                    'AppvAdditional_Name' => $this->session->userdata('sys_sba_nama'),
-                    'AppvAdditional_By' => $this->session->userdata('sys_sba_username'),
-                    'AppvAdditional_At' => $this->DateTime,
+                    'AppvAdditional_Name'   => $this->session->userdata('sys_sba_nama'),
+                    'AppvAdditional_By'     => $this->session->userdata('sys_sba_username'),
+                    'AppvAdditional_At'     => $this->DateTime,
                 ]);
             }
 
@@ -116,7 +116,7 @@ class CbrAppGeneralManager extends CI_Controller
             $this->db->trans_commit();
             return $this->help->Fn_resulting_response([
                 'code' => 200,
-                'msg' => 'Cash Book Requisition successfully Rejected !',
+                'msg'  => 'Cash Book Requisition successfully Rejected !',
             ]);
         }
     }
@@ -131,16 +131,16 @@ class CbrAppGeneralManager extends CI_Controller
 
         // Kolom untuk pengurutan dan pencarian
         $columns = array(
-            0 => 'H.CBReq_No',
-            1 => 'H.CBReq_No',
-            2 => 'Type',
-            3 => 'Document_Date',
-            4 => 'H.Currency_Id',
-            5 => 'Amount',
-            6 => 'Document_Number',
-            7 => 'Descript',
-            8 => 'baseamount',
-            9 => 'curr_rate',
+            0  => 'H.CBReq_No',
+            1  => 'H.CBReq_No',
+            2  => 'Type',
+            3  => 'Document_Date',
+            4  => 'H.Currency_Id',
+            5  => 'Amount',
+            6  => 'Document_Number',
+            7  => 'Descript',
+            8  => 'baseamount',
+            9  => 'curr_rate',
             10 => 'Approval_Status',
             11 => 'CBReq_Status',
             12 => 'Paid_Status',
@@ -158,7 +158,7 @@ class CbrAppGeneralManager extends CI_Controller
         $order = $columns[$requestData['order']['0']['column']];
         $dir = $requestData['order']['0']['dir'];
 
-        // **PERHATIAN: Gunakan Prepared Statements atau Query Builder untuk keamanan (SQL Injection)**
+        // ** PERHATIAN: Gunakan Prepared Statements atau Query Builder untuk keamanan (SQL Injection) ** //
         // Karena ini adalah kueri SQL mentah, saya akan tetap menggunakannya,
         // tetapi perhatikan masalah keamanan untuk variabel $username.
 
@@ -233,36 +233,36 @@ class CbrAppGeneralManager extends CI_Controller
 
         foreach ($query->result_array() as $row) {
             $nestedData = array(
-                'CBReq_No' => $row['CBReq_No'],
-                'Type' => $row['Type'],
-                'Document_Date' => $row['Document_Date'],
-                'Acc_ID' => $row['Acc_ID'],
-                'Descript' => $row['Descript'],
-                'Document_Number' => $row['Document_Number'],
-                'Amount' => $row['Amount'],
-                'baseamount' => $row['baseamount'],
-                'curr_rate' => $row['curr_rate'],
-                'Approval_Status' => $row['Approval_Status'],
-                'CBReq_Status' => $row['CBReq_Status'],
-                'Paid_Status' => $row['Paid_Status'],
-                'Creation_DateTime' => $row['Creation_DateTime'],
-                'Created_By' => $row['Created_By'],
-                'First_Name' => $row['Created_By_Name'],
-                'Last_Update' => $row['Last_Update'],
-                'Update_By' => $row['Update_By'],
-                'UserDivision' => $row['UserDivision'],
-                'Currency_Id' => $row['Currency_Id'],
-                'Approve_Date' => $row['Approve_Date'],
-                'Payment_Plan_Date' => $row['Payment_Plan_Date']
+                'CBReq_No'              => $row['CBReq_No'],
+                'Type'                  => $row['Type'],
+                'Document_Date'         => $row['Document_Date'],
+                'Acc_ID'                => $row['Acc_ID'],
+                'Descript'              => $row['Descript'],
+                'Document_Number'       => $row['Document_Number'],
+                'Amount'                => $row['Amount'],
+                'baseamount'            => $row['baseamount'],
+                'curr_rate'             => $row['curr_rate'],
+                'Approval_Status'       => $row['Approval_Status'],
+                'CBReq_Status'          => $row['CBReq_Status'],
+                'Paid_Status'           => $row['Paid_Status'],
+                'Creation_DateTime'     => $row['Creation_DateTime'],
+                'Created_By'            => $row['Created_By'],
+                'First_Name'            => $row['Created_By_Name'],
+                'Last_Update'           => $row['Last_Update'],
+                'Update_By'             => $row['Update_By'],
+                'UserDivision'          => $row['UserDivision'],
+                'Currency_Id'           => $row['Currency_Id'],
+                'Approve_Date'          => $row['Approve_Date'],
+                'Payment_Plan_Date'     => $row['Payment_Plan_Date']
             );
             $data[] = $nestedData;
         }
 
         $json_data = array(
-            "draw" => intval($requestData['draw']),
-            "recordsTotal" => intval($totalData),
-            "recordsFiltered" => intval($totalFiltered),
-            "data" => $data,
+            "draw"              => intval($requestData['draw']),
+            "recordsTotal"      => intval($totalData),
+            "recordsFiltered"   => intval($totalFiltered),
+            "data"              => $data,
         );
 
         echo json_encode($json_data);

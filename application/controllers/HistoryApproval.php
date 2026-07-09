@@ -190,4 +190,144 @@ class HistoryApproval extends CI_Controller
         //----------------------------------------------------------------------------------
         echo json_encode($json_data);
     }
+
+    public function export_excel()
+    {
+        // Load the PhpSpreadsheet library
+        require 'vendor/autoload.php';
+
+        $from   = $this->input->get('from');
+        $until  = $this->input->get('until');
+        $column_range  = $this->input->get('column_range');
+        $username = $this->session->userdata('sys_sba_username');
+
+        $sql = $this->help->generate_sql_spesific_history_approval($username, $column_range, $from, $until);
+        $query = $this->db->query($sql);
+        $data = $query->result_array();
+
+        $currencySummary = array();
+        foreach ($data as $row) {
+            $currency = trim((string) ($row['Currency_Id'] ?? ''));
+            if ($currency === '') {
+                $currency = 'N/A';
+            }
+
+            $amount = (float) ($row['Amount'] ?? 0);
+            if (!isset($currencySummary[$currency])) {
+                $currencySummary[$currency] = 0;
+            }
+            $currencySummary[$currency] += $amount;
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Set Header
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'CBReq No');
+        $sheet->setCellValue('C1', 'Document Date');
+        $sheet->setCellValue('D1', 'Currency');
+        $sheet->setCellValue('E1', 'Amount');
+        $sheet->setCellValue('F1', 'Document Number');
+        $sheet->setCellValue('G1', 'Description');
+        $sheet->setCellValue('H1', 'Status');
+        $sheet->setCellValue('I1', 'Paid Status');
+        $sheet->setCellValue('J1', 'Division');
+        $sheet->setCellValue('K1', 'Created By');
+        $sheet->setCellValue('L1', 'Asst. Manager');
+        $sheet->setCellValue('M1', 'Manager');
+        $sheet->setCellValue('N1', 'Senior Manager');
+        $sheet->setCellValue('O1', 'General Manager');
+        $sheet->setCellValue('P1', 'Additional');
+        $sheet->setCellValue('Q1', 'Finance Person');
+        $sheet->setCellValue('R1', 'Director');
+        $sheet->setCellValue('S1', 'Finance Director');
+        $sheet->setCellValue('T1', 'President Director');
+        $sheet->setCellValue('U1', 'Payment Plan Date');
+
+        // Set Data
+        $rowNum = 2;
+        foreach ($data as $key => $row) {
+            $sheet->setCellValue('A' . $rowNum, $key + 1);
+            $sheet->setCellValue('B' . $rowNum, $row['CBReq_No']);
+            $sheet->setCellValue('C' . $rowNum, $row['Document_Date'] ? date('Y-m-d', strtotime($row['Document_Date'])) : '-');
+            $sheet->setCellValue('D' . $rowNum, $row['Currency_Id']);
+            $sheet->setCellValue('E' . $rowNum, $row['Amount']);
+            $sheet->setCellValue('F' . $rowNum, $row['Document_Number']);
+            $sheet->setCellValue('G' . $rowNum, $row['Descript']);
+            $sheet->setCellValue('H' . $rowNum, ($row['isClose'] == 0 || $row['isClose'] == '' || $row['isClose'] == null) ? 'Open' : 'VOID');
+            $paid_status = '';
+            if ($row['Paid_Status'] == 'NP') {
+                $paid_status = 'Not Paid';
+            } else if ($row['Paid_Status'] == 'HP') {
+                $paid_status = 'Half Paid';
+            } else if ($row['Paid_Status'] == 'FP') {
+                $paid_status = 'Full Paid';
+            }
+            $sheet->setCellValue('I' . $rowNum, $paid_status);
+            $sheet->setCellValue('J' . $rowNum, $row['UserDivision']);
+            $sheet->setCellValue('K' . $rowNum, $row['Created_By_Name']);
+
+            $sheet->setCellValue('L' . $rowNum, $this->getApprovalStatus($row['IsAppvAsstManager'], $row['Status_AppvAsstManager']));
+            $sheet->setCellValue('M' . $rowNum, $this->getApprovalStatus($row['IsAppvManager'], $row['Status_AppvManager']));
+            $sheet->setCellValue('N' . $rowNum, $this->getApprovalStatus($row['IsAppvSeniorManager'], $row['Status_AppvSeniorManager']));
+            $sheet->setCellValue('O' . $rowNum, $this->getApprovalStatus($row['IsAppvGeneralManager'], $row['Status_AppvGeneralManager']));
+            $sheet->setCellValue('P' . $rowNum, $this->getApprovalStatus($row['IsAppvAdditional'], $row['Status_AppvAdditional']));
+            $sheet->setCellValue('Q' . $rowNum, $this->getApprovalStatus($row['IsAppvFinancePerson'], $row['Status_AppvFinancePerson']));
+            $sheet->setCellValue('R' . $rowNum, $this->getApprovalStatus($row['IsAppvDirector'], $row['Status_AppvDirector']));
+            $sheet->setCellValue('S' . $rowNum, $this->getApprovalStatus($row['IsAppvFinanceDirector'], $row['Status_AppvFinanceDirector']));
+            $sheet->setCellValue('T' . $rowNum, $this->getApprovalStatus($row['IsAppvPresidentDirector'], $row['Status_AppvPresidentDirector']));
+            $sheet->setCellValue('U' . $rowNum, $row['Payment_Plan_Date']);
+
+            if ((int) ($row['Status_AppvPresidentDirector'] ?? 0) === 1) {
+                $sheet->getStyle('A' . $rowNum . ':U' . $rowNum)->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()
+                    ->setARGB('D9EAF7');
+            }
+
+            $rowNum++;
+        }
+
+        $summaryStartRow = $rowNum + 2;
+        $sheet->setCellValue('A' . $summaryStartRow, 'Summary Per Currency');
+        $sheet->setCellValue('B' . $summaryStartRow, 'Currency');
+        $sheet->setCellValue('C' . $summaryStartRow, 'Total Amount');
+        $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getFont()->setBold(true);
+        $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setARGB('E9ECEF');
+
+        $summaryRow = $summaryStartRow + 1;
+        foreach ($currencySummary as $currency => $total) {
+            $sheet->setCellValue('B' . $summaryRow, $currency);
+            $sheet->setCellValue('C' . $summaryRow, $total);
+            $sheet->getStyle('B' . $summaryRow . ':C' . $summaryRow)->getNumberFormat()->setFormatCode('#,##0.00');
+            $summaryRow++;
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'History_Approval-' . date('YmdHis') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+    }
+
+    private function getApprovalStatus($isAppv, $status)
+    {
+        if ($isAppv == 1) {
+            if ($status == 0) {
+                return 'Pending';
+            } else if ($status == 1) {
+                return 'Approved';
+            } else if ($status == 2) {
+                return 'Rejected';
+            }
+        }
+        return '';
+    }
 }
