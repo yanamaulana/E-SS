@@ -283,7 +283,7 @@ class HistoryApproval extends CI_Controller
                 $sheet->getStyle('A' . $rowNum . ':U' . $rowNum)->getFill()
                     ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                     ->getStartColor()
-                    ->setARGB('D9EAF7');
+                    ->setARGB('#C6EFCE');
             }
 
             $rowNum++;
