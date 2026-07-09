@@ -232,7 +232,7 @@ class HistoryApproval extends CI_Controller
             ->setARGB('DDEBF7');
 
         // Set Header
-        $headers = ['A2' => 'No', 'B2' => 'CBReq No', 'C2' => 'Document Date', 'D2' => 'Currency', 'E2' => 'Amount', 'F2' => 'Document Number', 'G2' => 'Description', 'H2' => 'Status', 'I2' => 'Paid Status', 'J2' => 'Division', 'K2' => 'Created By', 'L2' => 'Asst. Manager', 'M2' => 'Manager', 'N2' => 'Senior Manager', 'O2' => 'General Manager', 'P2' => 'Additional', 'Q2' => 'Finance Person', 'R2' => 'Director', 'S2' => 'Finance Director', 'T2' => 'President Director', 'U2' => 'Payment Plan Date'];
+        $headers = ['A2' => 'NO', 'B2' => 'CBREQ NO', 'C2' => 'DOCUMENT DATE', 'D2' => 'CURRENCY', 'E2' => 'AMOUNT', 'F2' => 'DOCUMENT NUMBER', 'G2' => 'DESCRIPTION', 'H2' => 'STATUS', 'I2' => 'PAID STATUS', 'J2' => 'DIVISION', 'K2' => 'CREATED BY', 'L2' => 'ASST. MANAGER', 'M2' => 'MANAGER', 'N2' => 'SENIOR MANAGER', 'O2' => 'GENERAL MANAGER', 'P2' => 'ADDITIONAL', 'Q2' => 'FINANCE PERSON', 'R2' => 'DIRECTOR', 'S2' => 'FINANCE DIRECTOR', 'T2' => 'PRESIDENT DIRECTOR', 'U2' => 'PAYMENT PLAN DATE'];
         foreach ($headers as $cell => $value) {
             $sheet->setCellValue($cell, $value);
         }
@@ -283,16 +283,16 @@ class HistoryApproval extends CI_Controller
                 $sheet->getStyle('A' . $rowNum . ':U' . $rowNum)->getFill()
                     ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                     ->getStartColor()
-                    ->setARGB('#C6EFCE');
+                    ->setARGB('C6EFCE');
             }
 
             $rowNum++;
         }
 
         $summaryStartRow = $rowNum + 2;
-        $sheet->setCellValue('A' . $summaryStartRow, 'Summary Per Currency');
-        $sheet->setCellValue('B' . $summaryStartRow, 'Currency');
-        $sheet->setCellValue('C' . $summaryStartRow, 'Total Amount');
+        $sheet->setCellValue('A' . $summaryStartRow, 'SUMMARY PER CURRENCY');
+        $sheet->setCellValue('B' . $summaryStartRow, 'CURRENCY');
+        $sheet->setCellValue('C' . $summaryStartRow, 'TOTAL AMOUNT');
         $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getFont()->setBold(true);
         $sheet->getStyle('A' . $summaryStartRow . ':C' . $summaryStartRow)->getFill()
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
