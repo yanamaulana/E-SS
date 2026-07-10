@@ -288,7 +288,7 @@
                                     ->where('sf_ufunc_id', 'ERSTD07854')
                                     ->count_all_results('TUserGroupFuncL');
                                 ?>
-                                <?php if (($accessCount > 0 || $is_admin == true) : ?>
+                                <?php if ($accessCount > 0 || $is_admin == true) : ?>
                                     <div class="menu-item">
                                         <div class="menu-content pt-4 pb-2">
                                             <span class="menu-section text-muted text-uppercase fs-8 ls-1 fw-bold">SALES ORDER</span>
