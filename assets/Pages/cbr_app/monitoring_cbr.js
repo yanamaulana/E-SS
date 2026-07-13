@@ -325,10 +325,16 @@ $(document).ready(function () {
                 extend: 'copy',
                 className: "btn btn-light-warning",
             }, {
-                text: `<i class="far fa-file-excel fs-2"></i>`,
-                extend: 'excelHtml5',
-                title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
+                text: `<i class="far fa-file-excel fs-2"></i> Export All`,
                 className: "btn btn-light-success",
+                action: function (e, dt, node, config) {
+                    var from = $('#from').val();
+                    var until = $('#until').val();
+                    var column_range = $('#column_range').val();
+                    var employee = $('#employee').val();
+                    var url = $('meta[name="base_url"]').attr('content') + 'MonitoringCbr/export_excel?from=' + from + '&until=' + until + '&column_range=' + column_range + '&employee=' + employee;
+                    window.open(url, '_blank');
+                }
             },
                 // {
                 //     text: `<i class="far fa-file-pdf fs-2"></i>`,
