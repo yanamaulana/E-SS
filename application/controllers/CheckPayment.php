@@ -16,8 +16,8 @@ class CheckPayment extends CI_Controller
     {
         parent::__construct();
         is_logged_in();
-        $this->HR = $this->load->database('HR', TRUE);
-        $this->Date = date("Y-m-d");
+        $this->HR       = $this->load->database('HR', TRUE);
+        $this->Date     = date("Y-m-d");
         $this->DateTime = date("Y-m-d H:i:s");
         $this->load->model('m_helper', 'help');
         $this->load->model('m_DataTable', 'M_Datatables');
@@ -25,10 +25,10 @@ class CheckPayment extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "Approval Check Payment User Permissions";
+        $this->data['page_title']   = "Approval Check Payment User Permissions";
         $this->data['page_content'] = "setting/check_payment_permission";
 
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/setting/check_payment_permission.js?v=' . time() . '""></script>';
+        $this->data['script_page']  =  '<script src="' . base_url() . 'assets/Pages/setting/check_payment_permission.js?v=' . time() . '""></script>';
 
         $this->load->view($this->layout, $this->data);
     }
@@ -63,8 +63,8 @@ class CheckPayment extends CI_Controller
         } else {
             $this->db->trans_commit();
             return $this->help->Fn_resulting_response([
-                'code' => 200,
-                'msg' => 'Permission Has Been Granted Successfully!',
+                'code'  => 200,
+                'msg'   => 'Permission Has Been Granted Successfully!',
             ]);
         }
     }
@@ -79,7 +79,7 @@ class CheckPayment extends CI_Controller
             ]);
         }
 
-        $sysid = $this->input->post('SysId');
+        $sysid      = $this->input->post('SysId');
         $deleted_by = $this->session->userdata('sys_sba_username');
 
         $sql_history = "INSERT INTO thist_user_check_payment_permission (SysId, UserName, inserted_at, inserted_by, deleted_by)
@@ -103,8 +103,8 @@ class CheckPayment extends CI_Controller
         } else {
             $this->db->trans_commit();
             return $this->help->Fn_resulting_response([
-                'code' => 200,
-                'msg' => 'Permission Has Been Revoked Successfully!',
+                'code'  => 200,
+                'msg'   => 'Permission Has Been Revoked Successfully!',
             ]);
         }
     }
@@ -140,20 +140,20 @@ class CheckPayment extends CI_Controller
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
-            $nestedData['SysId'] = $row['SysId'];
-            $nestedData['UserName'] = $row['UserName'];
-            $nestedData['First_Name'] = $row['First_Name'];
-            $nestedData['inserted_at'] = $row['inserted_at'];
-            $nestedData['inserted_by'] = $row['inserted_by'];
+            $nestedData['SysId']        = $row['SysId'];
+            $nestedData['UserName']     = $row['UserName'];
+            $nestedData['First_Name']   = $row['First_Name'];
+            $nestedData['inserted_at']  = $row['inserted_at'];
+            $nestedData['inserted_by']  = $row['inserted_by'];
 
             $data[] = $nestedData;
         }
         //----------------------------------------------------------------------------------
         $json_data = array(
-            "draw" => intval($requestData['draw']),
-            "recordsTotal" => intval($totalData),
-            "recordsFiltered" => intval($totalFiltered),
-            "data" => $data,
+            "draw"              => intval($requestData['draw']),
+            "recordsTotal"      => intval($totalData),
+            "recordsFiltered"   => intval($totalFiltered),
+            "data"              => $data,
         );
         //----------------------------------------------------------------------------------
         echo json_encode($json_data);

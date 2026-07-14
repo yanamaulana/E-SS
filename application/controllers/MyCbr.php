@@ -5,15 +5,15 @@ class MyCbr extends CI_Controller
 {
     private $Date;
     private $DateTime;
-    private $layout = 'layout';
-    private $Ttrx_Cbr_Approval = 'Ttrx_Cbr_Approval';
-    private $TmstTrxSettingSteppApprovalCbr = 'TmstTrxSettingSteppApprovalCbr';
-    private $QviewTrx_Assignment_Approval_User = 'QviewTrx_Assignment_Approval_User';
-    private $Qview_Assignment_Approval_User = 'Qview_Assignment_Approval_User';
-    private $Ttrx_Dtl_Attachment_Cbr = 'Ttrx_Dtl_Attachment_Cbr';
-    private $Qview_trx_Dtl_Attachment_Cbr = 'Qview_trx_Dtl_Attachment_Cbr';
-    private $Ttrx_DtlHst_Attachment_Cbr = 'Ttrx_DtlHst_Attachment_Cbr';
-    private $Tmst_Attachment_Type_CBR = 'Tmst_Attachment_Type_CBR';
+    private $layout                             = 'layout';
+    private $Ttrx_Cbr_Approval                  = 'Ttrx_Cbr_Approval';
+    private $Ttrx_Dtl_Attachment_Cbr            = 'Ttrx_Dtl_Attachment_Cbr';
+    private $Tmst_Attachment_Type_CBR           = 'Tmst_Attachment_Type_CBR';
+    private $Ttrx_DtlHst_Attachment_Cbr         = 'Ttrx_DtlHst_Attachment_Cbr';
+    private $Qview_trx_Dtl_Attachment_Cbr       = 'Qview_trx_Dtl_Attachment_Cbr';
+    private $Qview_Assignment_Approval_User     = 'Qview_Assignment_Approval_User';
+    private $TmstTrxSettingSteppApprovalCbr     = 'TmstTrxSettingSteppApprovalCbr';
+    private $QviewTrx_Assignment_Approval_User  = 'QviewTrx_Assignment_Approval_User';
 
     public function __construct()
     {
@@ -28,18 +28,18 @@ class MyCbr extends CI_Controller
 
     public function index()
     {
-        $this->data['page_title'] = "My Cash Book Requisition";
+        $this->data['page_title']   = "My Cash Book Requisition";
         $this->data['page_content'] = "mycbr/index";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/mycbr/index.js?v=' . time() . '""></script>';
+        $this->data['script_page']  =  '<script src="' . base_url() . 'assets/Pages/mycbr/index.js?v=' . time() . '""></script>';
 
         $this->load->view($this->layout, $this->data);
     }
 
     public function bulk_update_payment_date()
     {
-        $cbr_list = $this->input->post('cbr_list'); // Ini berupa array
-        $new_date = $this->input->post('new_date');
-        $UserDiv = $this->session->userdata('sys_sba_department');
+        $cbr_list   = $this->input->post('cbr_list'); // Ini berupa array
+        $new_date   = $this->input->post('new_date');
+        $UserDiv    = $this->session->userdata('sys_sba_department');
 
         if (empty($cbr_list) || empty($new_date)) {
             echo json_encode(['code' => 500, 'msg' => 'Invalid Data']);
@@ -96,65 +96,65 @@ class MyCbr extends CI_Controller
         $this->db->trans_start();
         foreach ($Cbrs as $CBReq_No) {
             $this->db->insert($this->Ttrx_Cbr_Approval, [
-                "CBReq_No" => $CBReq_No,
-                'SysId_Step' => $RulesApproval->SysId_Approval,
-                "IsAppvStaff" => $RulesApproval->Staff,
-                "Status_AppvStaff" => 0,
-                "AppvStaff_By" => $RulesApproval->Staff_Person ?: NULL,
-                "AppvStaff_At" => NULL,
+                "CBReq_No"                      => $CBReq_No,
+                'SysId_Step'                    => $RulesApproval->SysId_Approval,
+                "IsAppvStaff"                   => $RulesApproval->Staff,
+                "Status_AppvStaff"              => 0,
+                "AppvStaff_By"                  => $RulesApproval->Staff_Person ?: NULL,
+                "AppvStaff_At"                  => NULL,
 
-                "IsAppvChief" => $RulesApproval->Chief,
-                "Status_AppvChief" => 0,
-                "AppvChief_By" => $RulesApproval->Chief_Person ?: NULL,
-                "AppvChief_At" => NULL,
+                "IsAppvChief"                   => $RulesApproval->Chief,
+                "Status_AppvChief"              => 0,
+                "AppvChief_By"                  => $RulesApproval->Chief_Person ?: NULL,
+                "AppvChief_At"                  => NULL,
 
-                "IsAppvAsstManager" => $RulesApproval->AsstManager,
-                "Status_AppvAsstManager" => 0,
-                "AppvAsstManager_By" => $RulesApproval->AsstManager_Person ?: NULL,
-                "AppvAsstManager_At" => NULL,
+                "IsAppvAsstManager"             => $RulesApproval->AsstManager,
+                "Status_AppvAsstManager"        => 0,
+                "AppvAsstManager_By"            => $RulesApproval->AsstManager_Person ?: NULL,
+                "AppvAsstManager_At"            => NULL,
 
-                "IsAppvManager" => $RulesApproval->Manager,
-                "Status_AppvManager" => 0,
-                "AppvManager_By" => $RulesApproval->Manager_Person ?: NULL,
-                "AppvManager_At" => NULL,
+                "IsAppvManager"                 => $RulesApproval->Manager,
+                "Status_AppvManager"            => 0,
+                "AppvManager_By"                => $RulesApproval->Manager_Person ?: NULL,
+                "AppvManager_At"                => NULL,
 
-                "IsAppvSeniorManager" => $RulesApproval->SeniorManager,
-                "Status_AppvSeniorManager" => 0,
-                "AppvSeniorManager_By" => $RulesApproval->SeniorManager_Person ?: NULL,
-                "AppvSeniorManager_At" => NULL,
+                "IsAppvSeniorManager"           => $RulesApproval->SeniorManager,
+                "Status_AppvSeniorManager"      => 0,
+                "AppvSeniorManager_By"          => $RulesApproval->SeniorManager_Person ?: NULL,
+                "AppvSeniorManager_At"          => NULL,
 
-                "IsAppvGeneralManager" => $RulesApproval->GeneralManager,
-                "Status_AppvGeneralManager" => 0,
-                "AppvGeneralManager_By" => $RulesApproval->GeneralManager_Person ?: NULL,
-                "AppvGeneralManager_At" => NULL,
+                "IsAppvGeneralManager"          => $RulesApproval->GeneralManager,
+                "Status_AppvGeneralManager"     => 0,
+                "AppvGeneralManager_By"         => $RulesApproval->GeneralManager_Person ?: NULL,
+                "AppvGeneralManager_At"         => NULL,
 
-                'IsAppvAdditional' => $RulesApproval->Additional,
-                'Status_AppvAdditional' =>  0,
-                'AppvAdditional_By' => $RulesApproval->Additional_Person ?: NULL,
-                'AppvAdditional_At'  => NULL,
+                'IsAppvAdditional'              => $RulesApproval->Additional,
+                'Status_AppvAdditional'         => 0,
+                'AppvAdditional_By'             => $RulesApproval->Additional_Person ?: NULL,
+                'AppvAdditional_At'             => NULL,
 
-                "IsAppvDirector" => $RulesApproval->Director,
-                "Status_AppvDirector" => 0,
-                "AppvDirector_By" => $RulesApproval->Director_Person ?: NULL,
-                "AppvDirector_At" => NULL,
+                "IsAppvDirector"                => $RulesApproval->Director,
+                "Status_AppvDirector"           => 0,
+                "AppvDirector_By"               => $RulesApproval->Director_Person ?: NULL,
+                "AppvDirector_At"               => NULL,
 
-                "IsAppvPresidentDirector" => $RulesApproval->PresidentDirector,
-                "Status_AppvPresidentDirector" => 0,
-                "AppvPresidentDirector_By" => $RulesApproval->PresidentDirector_Person ?: NULL,
-                "AppvPresidentDirector_At" => NULL,
+                "IsAppvPresidentDirector"       => $RulesApproval->PresidentDirector,
+                "Status_AppvPresidentDirector"  => 0,
+                "AppvPresidentDirector_By"      => $RulesApproval->PresidentDirector_Person ?: NULL,
+                "AppvPresidentDirector_At"      => NULL,
 
-                "IsAppvFinanceDirector" => $RulesApproval->FinanceDirector,
-                "Status_AppvFinanceDirector" => 0,
-                "AppvFinanceDirector_By" => $RulesApproval->FinanceDirector_Person ?: NULL,
-                "AppvFinanceDirector_At" => NULL,
+                "IsAppvFinanceDirector"         => $RulesApproval->FinanceDirector,
+                "Status_AppvFinanceDirector"    => 0,
+                "AppvFinanceDirector_By"        => $RulesApproval->FinanceDirector_Person ?: NULL,
+                "AppvFinanceDirector_At"        => NULL,
 
-                "Status_AppvFinancePerson" => 0,
+                "Status_AppvFinancePerson"      => 0,
 
-                "Doc_Legitimate_Pos_On" =>  $RulesApproval->Doc_Legitimate_Pos_On,
-                "UserName_User" => $this->session->userdata('sys_sba_username'),
-                "UserDivision" => $this->session->userdata('sys_sba_department'),
-                "Rec_Created_At" => $this->DateTime,
-                "Last_Submit_at" => $this->DateTime,
+                "Doc_Legitimate_Pos_On"         =>  $RulesApproval->Doc_Legitimate_Pos_On,
+                "UserName_User"                 => $this->session->userdata('sys_sba_username'),
+                "UserDivision"                  => $this->session->userdata('sys_sba_department'),
+                "Rec_Created_At"                => $this->DateTime,
+                "Last_Submit_at"                => $this->DateTime,
             ]);
         }
 
@@ -169,8 +169,8 @@ class MyCbr extends CI_Controller
         } else {
             $this->db->trans_commit();
             return $this->help->Fn_resulting_response([
-                'code' => 200,
-                'msg' => 'Approval request successful. Please perform periodic monitoring on your submission !',
+                'code'  => 200,
+                'msg'   => 'Approval request successful. Please perform periodic monitoring on your submission !',
             ]);
         }
     }
@@ -210,25 +210,25 @@ class MyCbr extends CI_Controller
         $searchColumns = ['TAccCashBookReq_Header.CBReq_No', 'First_Name', 'Document_Number', 'Document_Date', 'TAccCashBookReq_Header.Currency_Id', 'Descript', 'CBReq_Status', 'Amount'];
 
         $fieldMap = [
-            'CBReq_No' => 'CBReq_No',
-            'Type' => 'Type',
-            'Document_Date' => 'Document_Date',
-            'Acc_ID' => 'Acc_ID',
-            'Descript' => 'Descript',
-            'Document_Number' => 'Document_Number',
-            'Amount' => 'Amount',
-            'baseamount' => 'baseamount',
-            'curr_rate' => 'curr_rate',
-            'Approval_Status' => 'Approval_Status',
-            'CBReq_Status' => 'CBReq_Status',
-            'Paid_Status' => 'Paid_Status',
+            'CBReq_No'          => 'CBReq_No',
+            'Type'              => 'Type',
+            'Document_Date'     => 'Document_Date',
+            'Acc_ID'            => 'Acc_ID',
+            'Descript'          => 'Descript',
+            'Document_Number'   => 'Document_Number',
+            'Amount'            => 'Amount',
+            'baseamount'        => 'baseamount',
+            'curr_rate'         => 'curr_rate',
+            'Approval_Status'   => 'Approval_Status',
+            'CBReq_Status'      => 'CBReq_Status',
+            'Paid_Status'       => 'Paid_Status',
             'Creation_DateTime' => 'Creation_DateTime',
-            'Created_By' => 'Created_By',
-            'First_Name' => 'Created_By_Name',
-            'Last_Update' => 'Last_Update',
-            'Update_By' => 'Update_By',
-            'Currency_Id' => 'Currency_Id',
-            'Approve_Date' => 'Approve_Date',
+            'Created_By'        => 'Created_By',
+            'First_Name'        => 'Created_By_Name',
+            'Last_Update'       => 'Last_Update',
+            'Update_By'         => 'Update_By',
+            'Currency_Id'       => 'Currency_Id',
+            'Approve_Date'      => 'Approve_Date',
             'Payment_Plan_Date' => 'Payment_Plan_Date',
         ];
 
@@ -287,76 +287,76 @@ class MyCbr extends CI_Controller
         $searchColumns = ['TAccCashBookReq_Header.CBReq_No', 'First_Name', 'Document_Number', 'Document_Date', 'TAccCashBookReq_Header.Currency_Id', 'Descript', 'Payment_Plan_Date', 'CBReq_Status', 'Amount'];
 
         $fieldMap = [
-            'CBReq_No' => 'CBReq_No',
-            'isClose' => 'isClose',
-            'Type' => 'Type',
-            'Document_Date' => 'Document_Date',
-            'Payment_Plan_Date' => 'Payment_Plan_Date',
-            'Acc_ID' => 'Acc_ID',
-            'Descript' => 'Descript',
-            'Document_Number' => 'Document_Number',
-            'Amount' => 'Amount',
-            'baseamount' => 'baseamount',
-            'curr_rate' => 'curr_rate',
-            'Approval_Status' => 'Approval_Status',
-            'CBReq_Status' => 'CBReq_Status',
-            'Paid_Status' => 'Paid_Status',
-            'Creation_DateTime' => 'Creation_DateTime',
-            'Created_By' => 'Created_By',
-            'First_Name' => 'Created_By_Name',
-            'Last_Update' => 'Last_Update',
-            'Update_By' => 'Update_By',
-            'Currency_Id' => 'Currency_Id',
-            'Approve_Date' => 'Approve_Date',
-            'IsAppvStaff' => 'IsAppvStaff',
-            'Status_AppvStaff' => 'Status_AppvStaff',
-            'AppvStaff_By' => 'AppvStaff_By',
-            'AppvStaff_At' => 'AppvStaff_At',
-            'IsAppvChief' => 'IsAppvChief',
-            'Status_AppvChief' => 'Status_AppvChief',
-            'AppvChief_By' => 'AppvChief_By',
-            'AppvChief_At' => 'AppvChief_At',
-            'IsAppvAsstManager' => 'IsAppvAsstManager',
-            'Status_AppvAsstManager' => 'Status_AppvAsstManager',
-            'AppvAsstManager_By' => 'AppvAsstManager_By',
-            'AppvAsstManager_At' => 'AppvAsstManager_At',
-            'IsAppvManager' => 'IsAppvManager',
-            'Status_AppvManager' => 'Status_AppvManager',
-            'AppvManager_By' => 'AppvManager_By',
-            'AppvManager_At' => 'AppvManager_At',
-            'IsAppvSeniorManager' => 'IsAppvSeniorManager',
-            'Status_AppvSeniorManager' => 'Status_AppvSeniorManager',
-            'AppvSeniorManager_By' => 'AppvSeniorManager_By',
-            'AppvSeniorManager_At' => 'AppvSeniorManager_At',
-            'IsAppvGeneralManager' => 'IsAppvGeneralManager',
-            'Status_AppvGeneralManager' => 'Status_AppvGeneralManager',
-            'AppvGeneralManager_By' => 'AppvGeneralManager_By',
-            'AppvGeneralManager_At' => 'AppvGeneralManager_At',
-            'IsAppvDirector' => 'IsAppvDirector',
-            'Status_AppvDirector' => 'Status_AppvDirector',
-            'AppvDirector_By' => 'AppvDirector_By',
-            'AppvDirector_At' => 'AppvDirector_At',
-            'IsAppvPresidentDirector' => 'IsAppvPresidentDirector',
-            'Status_AppvPresidentDirector' => 'Status_AppvPresidentDirector',
-            'AppvPresidentDirector_By' => 'AppvPresidentDirector_By',
-            'AppvPresidentDirector_At' => 'AppvPresidentDirector_At',
-            'IsAppvAdditional' => 'IsAppvAdditional',
-            'Status_AppvAdditional' => 'Status_AppvAdditional',
-            'AppvAdditional_By' => 'AppvAdditional_By',
-            'AppvAdditional_At' => 'AppvAdditional_At',
-            'IsAppvFinancePerson' => 'IsAppvFinancePerson',
-            'Status_AppvFinancePerson' => 'Status_AppvFinancePerson',
-            'AppvFinancePerson_By' => 'AppvFinancePerson_By',
-            'AppvFinancePerson_Name' => 'AppvFinancePerson_Name',
-            'AppvFinancePerson_At' => 'AppvFinancePerson_At',
-            'IsAppvFinanceDirector' => 'IsAppvFinanceDirector',
-            'Status_AppvFinanceDirector' => 'Status_AppvFinanceDirector',
-            'AppvFinanceDirector_By' => 'AppvFinanceDirector_By',
-            'AppvFinanceDirector_At' => 'AppvFinanceDirector_At',
-            'UserName_User' => 'UserName_User',
-            'Rec_Created_At' => 'Rec_Created_At',
-            'Legitimate' => 'Legitimate',
-            'UserDivision' => 'UserDivision',
+            'CBReq_No'                      => 'CBReq_No',
+            'isClose'                       => 'isClose',
+            'Type'                          => 'Type',
+            'Document_Date'                 => 'Document_Date',
+            'Payment_Plan_Date'             => 'Payment_Plan_Date',
+            'Acc_ID'                        => 'Acc_ID',
+            'Descript'                      => 'Descript',
+            'Document_Number'               => 'Document_Number',
+            'Amount'                        => 'Amount',
+            'baseamount'                    => 'baseamount',
+            'curr_rate'                     => 'curr_rate',
+            'Approval_Status'               => 'Approval_Status',
+            'CBReq_Status'                  => 'CBReq_Status',
+            'Paid_Status'                   => 'Paid_Status',
+            'Creation_DateTime'             => 'Creation_DateTime',
+            'Created_By'                    => 'Created_By',
+            'First_Name'                    => 'Created_By_Name',
+            'Last_Update'                   => 'Last_Update',
+            'Update_By'                     => 'Update_By',
+            'Currency_Id'                   => 'Currency_Id',
+            'Approve_Date'                  => 'Approve_Date',
+            'IsAppvStaff'                   => 'IsAppvStaff',
+            'Status_AppvStaff'              => 'Status_AppvStaff',
+            'AppvStaff_By'                  => 'AppvStaff_By',
+            'AppvStaff_At'                  => 'AppvStaff_At',
+            'IsAppvChief'                   => 'IsAppvChief',
+            'Status_AppvChief'              => 'Status_AppvChief',
+            'AppvChief_By'                  => 'AppvChief_By',
+            'AppvChief_At'                  => 'AppvChief_At',
+            'IsAppvAsstManager'             => 'IsAppvAsstManager',
+            'Status_AppvAsstManager'        => 'Status_AppvAsstManager',
+            'AppvAsstManager_By'            => 'AppvAsstManager_By',
+            'AppvAsstManager_At'            => 'AppvAsstManager_At',
+            'IsAppvManager'                 => 'IsAppvManager',
+            'Status_AppvManager'            => 'Status_AppvManager',
+            'AppvManager_By'                => 'AppvManager_By',
+            'AppvManager_At'                => 'AppvManager_At',
+            'IsAppvSeniorManager'           => 'IsAppvSeniorManager',
+            'Status_AppvSeniorManager'      => 'Status_AppvSeniorManager',
+            'AppvSeniorManager_By'          => 'AppvSeniorManager_By',
+            'AppvSeniorManager_At'          => 'AppvSeniorManager_At',
+            'IsAppvGeneralManager'          => 'IsAppvGeneralManager',
+            'Status_AppvGeneralManager'     => 'Status_AppvGeneralManager',
+            'AppvGeneralManager_By'         => 'AppvGeneralManager_By',
+            'AppvGeneralManager_At'         => 'AppvGeneralManager_At',
+            'IsAppvDirector'                => 'IsAppvDirector',
+            'Status_AppvDirector'           => 'Status_AppvDirector',
+            'AppvDirector_By'               => 'AppvDirector_By',
+            'AppvDirector_At'               => 'AppvDirector_At',
+            'IsAppvPresidentDirector'       => 'IsAppvPresidentDirector',
+            'Status_AppvPresidentDirector'  => 'Status_AppvPresidentDirector',
+            'AppvPresidentDirector_By'      => 'AppvPresidentDirector_By',
+            'AppvPresidentDirector_At'      => 'AppvPresidentDirector_At',
+            'IsAppvAdditional'              => 'IsAppvAdditional',
+            'Status_AppvAdditional'         => 'Status_AppvAdditional',
+            'AppvAdditional_By'             => 'AppvAdditional_By',
+            'AppvAdditional_At'             => 'AppvAdditional_At',
+            'IsAppvFinancePerson'           => 'IsAppvFinancePerson',
+            'Status_AppvFinancePerson'      => 'Status_AppvFinancePerson',
+            'AppvFinancePerson_By'          => 'AppvFinancePerson_By',
+            'AppvFinancePerson_Name'        => 'AppvFinancePerson_Name',
+            'AppvFinancePerson_At'          => 'AppvFinancePerson_At',
+            'IsAppvFinanceDirector'         => 'IsAppvFinanceDirector',
+            'Status_AppvFinanceDirector'    => 'Status_AppvFinanceDirector',
+            'AppvFinanceDirector_By'        => 'AppvFinanceDirector_By',
+            'AppvFinanceDirector_At'        => 'AppvFinanceDirector_At',
+            'UserName_User'                 => 'UserName_User',
+            'Rec_Created_At'                => 'Rec_Created_At',
+            'Legitimate'                    => 'Legitimate',
+            'UserDivision'                  => 'UserDivision',
         ];
 
         $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, TAccCashBookReq_Header.isClose, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
@@ -412,74 +412,74 @@ class MyCbr extends CI_Controller
         $searchColumns = ['TAccCashBookReq_Header.CBReq_No', 'First_Name', 'Document_Number', 'Document_Date', 'TAccCashBookReq_Header.Currency_Id', 'Descript', 'CBReq_Status', 'Amount'];
 
         $fieldMap = [
-            'CBReq_No' => 'CBReq_No',
-            'Type' => 'Type',
-            'Document_Date' => 'Document_Date',
-            'Acc_ID' => 'Acc_ID',
-            'Descript' => 'Descript',
-            'Document_Number' => 'Document_Number',
-            'Amount' => 'Amount',
-            'baseamount' => 'baseamount',
-            'curr_rate' => 'curr_rate',
-            'Approval_Status' => 'Approval_Status',
-            'CBReq_Status' => 'CBReq_Status',
-            'Paid_Status' => 'Paid_Status',
-            'Creation_DateTime' => 'Creation_DateTime',
-            'Created_By' => 'Created_By',
-            'First_Name' => 'Created_By_Name',
-            'Last_Update' => 'Last_Update',
-            'Update_By' => 'Update_By',
-            'Currency_Id' => 'Currency_Id',
-            'Approve_Date' => 'Approve_Date',
-            'IsAppvStaff' => 'IsAppvStaff',
-            'Status_AppvStaff' => 'Status_AppvStaff',
-            'AppvStaff_By' => 'AppvStaff_By',
-            'AppvStaff_At' => 'AppvStaff_At',
-            'IsAppvChief' => 'IsAppvChief',
-            'Status_AppvChief' => 'Status_AppvChief',
-            'AppvChief_By' => 'AppvChief_By',
-            'AppvChief_At' => 'AppvChief_At',
-            'IsAppvAsstManager' => 'IsAppvAsstManager',
-            'Status_AppvAsstManager' => 'Status_AppvAsstManager',
-            'AppvAsstManager_By' => 'AppvAsstManager_By',
-            'AppvAsstManager_At' => 'AppvAsstManager_At',
-            'IsAppvManager' => 'IsAppvManager',
-            'Status_AppvManager' => 'Status_AppvManager',
-            'AppvManager_By' => 'AppvManager_By',
-            'AppvManager_At' => 'AppvManager_At',
-            'IsAppvSeniorManager' => 'IsAppvSeniorManager',
-            'Status_AppvSeniorManager' => 'Status_AppvSeniorManager',
-            'AppvSeniorManager_By' => 'AppvSeniorManager_By',
-            'AppvSeniorManager_At' => 'AppvSeniorManager_At',
-            'IsAppvGeneralManager' => 'IsAppvGeneralManager',
-            'Status_AppvGeneralManager' => 'Status_AppvGeneralManager',
-            'AppvGeneralManager_By' => 'AppvGeneralManager_By',
-            'AppvGeneralManager_At' => 'AppvGeneralManager_At',
-            'IsAppvDirector' => 'IsAppvDirector',
-            'Status_AppvDirector' => 'Status_AppvDirector',
-            'AppvDirector_By' => 'AppvDirector_By',
-            'AppvDirector_At' => 'AppvDirector_At',
-            'IsAppvPresidentDirector' => 'IsAppvPresidentDirector',
-            'Status_AppvPresidentDirector' => 'Status_AppvPresidentDirector',
-            'AppvPresidentDirector_By' => 'AppvPresidentDirector_By',
-            'AppvPresidentDirector_At' => 'AppvPresidentDirector_At',
-            'IsAppvAdditional' => 'IsAppvAdditional',
-            'Status_AppvAdditional' => 'Status_AppvAdditional',
-            'AppvAdditional_By' => 'AppvAdditional_By',
-            'AppvAdditional_At' => 'AppvAdditional_At',
-            'IsAppvFinancePerson' => 'IsAppvFinancePerson',
-            'Status_AppvFinancePerson' => 'Status_AppvFinancePerson',
-            'AppvFinancePerson_By' => 'AppvFinancePerson_By',
-            'AppvFinancePerson_Name' => 'AppvFinancePerson_Name',
-            'AppvFinancePerson_At' => 'AppvFinancePerson_At',
-            'IsAppvFinanceDirector' => 'IsAppvFinanceDirector',
-            'Status_AppvFinanceDirector' => 'Status_AppvFinanceDirector',
-            'AppvFinanceDirector_By' => 'AppvFinanceDirector_By',
-            'AppvFinanceDirector_At' => 'AppvFinanceDirector_At',
-            'UserName_User' => 'UserName_User',
-            'Rec_Created_At' => 'Rec_Created_At',
-            'Legitimate' => 'Legitimate',
-            'UserDivision' => 'UserDivision',
+            'CBReq_No'                      => 'CBReq_No',
+            'Type'                          => 'Type',
+            'Document_Date'                 => 'Document_Date',
+            'Acc_ID'                        => 'Acc_ID',
+            'Descript'                      => 'Descript',
+            'Document_Number'               => 'Document_Number',
+            'Amount'                        => 'Amount',
+            'baseamount'                    => 'baseamount',
+            'curr_rate'                     => 'curr_rate',
+            'Approval_Status'               => 'Approval_Status',
+            'CBReq_Status'                  => 'CBReq_Status',
+            'Paid_Status'                   => 'Paid_Status',
+            'Creation_DateTime'             => 'Creation_DateTime',
+            'Created_By'                    => 'Created_By',
+            'First_Name'                    => 'Created_By_Name',
+            'Last_Update'                   => 'Last_Update',
+            'Update_By'                     => 'Update_By',
+            'Currency_Id'                   => 'Currency_Id',
+            'Approve_Date'                  => 'Approve_Date',
+            'IsAppvStaff'                   => 'IsAppvStaff',
+            'Status_AppvStaff'              => 'Status_AppvStaff',
+            'AppvStaff_By'                  => 'AppvStaff_By',
+            'AppvStaff_At'                  => 'AppvStaff_At',
+            'IsAppvChief'                   => 'IsAppvChief',
+            'Status_AppvChief'              => 'Status_AppvChief',
+            'AppvChief_By'                  => 'AppvChief_By',
+            'AppvChief_At'                  => 'AppvChief_At',
+            'IsAppvAsstManager'             => 'IsAppvAsstManager',
+            'Status_AppvAsstManager'        => 'Status_AppvAsstManager',
+            'AppvAsstManager_By'            => 'AppvAsstManager_By',
+            'AppvAsstManager_At'            => 'AppvAsstManager_At',
+            'IsAppvManager'                 => 'IsAppvManager',
+            'Status_AppvManager'            => 'Status_AppvManager',
+            'AppvManager_By'                => 'AppvManager_By',
+            'AppvManager_At'                => 'AppvManager_At',
+            'IsAppvSeniorManager'           => 'IsAppvSeniorManager',
+            'Status_AppvSeniorManager'      => 'Status_AppvSeniorManager',
+            'AppvSeniorManager_By'          => 'AppvSeniorManager_By',
+            'AppvSeniorManager_At'          => 'AppvSeniorManager_At',
+            'IsAppvGeneralManager'          => 'IsAppvGeneralManager',
+            'Status_AppvGeneralManager'     => 'Status_AppvGeneralManager',
+            'AppvGeneralManager_By'         => 'AppvGeneralManager_By',
+            'AppvGeneralManager_At'         => 'AppvGeneralManager_At',
+            'IsAppvDirector'                => 'IsAppvDirector',
+            'Status_AppvDirector'           => 'Status_AppvDirector',
+            'AppvDirector_By'               => 'AppvDirector_By',
+            'AppvDirector_At'               => 'AppvDirector_At',
+            'IsAppvPresidentDirector'       => 'IsAppvPresidentDirector',
+            'Status_AppvPresidentDirector'  => 'Status_AppvPresidentDirector',
+            'AppvPresidentDirector_By'      => 'AppvPresidentDirector_By',
+            'AppvPresidentDirector_At'      => 'AppvPresidentDirector_At',
+            'IsAppvAdditional'              => 'IsAppvAdditional',
+            'Status_AppvAdditional'         => 'Status_AppvAdditional',
+            'AppvAdditional_By'             => 'AppvAdditional_By',
+            'AppvAdditional_At'             => 'AppvAdditional_At',
+            'IsAppvFinancePerson'           => 'IsAppvFinancePerson',
+            'Status_AppvFinancePerson'      => 'Status_AppvFinancePerson',
+            'AppvFinancePerson_By'          => 'AppvFinancePerson_By',
+            'AppvFinancePerson_Name'        => 'AppvFinancePerson_Name',
+            'AppvFinancePerson_At'          => 'AppvFinancePerson_At',
+            'IsAppvFinanceDirector'         => 'IsAppvFinanceDirector',
+            'Status_AppvFinanceDirector'    => 'Status_AppvFinanceDirector',
+            'AppvFinanceDirector_By'        => 'AppvFinanceDirector_By',
+            'AppvFinanceDirector_At'        => 'AppvFinanceDirector_At',
+            'UserName_User'                 => 'UserName_User',
+            'Rec_Created_At'                => 'Rec_Created_At',
+            'Legitimate'                    => 'Legitimate',
+            'UserDivision'                  => 'UserDivision',
         ];
 
         $baseSql = "SELECT DISTINCT TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate, Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id, TAccCashBookReq_Header.Approve_Date,
@@ -526,24 +526,24 @@ class MyCbr extends CI_Controller
             foreach ($Details->result_array() as $li) {
                 $nestedData = array();
 
-                $nestedData['iteration'] = $i;
-                $nestedData['CBRDetail_ID'] = $li['CBRDetail_ID'];
-                $nestedData['CBReq_No'] = $li['CBReq_No'];
-                $nestedData['Acc_ID'] = $li['Acc_ID'];
-                $nestedData['Description'] = $li['Description'];
-                $nestedData['Amount_Detail'] = number_format($li['Amount_Detail'], 4, '.', ',');
-                $nestedData['Base_Amount_Detail'] = $li['Base_Amount_Detail'];
-                $nestedData['PaidAmount_Detail'] = $li['PaidAmount_Detail'];
-                $nestedData['Base_PaidAmount_Detail'] = $li['Base_PaidAmount_Detail'];
-                $nestedData['Tax_Code'] = $li['Tax_Code'];
-                $nestedData['CBRDetail_Ref'] = $li['CBRDetail_Ref'];
-                $nestedData['isHeader'] = $li['isHeader'];
-                $nestedData['remain'] = $li['remain'];
-                $nestedData['Request_ID'] = $li['Request_ID'];
-                $nestedData['currency_id'] = $li['currency_id'];
-                $nestedData['Type'] = $li['Type'];
-                $nestedData['costcenter_id'] = $li['costcenter_id'];
-                $nestedData['Account_Name'] = $li['Account_Name'];
+                $nestedData['iteration']                = $i;
+                $nestedData['CBRDetail_ID']             = $li['CBRDetail_ID'];
+                $nestedData['CBReq_No']                 = $li['CBReq_No'];
+                $nestedData['Acc_ID']                   = $li['Acc_ID'];
+                $nestedData['Description']              = $li['Description'];
+                $nestedData['Amount_Detail']            = number_format($li['Amount_Detail'], 4, '.', ',');
+                $nestedData['Base_Amount_Detail']       = $li['Base_Amount_Detail'];
+                $nestedData['PaidAmount_Detail']        = $li['PaidAmount_Detail'];
+                $nestedData['Base_PaidAmount_Detail']   = $li['Base_PaidAmount_Detail'];
+                $nestedData['Tax_Code']                 = $li['Tax_Code'];
+                $nestedData['CBRDetail_Ref']            = $li['CBRDetail_Ref'];
+                $nestedData['isHeader']                 = $li['isHeader'];
+                $nestedData['remain']                   = $li['remain'];
+                $nestedData['Request_ID']               = $li['Request_ID'];
+                $nestedData['currency_id']              = $li['currency_id'];
+                $nestedData['Type']                     = $li['Type'];
+                $nestedData['costcenter_id']            = $li['costcenter_id'];
+                $nestedData['Account_Name']             = $li['Account_Name'];
 
                 $data[] = $nestedData;
                 $i++;
@@ -558,10 +558,10 @@ class MyCbr extends CI_Controller
         foreach ($Attachments->result() as $li) {
             $nestedData = array();
 
-            $nestedData['iteration'] = $i;
-            $nestedData['attachment'] = "<a target='_blank' href='" . base_url() . "assets/Files/AttachmentCbr/" . $li->Year_Upload . "/" . $li->AttachmentType_Code . "/" . $li->Attachment_FileName . "'>" . $li->Attachment_FileName . "</a>";
-            $nestedData['AttachmentType'] = $li->AttachmentType;
-            $nestedData['Note'] = $li->Note;
+            $nestedData['iteration']        = $i;
+            $nestedData['attachment']       = "<a target='_blank' href='" . base_url() . "assets/Files/AttachmentCbr/" . $li->Year_Upload . "/" . $li->AttachmentType_Code . "/" . $li->Attachment_FileName . "'>" . $li->Attachment_FileName . "</a>";
+            $nestedData['AttachmentType']   = $li->AttachmentType;
+            $nestedData['Note']             = $li->Note;
 
             $data_Attachments[] = $nestedData;
             $i++;
@@ -584,18 +584,18 @@ class MyCbr extends CI_Controller
                     foreach ($QPo->result_array() as $li) {
                         $nestedData = array();
 
-                        $nestedData['iteration'] = $i;
-                        $nestedData['PO_Number'] = $li['PO_Number'];
-                        $nestedData['PO_Date'] = date("d-M-Y", strtotime($li['PO_Date']));
-                        $nestedData['ETD'] = date("d-M-Y", strtotime($li['ETD']));
-                        $nestedData['SO_NumCustomer'] = ($li['SO_NumCustomer'] == NULL) ? 'N/A' : $li['SO_NumCustomer'];
-                        $nestedData['Invoice_Status'] = ($li['Invoice_Status'] == 'NI') ? 'No' : 'Yes';
-                        $nestedData['isNotActive'] = ($li['isNotActive'] == '1') ? '<i class="fas fa-times text-danger"></i>' : '<i class="fas fa-check text-success"></i>';
-                        $nestedData['isSisterCompany'] = $li['isSisterCompany'];
-                        $nestedData['PO_Status'] = ($li['PO_Status'] == '1') ? 'New' : (($li['PO_Status'] == '2') ? 'Open' : (($li['PO_Status'] == '3') ? 'Close' : 'Undefined'));
-                        $nestedData['Doc_Status'] = ($li['Doc_Status'] == 1) ? 'Open' : (($li['Doc_Status'] == 2) ? 'Confirm' : (($li['Doc_Status'] == 3) ? 'Delivered' : (($li['Doc_Status'] == 4) ? 'Invoiced' : 'Closed')));
-                        $nestedData['Approval_Status'] = ($li['Approval_Status'] == 0) ? 'New' : (($li['Approval_Status'] == 2) ? 'Awaiting' : (($li['Approval_Status'] == 3) ? 'Approved' : (($li['Approval_Status'] == 4) ? 'Rejected' : (($li['Approval_Status'] == 5) ? 'Revising' : ''))));
-                        $nestedData['Account_Name'] = $li['Account_Name'];
+                        $nestedData['iteration']         = $i;
+                        $nestedData['PO_Number']         = $li['PO_Number'];
+                        $nestedData['PO_Date']           = date("d-M-Y", strtotime($li['PO_Date']));
+                        $nestedData['ETD']               = date("d-M-Y", strtotime($li['ETD']));
+                        $nestedData['SO_NumCustomer']    = ($li['SO_NumCustomer'] == NULL) ? 'N/A' : $li['SO_NumCustomer'];
+                        $nestedData['Invoice_Status']    = ($li['Invoice_Status'] == 'NI') ? 'No' : 'Yes';
+                        $nestedData['isNotActive']       = ($li['isNotActive'] == '1') ? '<i class="fas fa-times text-danger"></i>' : '<i class="fas fa-check text-success"></i>';
+                        $nestedData['isSisterCompany']   = $li['isSisterCompany'];
+                        $nestedData['PO_Status']         = ($li['PO_Status'] == '1') ? 'New' : (($li['PO_Status'] == '2') ? 'Open' : (($li['PO_Status'] == '3') ? 'Close' : 'Undefined'));
+                        $nestedData['Doc_Status']        = ($li['Doc_Status'] == 1) ? 'Open' : (($li['Doc_Status'] == 2) ? 'Confirm' : (($li['Doc_Status'] == 3) ? 'Delivered' : (($li['Doc_Status'] == 4) ? 'Invoiced' : 'Closed')));
+                        $nestedData['Approval_Status']   = ($li['Approval_Status'] == 0) ? 'New' : (($li['Approval_Status'] == 2) ? 'Awaiting' : (($li['Approval_Status'] == 3) ? 'Approved' : (($li['Approval_Status'] == 4) ? 'Rejected' : (($li['Approval_Status'] == 5) ? 'Revising' : ''))));
+                        $nestedData['Account_Name']      = $li['Account_Name'];
                         $nestedData['AccountTitle_Code'] = $li['AccountTitle_Code'];
 
                         $dataVins[] = $nestedData;
@@ -619,24 +619,24 @@ class MyCbr extends CI_Controller
                     foreach ($vins->result_array() as $li) {
                         $nestedData = array();
 
-                        $nestedData['iteration'] = $i;
-                        $nestedData['Account_ID'] = $li['Account_ID'];
-                        $nestedData['AccountTitle_COde'] = $li['AccountTitle_COde'];
-                        $nestedData['Account_Name'] = $li['Account_Name'];
-                        $nestedData['Account_ID'] = $li['Account_ID'];
-                        $nestedData['Invoice_Number'] = $li['Invoice_Number'];
-                        $nestedData['VenInvoice_Number'] = $li['VenInvoice_Number'];
-                        $nestedData['Invoice_Date'] = date("d-M-Y", strtotime($li['Invoice_Date']));
-                        $nestedData['Due_Date'] = date("d-M-Y", strtotime($li['Due_Date']));
-                        $nestedData['Invoice_Status'] = ($li['Invoice_Status'] != 'FP') ? '<span class="badge bg-danger">not paid</span>' : '<span class="badge bg-success">full paid</span>';
-                        $nestedData['PO_NUMBER'] = $li['PO_NUMBER'];
-                        $nestedData['Paid_invoiceAmount'] = $li['Paid_invoiceAmount'];
-                        $nestedData['isDirect'] = $li['isDirect'];
-                        $nestedData['Paid_FreightAmount'] = $li['Paid_FreightAmount'];
-                        $nestedData['isVoid'] = ($li['isVoid'] == '0') ? '<i class="fas fa-times text-success"></i>' : '<i class="fas fa-check text-danger"></i>';
-                        $nestedData['List_TaxCode'] = $li['List_TaxCode'];
-                        $nestedData['LstCBDoc'] = $li['LstCBDoc'];
-                        $nestedData['is_document_received'] = ($li['is_document_received'] == '0') ? '<span class="text-danger">Not Yet Received</span>' : '<span class="text-success">Received</span>';
+                        $nestedData['iteration']              = $i;
+                        $nestedData['Account_ID']             = $li['Account_ID'];
+                        $nestedData['AccountTitle_COde']      = $li['AccountTitle_COde'];
+                        $nestedData['Account_Name']           = $li['Account_Name'];
+                        $nestedData['Account_ID']             = $li['Account_ID'];
+                        $nestedData['Invoice_Number']         = $li['Invoice_Number'];
+                        $nestedData['VenInvoice_Number']      = $li['VenInvoice_Number'];
+                        $nestedData['Invoice_Date']           = date("d-M-Y", strtotime($li['Invoice_Date']));
+                        $nestedData['Due_Date']               = date("d-M-Y", strtotime($li['Due_Date']));
+                        $nestedData['Invoice_Status']         = ($li['Invoice_Status'] != 'FP') ? '<span class="badge bg-danger">not paid</span>' : '<span class="badge bg-success">full paid</span>';
+                        $nestedData['PO_NUMBER']              = $li['PO_NUMBER'];
+                        $nestedData['Paid_invoiceAmount']     = $li['Paid_invoiceAmount'];
+                        $nestedData['isDirect']               = $li['isDirect'];
+                        $nestedData['Paid_FreightAmount']     = $li['Paid_FreightAmount'];
+                        $nestedData['isVoid']                 = ($li['isVoid'] == '0') ? '<i class="fas fa-times text-success"></i>' : '<i class="fas fa-check text-danger"></i>';
+                        $nestedData['List_TaxCode']           = $li['List_TaxCode'];
+                        $nestedData['LstCBDoc']               = $li['LstCBDoc'];
+                        $nestedData['is_document_received']   = ($li['is_document_received'] == '0') ? '<span class="text-danger">Not Yet Received</span>' : '<span class="text-success">Received</span>';
                         $nestedData['document_received_date'] = (empty($li['document_received_date'])) ? '' : date("d-M-Y", strtotime($li['document_received_date']));
 
                         $dataVins[] = $nestedData;
@@ -700,23 +700,23 @@ class MyCbr extends CI_Controller
                 if ($SqlBdj->num_rows() > 0) {
                     foreach ($SqlBdj->result_array() as $li) {
                         $nestedData = array();
-                        $nestedData['JournalH_Code'] = $li['JournalH_Code'];
-                        $nestedData['isvoid'] = $li['isvoid'];
-                        $nestedData['CashBookDate'] = substr($li['CashBookDate'], 0, 10);
-                        $nestedData['CashBookType'] = $li['CashBookType'];
-                        $nestedData['Currency_ID'] = $li['Currency_ID'];
-                        $nestedData['Total_Amount'] = $li['Total_Amount'];
-                        $nestedData['Memo'] = $li['Memo'];
-                        $nestedData['Account_Name'] = $li['Account_Name'];
-                        $nestedData['ClearingBank'] = $li['ClearingBank'];
-                        $nestedData['Payor_Payee'] = $li['Payor_Payee'];
-                        $nestedData['status'] = $li['status'];
-                        $nestedData['approval_status'] = $li['approval_status'];
-                        $nestedData['CashFlow_Type'] = $li['CashFlow_Type'];
-                        $nestedData['CashFlow_Name'] = $li['CashFlow_Name'];
-                        $nestedData['Type_NameEn'] = $li['Type_NameEn'];
-                        $nestedData['Notes'] = $li['Notes'];
-                        $nestedData['Company_ID'] = $li['Company_ID'];
+                        $nestedData['JournalH_Code']    = $li['JournalH_Code'];
+                        $nestedData['isvoid']           = $li['isvoid'];
+                        $nestedData['CashBookDate']     = substr($li['CashBookDate'], 0, 10);
+                        $nestedData['CashBookType']     = $li['CashBookType'];
+                        $nestedData['Currency_ID']      = $li['Currency_ID'];
+                        $nestedData['Total_Amount']     = $li['Total_Amount'];
+                        $nestedData['Memo']             = $li['Memo'];
+                        $nestedData['Account_Name']     = $li['Account_Name'];
+                        $nestedData['ClearingBank']     = $li['ClearingBank'];
+                        $nestedData['Payor_Payee']      = $li['Payor_Payee'];
+                        $nestedData['status']           = $li['status'];
+                        $nestedData['approval_status']  = $li['approval_status'];
+                        $nestedData['CashFlow_Type']    = $li['CashFlow_Type'];
+                        $nestedData['CashFlow_Name']    = $li['CashFlow_Name'];
+                        $nestedData['Type_NameEn']      = $li['Type_NameEn'];
+                        $nestedData['Notes']            = $li['Notes'];
+                        $nestedData['Company_ID']       = $li['Company_ID'];
 
                         $dataBdjs[] = $nestedData;
                     }
@@ -729,13 +729,13 @@ class MyCbr extends CI_Controller
         }
 
         return $this->help->Fn_resulting_response([
-            'code' => $code,
-            'code_vin' => $code_having_vin,
-            'dataVins' => $dataVins,
-            'data' => $data,
-            'data_Attachments' => $data_Attachments,
-            'code_bdj' => $code_having_bdj,
-            'dataBdjs' => $dataBdjs,
+            'code'              => $code,
+            'data'              => $data,
+            'dataVins'          => $dataVins,
+            'code_bdj'          => $code_having_bdj,
+            'dataBdjs'          => $dataBdjs,
+            'code_vin'          => $code_having_vin,
+            'data_Attachments'  => $data_Attachments,
         ]);
     }
 
@@ -910,7 +910,8 @@ class MyCbr extends CI_Controller
             ->from('TAccCashBookHeader H')
             ->join('TAccChartAccount CA', 'H.Account_ID = CA.Acc_ID', 'left') // Pastikan Acc_ID sesuai PK di TAccChartAccount
             ->where('H.JournalH_Code', $journalH_Code)
-            ->get()->row();
+            ->get()
+            ->row();
 
 
         $data['header_k'] = $this->db->query("SELECT * 
@@ -946,10 +947,10 @@ class MyCbr extends CI_Controller
 
     public function m_f_cbr_attachment()
     {
-        $CbrNo = $this->input->get('CbrNo');
-        $this->data['CbrNo'] = $CbrNo;
-        $this->data['Attachments'] = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
-        $this->data['Types'] = $this->db->get($this->Tmst_Attachment_Type_CBR);
+        $CbrNo                      = $this->input->get('CbrNo');
+        $this->data['CbrNo']        = $CbrNo;
+        $this->data['Attachments']  = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
+        $this->data['Types']        = $this->db->get($this->Tmst_Attachment_Type_CBR);
 
         $this->load->view('mycbr/m_f_cbr_attachment', $this->data);
     }
@@ -966,11 +967,11 @@ class MyCbr extends CI_Controller
     {
         $CbrNo = $this->input->get('CbrNo');
 
-        $this->data['CbrNo'] = $CbrNo;
-        $this->data['Attachments'] = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
-        $this->data['Types'] = $this->db->get($this->Tmst_Attachment_Type_CBR);
-        $this->data['auth_upload'] = $this->input->get('auth_upload');
-        $this->data['note'] = $this->input->get('note') ?? '';
+        $this->data['CbrNo']        = $CbrNo;
+        $this->data['Attachments']  = $this->db->get_where($this->Qview_trx_Dtl_Attachment_Cbr, ['CbrNo' => $CbrNo]);
+        $this->data['Types']        = $this->db->get($this->Tmst_Attachment_Type_CBR);
+        $this->data['auth_upload']  = $this->input->get('auth_upload');
+        $this->data['note']         = $this->input->get('note') ?? '';
 
         $this->load->view('mycbr/m_list_cbr_attachment', $this->data);
     }
@@ -1217,67 +1218,67 @@ class MyCbr extends CI_Controller
             // $this->db->where('SysId', $SysId)->update($this->TmstTrxSettingSteppApprovalCbr, $data_insert);
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                 // "CBReq_No" => $CBReq_No,
-                'SysId_Step' => $RulesApproval->SysId_Approval,
-                "IsAppvStaff" => $RulesApproval->Staff,
-                "Status_AppvStaff" => 0,
-                "AppvStaff_By" => $RulesApproval->Staff_Person ?: NULL,
-                "AppvStaff_At" => NULL,
+                'SysId_Step'                => $RulesApproval->SysId_Approval,
+                "IsAppvStaff"               => $RulesApproval->Staff,
+                "Status_AppvStaff"          => 0,
+                "AppvStaff_By"              => $RulesApproval->Staff_Person ?: NULL,
+                "AppvStaff_At"              => NULL,
 
-                "IsAppvChief" => $RulesApproval->Chief,
-                "Status_AppvChief" => 0,
-                "AppvChief_By" => $RulesApproval->Chief_Person ?: NULL,
-                "AppvChief_At" => NULL,
+                "IsAppvChief"               => $RulesApproval->Chief,
+                "Status_AppvChief"          => 0,
+                "AppvChief_By"              => $RulesApproval->Chief_Person ?: NULL,
+                "AppvChief_At"              => NULL,
 
-                "IsAppvAsstManager" => $RulesApproval->AsstManager,
-                "Status_AppvAsstManager" => 0,
-                "AppvAsstManager_By" => $RulesApproval->AsstManager_Person ?: NULL,
-                "AppvAsstManager_At" => NULL,
+                "IsAppvAsstManager"         => $RulesApproval->AsstManager,
+                "Status_AppvAsstManager"    => 0,
+                "AppvAsstManager_By"        => $RulesApproval->AsstManager_Person ?: NULL,
+                "AppvAsstManager_At"        => NULL,
 
-                "IsAppvManager" => $RulesApproval->Manager,
-                "Status_AppvManager" => 0,
-                "AppvManager_By" => $RulesApproval->Manager_Person ?: NULL,
-                "AppvManager_At" => NULL,
+                "IsAppvManager"             => $RulesApproval->Manager,
+                "Status_AppvManager"        => 0,
+                "AppvManager_By"            => $RulesApproval->Manager_Person ?: NULL,
+                "AppvManager_At"            => NULL,
 
-                "IsAppvSeniorManager" => $RulesApproval->SeniorManager,
-                "Status_AppvSeniorManager" => 0,
-                "AppvSeniorManager_By" => $RulesApproval->SeniorManager_Person ?: NULL,
-                "AppvSeniorManager_At" => NULL,
+                "IsAppvSeniorManager"       => $RulesApproval->SeniorManager,
+                "Status_AppvSeniorManager"  => 0,
+                "AppvSeniorManager_By"      => $RulesApproval->SeniorManager_Person ?: NULL,
+                "AppvSeniorManager_At"      => NULL,
 
-                "IsAppvGeneralManager" => $RulesApproval->GeneralManager,
+                "IsAppvGeneralManager"      => $RulesApproval->GeneralManager,
                 "Status_AppvGeneralManager" => 0,
-                "AppvGeneralManager_By" => $RulesApproval->GeneralManager_Person ?: NULL,
-                "AppvGeneralManager_At" => NULL,
+                "AppvGeneralManager_By"     => $RulesApproval->GeneralManager_Person ?: NULL,
+                "AppvGeneralManager_At"     => NULL,
 
-                'IsAppvAdditional' => $RulesApproval->Additional,
-                'Status_AppvAdditional' =>  0,
-                'AppvAdditional_By' => $RulesApproval->Additional_Person ?: NULL,
-                'AppvAdditional_At'  => NULL,
+                'IsAppvAdditional'          => $RulesApproval->Additional,
+                'Status_AppvAdditional'     => 0,
+                'AppvAdditional_By'         => $RulesApproval->Additional_Person ?: NULL,
+                'AppvAdditional_At'         => NULL,
 
-                "IsAppvDirector" => $RulesApproval->Director,
-                "Status_AppvDirector" => 0,
-                "AppvDirector_By" => $RulesApproval->Director_Person ?: NULL,
-                "AppvDirector_At" => NULL,
+                "IsAppvDirector"            => $RulesApproval->Director,
+                "Status_AppvDirector"       => 0,
+                "AppvDirector_By"           => $RulesApproval->Director_Person ?: NULL,
+                "AppvDirector_At"           => NULL,
 
-                "IsAppvPresidentDirector" => $RulesApproval->PresidentDirector,
-                "Status_AppvPresidentDirector" => 0,
-                "AppvPresidentDirector_By" => $RulesApproval->PresidentDirector_Person ?: NULL,
-                "AppvPresidentDirector_At" => NULL,
+                "IsAppvPresidentDirector"       => $RulesApproval->PresidentDirector,
+                "Status_AppvPresidentDirector"  => 0,
+                "AppvPresidentDirector_By"      => $RulesApproval->PresidentDirector_Person ?: NULL,
+                "AppvPresidentDirector_At"      => NULL,
 
-                "IsAppvFinanceDirector" => $RulesApproval->FinanceDirector,
-                "Status_AppvFinanceDirector" => 0,
-                "AppvFinanceDirector_By" => $RulesApproval->FinanceDirector_Person ?: NULL,
-                "AppvFinanceDirector_At" => NULL,
+                "IsAppvFinanceDirector"         => $RulesApproval->FinanceDirector,
+                "Status_AppvFinanceDirector"    => 0,
+                "AppvFinanceDirector_By"        => $RulesApproval->FinanceDirector_Person ?: NULL,
+                "AppvFinanceDirector_At"        => NULL,
 
 
-                'IsAppvFinancePerson' => 1,
-                'Status_AppvFinancePerson' => 0,
-                'AppvFinancePerson_By' => NULL,
-                'AppvFinancePerson_Name' => NULL,
+                'IsAppvFinancePerson'           => 1,
+                'Status_AppvFinancePerson'      => 0,
+                'AppvFinancePerson_By'          => NULL,
+                'AppvFinancePerson_Name'        => NULL,
 
-                "Doc_Legitimate_Pos_On" =>  $RulesApproval->Doc_Legitimate_Pos_On,
+                "Doc_Legitimate_Pos_On"         =>  $RulesApproval->Doc_Legitimate_Pos_On,
                 // "UserName_User" => $this->session->userdata('sys_sba_username'),
                 // "UserDivision" => $this->session->userdata('sys_sba_department'),
-                "Last_Submit_at" => $this->DateTime,
+                "Last_Submit_at"                => $this->DateTime,
             ]);
         }
 
