@@ -23,7 +23,8 @@ class CbrAppManager extends CI_Controller
         $this->data['page_title'] = "Manager Approval-Cash Book Requisition";
         $this->data['page_content'] = "cbr_app/approval";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/cbr_app/manager.js?v=' . time() . '"></script>
-                                       <script src="' . base_url() . 'assets/Pages/cbr_app/history_approval.js?v=' . time() . '"></script>';
+                                       <script src="' . base_url() . 'assets/Pages/cbr_app/history_approval.js?v=' . time() . '"></script>
+                                       <script src="' . base_url() . 'assets/Pages/cbr_app/termin_monitoring.js?v=' . time() . '"></script>';
 
         $this->load->view($this->layout, $this->data);
     }

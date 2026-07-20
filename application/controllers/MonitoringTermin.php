@@ -154,10 +154,10 @@ class MonitoringTermin extends CI_Controller
 
         // Add pagination
         $sql .= " ORDER BY $order $dir OFFSET " . (int)$requestData['start'] . " ROWS FETCH NEXT " . (int)$requestData['length'] . " ROWS ONLY ";
-        
+
         $query = $this->db->query($sql);
         $data = array();
-        
+
         foreach ($query->result_array() as $row) {
             $data[] = array(
                 'CBReq_No' => $row['CBReq_No'],
@@ -193,5 +193,233 @@ class MonitoringTermin extends CI_Controller
             "recordsFiltered" => (int)$totalFiltered,
             "data" => $data,
         ));
+    }
+
+    public function DT_List_Hst_Submission_Termin()
+    {
+        $requestData = $_REQUEST;
+
+        // --- 1. MAPPING KOLOM SUDAH DIRAPIKAN (Termin_Ke di index 2) ---
+        $columns = array(
+            0 => 'H.CBReq_No',
+            1 => 'H.CBReq_No',
+            2 => 'TM.Termin_Ke', // <-- FIX: Sudah dimasukkan!
+            3 => 'H.Document_Date',
+            4 => 'H.Currency_Id',
+            5 => 'TM.Amount_Termin',
+            6 => 'H.Descript',
+            7 => 'H.isClose',
+            8 => 'TM.Status_AppvPresdir',
+            9 => 'TM.Termin_Payment_status',
+            10 => 'TA.UserDivision',
+            11 => 'U.First_Name',
+            12 => 'TA.Status_AppvAsstManager',
+            13 => 'TA.Status_AppvManager',
+            14 => 'TA.Status_AppvSeniorManager',
+            15 => 'TA.Status_AppvGeneralManager',
+            16 => 'TA.Status_AppvAdditional',
+            17 => 'TA.Status_AppvFinancePerson',
+            18 => 'TA.Status_AppvDirector',
+            19 => 'TA.Status_AppvFinanceDirector',
+            20 => 'TM.Status_AppvPresdir',
+            21 => 'TM.Termin_Payment_status_at',
+        );
+
+        $order  = $columns[$requestData['order']['0']['column']] ?? 'H.Document_Date';
+        $dir    = $requestData['order']['0']['dir'] ?? 'DESC';
+        $from   = $this->input->post('from');
+        $until  = $this->input->post('until');
+        $column_range  = $this->input->post('column_range');
+        $username = $this->session->userdata('sys_sba_username');
+        $SegmentMenu = $this->session->userdata('SegmentMenu');
+
+        $sql = '';
+        if ($SegmentMenu != 'CbrAppGeneralManager') {
+            $sql = " AND (
+                (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector <> 0 and AppvFinanceDirector_By = '$username') OR
+                (IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector <> 0 and AppvPresidentDirector_By = '$username') OR
+                (IsAppvDirector = 1 and Status_AppvDirector <> 0 and AppvDirector_By = '$username') OR
+                (IsAppvAdditional = 1 and Status_AppvAdditional <> 0 and AppvAdditional_By = '$username') OR
+                (IsAppvGeneralManager = 1 and Status_AppvGeneralManager <> 0 and AppvGeneralManager_By = '$username') OR
+                (IsAppvSeniorManager = 1 and Status_AppvSeniorManager <> 0 and AppvSeniorManager_By = '$username') OR
+                (IsAppvManager = 1 and Status_AppvManager <> 0 and AppvManager_By = '$username') OR
+                (IsAppvAsstManager = 1 and Status_AppvAsstManager <> 0 and AppvAsstManager_By = '$username')
+            ) ";
+        }
+
+
+        // --- 2. KUERI UTAMA ---
+        $sql = "SELECT DISTINCT 
+                H.CBReq_No, TM.Termin_Ke, H.Document_Date, H.Document_Number, 
+                H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
+                
+                TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
+                TM.AppvPresdir_By AS AppvPresidentDirector_By,
+                TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
+                TM.AppvPresdir_At AS AppvPresidentDirector_At,
+                
+                TM.Termin_Payment_status AS Payment_Status,
+                TM.Termin_Payment_status_at AS Payment_Status_Time_Change,
+                
+                TA.UserDivision, U.First_Name,
+                
+                TA.IsAppvAsstManager, TA.Status_AppvAsstManager, TA.AppvAsstManager_At,
+                TA.IsAppvManager, TA.Status_AppvManager, TA.AppvManager_At,
+                TA.IsAppvSeniorManager, TA.Status_AppvSeniorManager, TA.AppvSeniorManager_At,
+                TA.IsAppvGeneralManager, TA.Status_AppvGeneralManager, TA.AppvGeneralManager_At,
+                TA.IsAppvAdditional, TA.Status_AppvAdditional, TA.AppvAdditional_At,
+                TA.IsAppvFinancePerson, TA.Status_AppvFinancePerson, TA.AppvFinancePerson_At,
+                TA.IsAppvDirector, TA.Status_AppvDirector, TA.AppvDirector_At,
+                TA.IsAppvFinanceDirector, TA.Status_AppvFinanceDirector, TA.AppvFinanceDirector_At
+                
+                FROM Ttrx_Cbr_Approval_Termin TM
+                INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
+                INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
+                
+                WHERE H.Type='D'
+                AND H.Company_ID = 2 
+                AND ISNULL(H.isSPJ,0) = 0
+                AND H.Approval_Status = 3
+                AND H.CBReq_Status = 3
+                $sql
+                AND IsAppvFinancePerson = 1 
+                AND Status_AppvFinancePerson <> 0";
+
+        if (!empty($from) && !empty($until) && !empty($column_range)) {
+            $sql .= " AND $column_range >= '$from' AND $column_range <= '$until 23:59:59' ";
+        }
+
+        $totalData = $this->db->query($sql)->num_rows();
+
+        // --- 3. FILTER PENCARIAN ---
+        if (!empty($requestData['search']['value'])) {
+            $searchValue = $this->db->escape_like_str($requestData['search']['value']);
+            $sql .= " AND (
+                H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
+                OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
+                OR TA.UserDivision LIKE '%$searchValue%' ESCAPE '!'
+                OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
+                OR H.Descript LIKE '%$searchValue%' ESCAPE '!'
+            ) ";
+        }
+
+        // --- 4. KALKULASI SUMMARY ---
+        $all_filtered_query = $this->db->query($sql);
+        $all_data = $all_filtered_query->result_array();
+
+        $summary = [
+            'total_rows' => count($all_data),
+            'approved'   => 0,
+            'rejected'   => 0,
+            'paid'       => 0,
+            'pending'    => 0,
+            'sum_pending_approved' => [],
+            'sum_paid_approved'    => [],
+            'sum_rejected'         => []
+        ];
+
+        foreach ($all_data as $row) {
+            $status = $row['Status_AppvPresidentDirector'];
+            $payment = $row['Payment_Status'];
+            $curr = $row['Currency_Id'] ?: 'IDR';
+            $amt = (float)$row['Amount'];
+
+            if ($status == 1) $summary['approved']++;
+            if ($status == 2) $summary['rejected']++;
+            if ($payment == 1) $summary['paid']++;
+            if ($payment == 0) $summary['pending']++;
+
+            if ($status == 1 && $payment == 0) {
+                $summary['sum_pending_approved'][$curr] = ($summary['sum_pending_approved'][$curr] ?? 0) + $amt;
+            }
+            if ($status == 1 && $payment == 1) {
+                $summary['sum_paid_approved'][$curr] = ($summary['sum_paid_approved'][$curr] ?? 0) + $amt;
+            }
+            if ($status == 2) {
+                $summary['sum_rejected'][$curr] = ($summary['sum_rejected'][$curr] ?? 0) + $amt;
+            }
+        }
+
+        // --- 5. LOGIKA PAGINATION ---
+        $totalFiltered = count($all_data);
+        $sql_with_paging = $sql . " ORDER BY $order $dir OFFSET " . $requestData['start'] . " ROWS FETCH NEXT " . $requestData['length'] . " ROWS ONLY ";
+        $query = $this->db->query($sql_with_paging);
+
+        $data = array();
+        foreach ($query->result_array() as $row) {
+            $nestedData = array();
+
+            $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['Termin_Ke'] = $row['Termin_Ke']; // <-- FIX: Sudah dimasukkan!
+            $nestedData['isClose'] = $row['isClose'];
+            $nestedData['Document_Date'] = $row['Document_Date'];
+            $nestedData['Currency_Id'] = $row['Currency_Id'];
+            $nestedData['Amount'] = $row['Amount'];
+            $nestedData['Descript'] = $row['Descript'];
+            $nestedData['UserDivision'] = $row['UserDivision'];
+            $nestedData['First_Name'] = $row['First_Name'];
+
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
+            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
+            $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Status_Time_Change'] = !empty($row['Payment_Status_Time_Change']) ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-';
+
+            // Assistant Manager
+            $nestedData['IsAppvAsstManager'] = $row['IsAppvAsstManager'];
+            $nestedData['Status_AppvAsstManager'] = $row['Status_AppvAsstManager'];
+            $nestedData['AppvAsstManager_At'] = !empty($row['AppvAsstManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-';
+
+            // Manager
+            $nestedData['IsAppvManager'] = $row['IsAppvManager'];
+            $nestedData['Status_AppvManager'] = $row['Status_AppvManager'];
+            $nestedData['AppvManager_At'] = !empty($row['AppvManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-';
+
+            // Senior Manager
+            $nestedData['IsAppvSeniorManager'] = $row['IsAppvSeniorManager'];
+            $nestedData['Status_AppvSeniorManager'] = $row['Status_AppvSeniorManager'];
+            $nestedData['AppvSeniorManager_At'] = !empty($row['AppvSeniorManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-';
+
+            // General Manager
+            $nestedData['IsAppvGeneralManager'] = $row['IsAppvGeneralManager'];
+            $nestedData['Status_AppvGeneralManager'] = $row['Status_AppvGeneralManager'];
+            $nestedData['AppvGeneralManager_At'] = !empty($row['AppvGeneralManager_At']) ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-';
+
+            // Additional Approval
+            $nestedData['IsAppvAdditional'] = $row['IsAppvAdditional'];
+            $nestedData['Status_AppvAdditional'] = $row['Status_AppvAdditional'];
+            $nestedData['AppvAdditional_At'] = !empty($row['AppvAdditional_At']) ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-';
+
+            // Finance Person
+            $nestedData['IsAppvFinancePerson'] = $row['IsAppvFinancePerson'];
+            $nestedData['Status_AppvFinancePerson'] = $row['Status_AppvFinancePerson'];
+            $nestedData['AppvFinancePerson_At'] = !empty($row['AppvFinancePerson_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-';
+
+            // Director
+            $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
+            $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
+            $nestedData['AppvDirector_At'] = !empty($row['AppvDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-';
+
+            // Finance Director
+            $nestedData['IsAppvFinanceDirector'] = $row['IsAppvFinanceDirector'];
+            $nestedData['Status_AppvFinanceDirector'] = $row['Status_AppvFinanceDirector'];
+            $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
+
+            // President Director (Tambahan jika di-render juga di frontend)
+            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'] ?? 0;
+            $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'] ?? 0;
+            $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
+
+            $data[] = $nestedData;
+        }
+
+        $json_data = array(
+            "draw"            => intval($requestData['draw']),
+            "recordsTotal"    => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+            "summary"         => $summary
+        );
+        echo json_encode($json_data);
     }
 }
