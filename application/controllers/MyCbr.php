@@ -1157,25 +1157,23 @@ class MyCbr extends CI_Controller
         }
         $RulesApproval = $RulesApprovals->row();
 
-        // 2. Loop Validasi Attachment
+        // 2. Validasi Attachment (Lebih Efisien)
+        $cbrs_with_no_attachments_query = $this->db->select('CBReq_No')
+            ->from('TAccCashBookReq_Header') // Asumsi tabel master CBR
+            ->where_in('CBReq_No', $Cbrs)
+            ->where_not_exists("(SELECT 1 FROM {$this->Ttrx_Dtl_Attachment_Cbr} WHERE CbrNo = TAccCashBookReq_Header.CBReq_No)")
+            ->get();
+
+        if ($cbrs_with_no_attachments_query->num_rows() > 0) {
+            $missing_list = array_column($cbrs_with_no_attachments_query->result_array(), 'CBReq_No');
+            $CbrsMissingAttachment = implode(', ', $missing_list);
+        }
+
         foreach ($Cbrs as $CBReq_No_Validate) {
-            // a. Cek Lampiran Kosong (Harus ada attachment untuk resubmission)
-            $CurrentAttachmentQuery = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, ['CbrNo' => $CBReq_No_Validate]);
-            if ($CurrentAttachmentQuery->num_rows() == 0) {
-                $CbrsMissingAttachment .= $CBReq_No_Validate . ', ';
-                continue; // Lanjutkan ke CBR berikutnya jika gagal validasi ini
-            }
-
             // b. Cek Perubahan Attachment (Harus diubah dari reject terakhir)
-
-            // Cek apakah CBR ini punya riwayat ditolak sebelumnya
             $max_sub_query = $this->db->select_max('SubmissionCount')
                 ->where('CbrNo', $CBReq_No_Validate)
                 ->get_compiled_select('Thst_trx_Dtl_Attachment_Cbr_Rejected', FALSE);
-
-            $this->db->reset_query();
-
-            // Hanya cek jika ada riwayat rejected (max_sub_query akan menghasilkan nilai)
             if ($this->db->where('CbrNo', $CBReq_No_Validate)->from('Thst_trx_Dtl_Attachment_Cbr_Rejected')->count_all_results() > 0) {
                 $this->db->reset_query();
 
@@ -1186,7 +1184,7 @@ class MyCbr extends CI_Controller
                     ->get('Thst_trx_Dtl_Attachment_Cbr_Rejected')
                     ->result_array();
 
-                $CurrentAttachment = $CurrentAttachmentQuery->result_array(); // Gunakan data yang sudah diambil di awal loop
+                $CurrentAttachment = $this->db->get_where($this->Ttrx_Dtl_Attachment_Cbr, ['CbrNo' => $CBReq_No_Validate])->result_array();
 
                 // Panggil fungsi perbandingan:
                 $is_unchanged = $this->compare_attachments($HistoryAttachment, $CurrentAttachment);
@@ -1196,7 +1194,6 @@ class MyCbr extends CI_Controller
                 }
             }
         }
-        $this->db->reset_query();
 
         // 3. Tangani Hasil Validasi
         if ($CbrsMissingAttachment != '') {
@@ -1218,46 +1215,46 @@ class MyCbr extends CI_Controller
             // $this->db->where('SysId', $SysId)->update($this->TmstTrxSettingSteppApprovalCbr, $data_insert);
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                 // "CBReq_No" => $CBReq_No,
-                'SysId_Step'                => $RulesApproval->SysId_Approval,
-                "IsAppvStaff"               => $RulesApproval->Staff,
-                "Status_AppvStaff"          => 0,
-                "AppvStaff_By"              => $RulesApproval->Staff_Person ?: NULL,
-                "AppvStaff_At"              => NULL,
+                'SysId_Step'                    => $RulesApproval->SysId_Approval,
+                "IsAppvStaff"                   => $RulesApproval->Staff,
+                "Status_AppvStaff"              => 0,
+                "AppvStaff_By"                  => $RulesApproval->Staff_Person ?: NULL,
+                "AppvStaff_At"                  => NULL,
 
-                "IsAppvChief"               => $RulesApproval->Chief,
-                "Status_AppvChief"          => 0,
-                "AppvChief_By"              => $RulesApproval->Chief_Person ?: NULL,
-                "AppvChief_At"              => NULL,
+                "IsAppvChief"                   => $RulesApproval->Chief,
+                "Status_AppvChief"              => 0,
+                "AppvChief_By"                  => $RulesApproval->Chief_Person ?: NULL,
+                "AppvChief_At"                  => NULL,
 
-                "IsAppvAsstManager"         => $RulesApproval->AsstManager,
-                "Status_AppvAsstManager"    => 0,
-                "AppvAsstManager_By"        => $RulesApproval->AsstManager_Person ?: NULL,
-                "AppvAsstManager_At"        => NULL,
+                "IsAppvAsstManager"             => $RulesApproval->AsstManager,
+                "Status_AppvAsstManager"        => 0,
+                "AppvAsstManager_By"            => $RulesApproval->AsstManager_Person ?: NULL,
+                "AppvAsstManager_At"            => NULL,
 
-                "IsAppvManager"             => $RulesApproval->Manager,
-                "Status_AppvManager"        => 0,
-                "AppvManager_By"            => $RulesApproval->Manager_Person ?: NULL,
-                "AppvManager_At"            => NULL,
+                "IsAppvManager"                 => $RulesApproval->Manager,
+                "Status_AppvManager"            => 0,
+                "AppvManager_By"                => $RulesApproval->Manager_Person ?: NULL,
+                "AppvManager_At"                => NULL,
 
-                "IsAppvSeniorManager"       => $RulesApproval->SeniorManager,
-                "Status_AppvSeniorManager"  => 0,
-                "AppvSeniorManager_By"      => $RulesApproval->SeniorManager_Person ?: NULL,
-                "AppvSeniorManager_At"      => NULL,
+                "IsAppvSeniorManager"           => $RulesApproval->SeniorManager,
+                "Status_AppvSeniorManager"      => 0,
+                "AppvSeniorManager_By"          => $RulesApproval->SeniorManager_Person ?: NULL,
+                "AppvSeniorManager_At"          => NULL,
 
-                "IsAppvGeneralManager"      => $RulesApproval->GeneralManager,
-                "Status_AppvGeneralManager" => 0,
-                "AppvGeneralManager_By"     => $RulesApproval->GeneralManager_Person ?: NULL,
-                "AppvGeneralManager_At"     => NULL,
+                "IsAppvGeneralManager"          => $RulesApproval->GeneralManager,
+                "Status_AppvGeneralManager"     => 0,
+                "AppvGeneralManager_By"         => $RulesApproval->GeneralManager_Person ?: NULL,
+                "AppvGeneralManager_At"         => NULL,
 
-                'IsAppvAdditional'          => $RulesApproval->Additional,
-                'Status_AppvAdditional'     => 0,
-                'AppvAdditional_By'         => $RulesApproval->Additional_Person ?: NULL,
-                'AppvAdditional_At'         => NULL,
+                'IsAppvAdditional'              => $RulesApproval->Additional,
+                'Status_AppvAdditional'         => 0,
+                'AppvAdditional_By'             => $RulesApproval->Additional_Person ?: NULL,
+                'AppvAdditional_At'             => NULL,
 
-                "IsAppvDirector"            => $RulesApproval->Director,
-                "Status_AppvDirector"       => 0,
-                "AppvDirector_By"           => $RulesApproval->Director_Person ?: NULL,
-                "AppvDirector_At"           => NULL,
+                "IsAppvDirector"                => $RulesApproval->Director,
+                "Status_AppvDirector"           => 0,
+                "AppvDirector_By"               => $RulesApproval->Director_Person ?: NULL,
+                "AppvDirector_At"               => NULL,
 
                 "IsAppvPresidentDirector"       => $RulesApproval->PresidentDirector,
                 "Status_AppvPresidentDirector"  => 0,
@@ -1315,13 +1312,19 @@ class MyCbr extends CI_Controller
         // 2. Normalisasi dan Sortir untuk Deep Comparison
         $history_json = [];
         foreach ($historyData as $row) {
-            $history_json[] = json_encode(['file' => $row['Attachment_FileName'], 'type' => $row['AttachmentType']]);
+            $history_json[] = json_encode([
+                'file' => $row['Attachment_FileName'],
+                'type' => $row['AttachmentType']
+            ]);
         }
         sort($history_json);
 
         $current_json = [];
         foreach ($currentData as $row) {
-            $current_json[] = json_encode(['file' => $row['Attachment_FileName'], 'type' => $row['AttachmentType']]);
+            $current_json[] = json_encode([
+                'file' => $row['Attachment_FileName'],
+                'type' => $row['AttachmentType']
+            ]);
         }
         sort($current_json);
 

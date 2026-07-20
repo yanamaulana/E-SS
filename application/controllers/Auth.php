@@ -50,138 +50,84 @@ class Auth extends CI_Controller
             return $this->help->Fn_resulting_response($response);
         }
 
-        $users = $this->db->get_where($this->ERPQview_User_Employee, [
+        $user_query = $this->db->get_where($this->ERPQview_User_Employee, [
             'User_Name' => $login->username,
-            'User_Pass_Txt' => $login->password
         ]);
 
-        if ($users->num_rows() > 0) {
-            $user = $users->row_array();
-            if ($user['is_Passive'] == 1) {
-                $response = [
-                    "code" => 404,
-                    "msg" => "The user has been disabled!"
-                ];
-                return $this->help->Fn_resulting_response($response);
-            }
-
-            $sqlemployee = $this->HR->get_where($this->HRQview_Employee_Detail, [
-                'Emp_No' => $login->username,
-            ]);
-
-            $SqlIsBod = $this->db->get_where($this->Tmst_User_NonHR, [
-                'UserID' => $user['User_ID'],
-            ]);
-
-            $is_dir = 0;
-            if ($sqlemployee->num_rows() > 0) {
-                $employee = $sqlemployee->row_array();
-            } elseif ($SqlIsBod->num_rows() > 0) {
-                $employee = $SqlIsBod->row_array();
-                if ($employe['Division'] = 'Board Of Directors') {
-                    $is_dir = 1;
-                }
-            } else {
-                $response = [
-                    "code" => 404,
-                    "msg" => "Your job position data was not found in the HR system. !"
-                ];
-                return $this->help->Fn_resulting_response($response);
-            }
-
-            $ValidatePayemntCheckPermission = $this->db->get_where('Tmst_User_Check_Payment_Permission', [
-                'UserName' => $login->username,
-            ]);
-            if ($ValidatePayemntCheckPermission->num_rows() > 0) {
-                $PayemntCheckPermission = true;
-            } else {
-                $PayemntCheckPermission = false;
-            }
-
-            $is_admin = false;
-            if ($employee['Division_Name'] == $this->mis) {
-                $is_admin = true;
-            }
-
-            $this->delete_cache();
-
-            $Cbr_Depts = $this->get_arr_dept($employee['Division_Name'], $login->username);
-
-            $jabatan = $employee['Pos_Name'];
-            if ($user['User_Name'] == '30194') {
-                // exception untuk norwendhy destavian
-                $jabatan = 'Senior Manager';
-            }
-
-            $session_data = array(
-                'sys_sba_isDir'                     => $is_dir,
-                'sys_sba_isAdm'                     => $is_admin,
-                'sys_sba_isSalesPerson'             => $user['isSalesPerson'],
-                'sys_cbr_divs'                      => $Cbr_Depts,
-                'sys_sba_userid'                    => $user['User_ID'],
-                'sys_sba_username'                  => $user['User_Name'],
-                'sys_sba_NIK'                       => $user['User_Name'],
-                'sys_sba_nama'                      => $user['First_Name'],
-                'sys_sba_jabatan'                   => $jabatan,
-                'sys_sba_email'                     => $user['Email_Address'],
-                'sys_sba_department'                => $employee['Division_Name'],
-                'sys_sba_PayemntCheckPermission'    => $PayemntCheckPermission,
-            );
-
-            $this->db->insert('EsbaUserLog', [
-                'User_Name' => $user['User_Name'],
-                'Remote_IP' => $this->input->ip_address(),
-                'Log_Date' => date('Y-m-d H:i:s'),
-                'Log_Action' => 'Login'
-            ]);
-
-            $this->session->set_userdata($session_data);
-            set_cookie([
-                'name'   => 'currencyid',
-                'value'  => 'IDR',
-                'expire' => 86400 * 30, // Berlaku 30 hari
-                'path'   => '/',
-                'secure' => FALSE,     // Set TRUE jika web Anda sudah HTTPS
-                'httponly' => FALSE    // Set FALSE agar bisa dibaca oleh JavaScript (jika butuh)
-            ]);
-            set_cookie([
-                'name'     => 'companyid',    // Nama cookie
-                'value'    => '2',            // Isi value dengan ID perusahaan (misal: 2)
-                'expire'   => 86400 * 30,     // TANPA tanda kutip, 86400 detik x 30 = 30 hari
-                'path'     => '/',
-                'secure'   => FALSE,          // Ubah ke TRUE jika server Mas sudah HTTPS (SSL)
-                'httponly' => FALSE           // FALSE agar nilai cookie bisa dibaca oleh JavaScript di frontend
-            ]);
-            $response = [
-                "code" => 200,
-                "msg" => "Successfully login into " . $this->config->item('init_app_name') . " !"
-            ];
-            return $this->help->Fn_resulting_response($response);
-        } else {
-            $users = $this->db->get_where($this->ERPQview_User_Employee, [
-                'User_Name' => $login->username,
-            ]);
-            if ($users->num_rows() == 0) {
-                $response = [
-                    "code" => 404,
-                    "msg" => "User not found !"
-                ];
-                return $this->help->Fn_resulting_response($response);
-            }
-            if ($users->num_rows() > 0) {
-                $response = [
-                    "code" => 505,
-                    "msg" => "Password not match !"
-                ];
-                return $this->help->Fn_resulting_response($response);
-            } else {
-                $response = [
-                    "code" => 505,
-                    "msg" => "Username & Password not registered!"
-                ];
-                return $this->help->Fn_resulting_response($response);
-            }
+        if ($user_query->num_rows() == 0) {
+            return $this->help->Fn_resulting_response(["code" => 404, "msg" => "User not found !"]);
         }
+
+        $user = $user_query->row_array();
+
+        if ($user['User_Pass_Txt'] !== $login->password) {
+            return $this->help->Fn_resulting_response(["code" => 505, "msg" => "Password not match !"]);
+        }
+
+        if ($user['is_Passive'] == 1) {
+            return $this->help->Fn_resulting_response(["code" => 404, "msg" => "The user has been disabled!"]);
+        }
+
+        $sqlemployee = $this->HR->get_where($this->HRQview_Employee_Detail, ['Emp_No' => $login->username]);
+        $SqlIsBod = $this->db->get_where($this->Tmst_User_NonHR, ['UserID' => $user['User_ID']]);
+
+        $employee = null;
+        $is_dir = 0;
+        if ($sqlemployee->num_rows() > 0) {
+            $employee = $sqlemployee->row_array();
+        } elseif ($SqlIsBod->num_rows() > 0) {
+            $employee = $SqlIsBod->row_array();
+            if ($employee['Division'] == 'Board Of Directors') { // Use == for comparison
+                $is_dir = 1;
+            }
+        } else {
+            return $this->help->Fn_resulting_response(["code" => 404, "msg" => "Your job position data was not found in the HR system. !"]);
+        }
+
+        $ValidatePayemntCheckPermission = $this->db->get_where('Tmst_User_Check_Payment_Permission', ['UserName' => $login->username]);
+        $PayemntCheckPermission = $ValidatePayemntCheckPermission->num_rows() > 0;
+
+        $is_admin = ($employee['Division_Name'] == $this->mis);
+
+        $this->delete_cache();
+
+        $Cbr_Depts = $this->get_arr_dept($employee['Division_Name'], $login->username);
+
+        $jabatan = $employee['Pos_Name'];
+        if ($user['User_Name'] == '30194') {
+            $jabatan = 'Senior Manager';
+        }
+
+        $session_data = [
+            'sys_sba_isDir'                  => $is_dir,
+            'sys_sba_isAdm'                  => $is_admin,
+            'sys_sba_isSalesPerson'          => $user['isSalesPerson'],
+            'sys_cbr_divs'                   => $Cbr_Depts,
+            'sys_sba_userid'                 => $user['User_ID'],
+            'sys_sba_username'               => $user['User_Name'],
+            'sys_sba_NIK'                    => $user['User_Name'],
+            'sys_sba_nama'                   => $user['First_Name'],
+            'sys_sba_jabatan'                => $jabatan,
+            'sys_sba_email'                  => $user['Email_Address'],
+            'sys_sba_department'             => $employee['Division_Name'],
+            'sys_sba_PayemntCheckPermission' => $PayemntCheckPermission,
+        ];
+
+        $this->db->insert('EsbaUserLog', [
+            'User_Name'  => $user['User_Name'],
+            'Remote_IP'  => $this->input->ip_address(),
+            'Log_Date'   => date('Y-m-d H:i:s'),
+            'Log_Action' => 'Login'
+        ]);
+
+        $this->session->set_userdata($session_data);
+        set_cookie(['name' => 'currencyid', 'value' => 'IDR', 'expire' => 86400 * 30, 'path' => '/', 'secure' => FALSE, 'httponly' => FALSE]);
+        set_cookie(['name' => 'companyid', 'value' => '2', 'expire' => 86400 * 30, 'path' => '/', 'secure' => FALSE, 'httponly' => FALSE]);
+
+        return $this->help->Fn_resulting_response([
+            "code" => 200,
+            "msg"  => "Successfully login into " . $this->config->item('init_app_name') . " !"
+        ]);
     }
 
     // EsbaUserLog (
