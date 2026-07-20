@@ -231,10 +231,10 @@ class MonitoringTermin extends CI_Controller
         $until  = $this->input->post('until');
         $column_range  = $this->input->post('column_range');
         $username = $this->session->userdata('sys_sba_username');
-        $SegmentMenu = $this->session->userdata('SegmentMenu');
+        $SegmentMenu = $this->input->post('SegmentMenu');
 
         $sql = '';
-        if ($SegmentMenu != 'CbrAppGeneralManager') {
+        if ($SegmentMenu != 'CbrAppAccounting') {
             $sql = " AND (
                 (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector <> 0 and AppvFinanceDirector_By = '$username') OR
                 (IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector <> 0 and AppvPresidentDirector_By = '$username') OR
