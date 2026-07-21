@@ -257,6 +257,7 @@ class MonitoringTermin extends CI_Controller
                 TM.AppvPresdir_By AS AppvPresidentDirector_By,
                 TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
                 TM.AppvPresdir_At AS AppvPresidentDirector_At,
+                TA.IsAppvPresidentDirector,
                 
                 TM.Termin_Payment_status AS Payment_Status,
                 TM.Termin_Payment_status_at AS Payment_Status_Time_Change,

@@ -77,7 +77,7 @@ class Auth extends CI_Controller
             $employee = $sqlemployee->row_array();
         } elseif ($SqlIsBod->num_rows() > 0) {
             $employee = $SqlIsBod->row_array();
-            if ($employee['Division'] == 'Board Of Directors') { // Use == for comparison
+            if ($employee['Division_Name'] == 'Board Of Directors') { // Use == for comparison
                 $is_dir = 1;
             }
         } else {

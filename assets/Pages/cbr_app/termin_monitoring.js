@@ -122,7 +122,7 @@ $(document).ready(function () {
                 },
                 {
                     data: "IsAppvPresidentDirector", name: "IsAppvPresidentDirector", orderable: false, render: function (data, type, row, meta) {
-                        return renderApprovalStatus(1, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
+                        return renderApprovalStatus(data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
                     }
                 },
                 { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" }
