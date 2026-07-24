@@ -13,6 +13,115 @@ $(document).ready(function () {
 
     $('.date-picker').flatpickr();
 
+    var selected_cbr = [];
+    var selected_details = {};
+    var lastClickedBox = null;
+
+    // 3. Listener Checkbox Individu (Support SHIFT + CLICK)
+    $('#TableDataHistory tbody').on('click', 'input[name="CBReq_No_hst[]"]', function (e) {
+        var $chkboxes = $('input[name="CBReq_No_hst[]"]');
+        var isChecked = $(this).is(':checked');
+
+        // JIKA USER MENEKAN TOMBOL SHIFT + KLIK (Dan sebelumnya sudah ada yg di-klik)
+        if (e.shiftKey && lastClickedBox) {
+            var start = $chkboxes.index(this);
+            var end = $chkboxes.index(lastClickedBox);
+
+            // Tentukan titik potong baris awal dan baris akhir
+            var groupSubset = $chkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
+
+            groupSubset.each(function () {
+                var $item = $(this);
+                var id = $item.val();
+                var curr = $item.data('curr');
+                var amount = parseFloat($item.data('amount'));
+
+                // 1. Ubah visual centangnya mengikuti target
+                $item.prop('checked', isChecked);
+
+                // 2. Masukkan/Keluarkan dari Array sistem
+                if (isChecked) {
+                    if (!selected_cbr.includes(id)) {
+                        selected_cbr.push(id);
+                        selected_details[id] = { curr: curr, amount: amount };
+                    }
+                } else {
+                    selected_cbr = selected_cbr.filter(val => val !== id);
+                    delete selected_details[id];
+                }
+            });
+        } else {
+            // NORMAL SINGLE CLICK (Tanpa menekan Shift)
+            var id = $(this).val();
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = { curr: curr, amount: amount };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(val => val !== id);
+                delete selected_details[id];
+            }
+        }
+
+        // Simpan elemen yang baru saja di-klik sebagai "titik pijak" untuk Shift-Click berikutnya
+        lastClickedBox = this;
+
+        updateCheckAllStatus_hst();
+    });
+
+    $('#CheckAll_hst').on('click', function () {
+        var isChecked = $(this).is(':checked');
+        check_uncheck_checkbox_hst(isChecked);
+    });
+
+    function updateCheckAllStatus_hst() {
+        var allCheckedInPage = true;
+        var checkboxes = $('input[name="CBReq_No_hst[]"]');
+
+        if (checkboxes.length === 0) {
+            allCheckedInPage = false;
+        } else {
+            checkboxes.each(function () {
+                if (!$(this).prop('checked')) {
+                    allCheckedInPage = false;
+                }
+            });
+        }
+        $('#CheckAll').prop('checked', allCheckedInPage);
+    }
+
+    function check_uncheck_checkbox_hst(isChecked) {
+        $('input[name="CBReq_No_hst[]"]').each(function () {
+            var id = $(this).val();
+
+            // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG
+            var curr = $(this).data('curr');
+            var amount = parseFloat($(this).data('amount'));
+
+            // Update visual
+            $(this).prop('checked', isChecked);
+
+            // Update Logic Array
+            if (isChecked) {
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = {
+                        curr: curr,
+                        amount: amount
+                    };
+                }
+            } else {
+                selected_cbr = selected_cbr.filter(item => item !== id);
+                delete selected_details[id];
+            }
+        });
+        // renderSummaryHTML();
+    }
+
     function Fn_Initialized_DataTable() {
         $("#TableDataHistory").DataTable({
             destroy: true,
@@ -20,10 +129,10 @@ $(document).ready(function () {
             serverSide: true,
             paging: true,
             dom: '<"row mb-3"<"col-sm-12"B>><"row"<"col-sm-11"f><"col-sm-1"l>>rtip',
-            select: true,
+            // select: true,
             "lengthMenu": [
-                [10, 100, 1000, 4999],
-                [10, 100, 1000, 4999]
+                [15, 100, 1000, 4999],
+                [15, 100, 1000, 4999]
             ],
             ajax: {
                 url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/DT_List_History_Approval",
@@ -38,7 +147,16 @@ $(document).ready(function () {
             columns: [
                 {
                     data: "CBReq_No", name: "CBReq_No", orderable: false, render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+                        var isChecked = selected_cbr.includes(row.CBReq_No) ? 'checked' : '';
+                        return `<div class="form-check">
+                            <input class="form-check-input row-checkbox" type="checkbox" 
+                                value="${row.SysID_Termin}" 
+                                id="${row.CBReq_No}" 
+                                name="CBReq_No_hst[]" 
+                                ${isChecked}
+                                data-curr="${row.Currency_Id}"
+                                data-amount="${row.Amount}">
+                        </div>`
                     }
                 },
                 { data: "CBReq_No", name: "CBReq_No" },
@@ -271,6 +389,32 @@ $(document).ready(function () {
                 extend: 'excelHtml5',
                 title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
                 className: "btn btn-light-success",
+            }, {
+                text: `-`,
+                className: "btn btn-default btn-icon disabled",
+            },
+            {
+                text: `<i class="fas fa-undo text-white fs-3"></i> Revoke Approval`,
+                className: "btn btn-danger",
+                action: function (e, dt, node, config) {
+                    if (selected_cbr.length === 0) {
+                        return Swal.fire('Error', 'Please select at least one item!', 'error');
+                    }
+
+                    Swal.fire({
+                        title: 'System Message !',
+                        text: `Are you sure to Revoke Approval ${selected_cbr.length} selected CBR(s)?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Fn_Revoke_Approval();
+                        }
+                    })
+                }
             }
             ],
         }).buttons().container().appendTo('TableDataHistory_wrapper .col-md-6:eq(0)');
@@ -597,16 +741,67 @@ $(document).ready(function () {
     })
 
 
-})
+    function Fn_Revoke_Approval() {
+        // Validasi menggunakan length array, bukan DOM element
+        if (selected_cbr.length == 0) {
+            return Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'You need check the submission first !'
+            });
+        }
 
-function check_uncheck_checkbox(isChecked) {
-    if (isChecked) {
-        $('input[name="CBReq_No[]"]').each(function () {
-            this.checked = true;
-        });
-    } else {
-        $('input[name="CBReq_No[]"]').each(function () {
-            this.checked = false;
+        console.log("Selected CBRs for Revoke Approval:", selected_cbr);
+        $.ajax({
+            dataType: "json",
+            type: "POST",
+            url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/revoke_approval",
+            data: { "TerminIdx": selected_cbr }, // Kirim array ID
+            beforeSend: function () {
+                Swal.fire({
+                    title: 'Loading....',
+                    html: '<div class="spinner-border text-primary"></div>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                })
+            },
+            success: function (response) {
+                Swal.close()
+                if (response.code == 200) {
+                    Toast.fire({ icon: 'success', title: response.msg });
+                    selected_cbr = [];
+                    selected_details = {}; // RESET DETAIL JUGA
+                    // renderSummaryHTML();   /
+                    $('#CheckAll_hst').prop('checked', false);
+                    $('#TableData').DataTable().ajax.reload(null, false);
+                    $("#TableDataHistory").DataTable().ajax.reload(null, false);
+                } else {
+                    let errorHtml = '';
+                    if (response.details && Array.isArray(response.details)) {
+                        errorHtml = '<ul>';
+                        response.details.forEach(detail => {
+                            errorHtml += `<li>${detail}</li>`;
+                        });
+                        errorHtml += '</ul>';
+                    } else {
+                        errorHtml = response.msg;
+                    }
+                    Swal.fire({
+                        icon: "error",
+                        title: "Peringatan!",
+                        html: errorHtml
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    text: "Terjadi kesalahan server."
+                });
+            }
         });
     }
-}
+
+
+})

@@ -165,6 +165,126 @@ class CbrAppPresidentDirector extends CI_Controller
         }
     }
 
+    public function revoke_approval()
+    {
+        $TerminIdx = $this->input->post('TerminIdx');
+        if (empty($TerminIdx)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'No items selected for revocation.']);
+        }
+
+        $validation_errors = [];
+        $items_to_process = []; // Menyimpan data termin yang sudah lolos pra-validasi
+
+        // --- PRA-VALIDASI SEMUA ITEM SEBELUM MEMULAI TRANSAKSI ---
+        foreach ($TerminIdx as $SysID) {
+            $termin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', ['SysID' => $SysID])->row();
+
+            if (!$termin) {
+                // Menggunakan SysID dari input untuk pesan error jika termin tidak ditemukan
+                $validation_errors[] = "Termin with SysID $SysID not found.";
+                continue;
+            }
+
+            // Aturan Bisnis: Tidak bisa mencabut termin yang sudah dibayar.
+            if ($termin->Termin_Payment_status == 1) {
+                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} already paid, can't do revoke.";
+                continue; // Lanjutkan ke item berikutnya untuk mengumpulkan semua error
+            }
+
+            // Aturan Bisnis: Tidak bisa mencabut termin yang statusnya sudah pending.
+            if ($termin->Status_AppvPresdir == 0) {
+                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} is pending.";
+                continue; // Lanjutkan ke item berikutnya untuk mengumpulkan semua error
+            }
+
+            // Jika semua validasi untuk item ini lolos, tambahkan ke daftar untuk diproses
+            $items_to_process[] = $termin;
+        }
+
+        // --- JIKA ADA ERROR VALIDASI, KEMBALIKAN PESAN ERROR DAN BATALKAN SEMUA ---
+        if (!empty($validation_errors)) {
+            return $this->help->Fn_resulting_response([
+                'code' => 400,
+                'msg'  => 'Revoke Approval Fails :',
+                'details' => $validation_errors // Mengirimkan daftar kesalahan spesifik
+            ]);
+        }
+
+        // --- JIKA SEMUA ITEM LOLOS VALIDASI, LANJUTKAN DENGAN TRANSAKSI DATABASE ---
+        $unique_cbr_to_sync = [];
+        $revoked_items_count = 0;
+
+        $this->db->trans_start();
+
+        foreach ($items_to_process as $termin) {
+            // SysID sudah ada di objek $termin
+            $SysID = $termin->SysID;
+
+            // 1. Lakukan insert dari ttrx ke thst (backup riwayat)
+            // Pastikan $termin->CBReq_No tidak null sebelum digunakan di where
+            $max_sub_q = $this->db->select_max('SubmissionCount', 'max_count')
+                ->where('CBReq_No', $termin->CBReq_No)
+                ->get('Thst_Trx_Cbr_Approval_Termin')
+                ->row();
+
+            $submission_count = ($max_sub_q && $max_sub_q->max_count !== null) ? (int)$max_sub_q->max_count + 1 : 1;
+
+            $history_data = [
+                'SubmissionCount'       => $submission_count,
+                'SysID'                 => $termin->SysID,
+                'CBReq_No'              => $termin->CBReq_No,
+                'Termin_Ke'             => $termin->Termin_Ke,
+                'Amount_Termin'         => $termin->Amount_Termin,
+                'Payment_Plan_Date'     => $termin->Payment_Plan_Date,
+                'Status_AppvPresdir'    => $termin->Status_AppvPresdir,
+                'Termin_Payment_status' => $termin->Termin_Payment_status,
+                'Reject_Payment_Reason' => 'Revoked by ' . $this->session->userdata('sys_sba_nama'),
+                'Created_By'            => $this->session->userdata('sys_sba_username'),
+                'Created_at'            => $this->DateTime
+            ];
+            $this->db->insert('Thst_Trx_Cbr_Approval_Termin', $history_data);
+
+            // 2. Update Termin menjadi Pending (Status = 0)
+            $this->db->where('SysID', $SysID)->update('Ttrx_Cbr_Approval_Termin', [
+                'Status_AppvPresdir' => 0,
+                'AppvPresdir_Name'   => NULL,
+                'AppvPresdir_At'     => NULL
+            ]);
+
+            // Tambahkan CBR ke daftar sinkronisasi
+            $unique_cbr_to_sync[$termin->CBReq_No] = true;
+            $revoked_items_count++;
+        }
+
+        // 3. Lakukan penentuan update Ttrx_Cbr_Approval
+        foreach (array_keys($unique_cbr_to_sync) as $cbr_no) {
+            // Karena persetujuan dicabut, status header tidak bisa lagi "fully approved".
+            // Kita reset kembali ke pending.
+            $this->db->where('CBReq_No', $cbr_no)->update($this->Ttrx_Cbr_Approval, [
+                'Status_AppvPresidentDirector' => 0,
+                'Legitimate'                   => 0, // Reset status sah juga
+                'AppvPresidentDirector_At'     => NULL, // Hapus tanggal persetujuan akhir
+                'AppvPresidentDirector_Name'   => NULL
+            ]);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return $this->help->Fn_resulting_response([
+                'code' => 505,
+                'msg'  => 'Terjadi kesalahan database selama proses pencabutan persetujuan. Semua perubahan telah dibatalkan.',
+            ]);
+        } else {
+            $this->db->trans_commit();
+            return $this->help->Fn_resulting_response([
+                'code' => 200,
+                'msg' => $revoked_items_count . " item(s) successfully revoked/Un-approved.",
+            ]);
+        }
+    }
+
     // ========================================== DATATABLE 
 
     public function DT_List_To_Approve()
@@ -543,7 +663,7 @@ class CbrAppPresidentDirector extends CI_Controller
 
         // --- 2. KUERI UTAMA ---
         $sql = "SELECT DISTINCT 
-                H.CBReq_No, TM.Termin_Ke, H.Document_Date, H.Document_Number, 
+                TM.SysID as SysID_Termin, H.CBReq_No, TM.Termin_Ke, H.Document_Date, H.Document_Number, 
                 H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
                 
                 TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
@@ -642,6 +762,7 @@ class CbrAppPresidentDirector extends CI_Controller
         foreach ($query->result_array() as $row) {
             $nestedData = array();
 
+            $nestedData['SysID_Termin'] = $row['SysID_Termin'];
             $nestedData['CBReq_No'] = $row['CBReq_No'];
             $nestedData['Termin_Ke'] = $row['Termin_Ke']; // <-- FIX: Sudah dimasukkan!
             $nestedData['isClose'] = $row['isClose'];

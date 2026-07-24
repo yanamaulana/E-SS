@@ -110,7 +110,12 @@
                                 <table id="TableDataHistory" class="table-sm align-middle display compact table-rounded table-striped table-bordered border dataTable no-footer dt-inline">
                                     <thead style="background-color: #3B6D8C;">
                                         <tr class="text-white fw-bolder text-uppercase">
-                                            <th class="text-center text-white">#</th>
+                                            <th class="text-center text-white">
+                                                <div class="custom-checkbox" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="tooltip-dark" title="Select ALL">
+                                                    <input class="form-check-input" type="checkbox" id="CheckAll_hst" value="checkall_hst">
+                                                    <label for="CheckAll" class="custom-control-label"></label>
+                                                </div>
+                                            </th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Termin</th>
                                             <!-- <th class="text-center text-white">Type</th> -->
