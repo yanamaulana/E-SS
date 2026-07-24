@@ -516,8 +516,8 @@ class MyCbr extends CI_Controller
         $Req_No = $this->input->post('Req_No');
         $Ref_no = $this->input->post('Ref_no');
         $Details = $this->db->query("SELECT *,(SELECT Account_Nameen FROM TAccChartAccount WHERE Acc_ID = TAccCashBookReq_Detail.Acc_ID) AS Account_Name
-		FROM TAccCashBookReq_Detail
-		WHERE CBReq_No = '$Req_No'");
+        FROM TAccCashBookReq_Detail
+        WHERE CBReq_No = ?", [$Req_No]);
 
         $i = 1;
         $data = array();
@@ -1118,23 +1118,23 @@ class MyCbr extends CI_Controller
     public function get_rpt_cbr($Cbr)
     {
         $this->data['CbrHeader'] = $this->db->query("Select TAccCashBookReq_Header.*,
-		(SELECT Project_Code FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Code,
-		(SELECT Project_Name FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Name,
-		THRMEmpPersonalData.First_Name +' '+ THRMEmpPersonalData.Middle_Name +' '+ THRMEmpPersonalData.Last_Name AS Request_Name, Ttrx_Cbr_Approval.SysId_Step,
-		TAccCostCenter.CostCenter_Code,
-		TaccCostCenter.CostCenter_Name_en AS CostCenter_Name
+        (SELECT Project_Code FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Code,
+        (SELECT Project_Name FROM TAccProject_Header WHERE Project_ID = TAccCashBookReq_Header.Project_ID) AS Project_Name,
+        THRMEmpPersonalData.First_Name +' '+ THRMEmpPersonalData.Middle_Name +' '+ THRMEmpPersonalData.Last_Name AS Request_Name, Ttrx_Cbr_Approval.SysId_Step,
+        TAccCostCenter.CostCenter_Code,
+        TaccCostCenter.CostCenter_Name_en AS CostCenter_Name
         FROM TAccCashBookReq_Header
         INNER JOIN THRMEmpPersonalData ON THRMEmpPersonalData.User_ID = TAccCashBookReq_Header.Created_By
         LEFT JOIN TAccCostCenter ON TAccCashBookReq_Header.Comp_ID = TAccCostCenter.CostCenter_ID
         LEFT JOIN Ttrx_Cbr_Approval ON Ttrx_Cbr_Approval.CBReq_No = TAccCashBookReq_Header.CBReq_No
-        WHERE TAccCashBookReq_Header.CBReq_No='$Cbr'")->row();
+        WHERE TAccCashBookReq_Header.CBReq_No = ?", [$Cbr])->row();
 
         $this->data['TrxApproval'] = $this->db->get_where($this->Ttrx_Cbr_Approval, ['CBReq_No' => $Cbr])->row();
 
         $this->data['CbrDetail'] = $this->db->query("SELECT TAccCashBookReq_Detail.*, TAccChartAccount.Account_Number, TAccChartAccount.Account_Nameen AS Account_Name
         FROM TAccCashBookReq_Detail
         INNER JOIN TAccChartAccount ON TAccChartAccount.Acc_ID = TAccCashBookReq_Detail.Acc_ID
-        WHERE CBReq_No='$Cbr'");
+        WHERE CBReq_No = ?", [$Cbr]);
 
 
         $this->load->view('mycbr/rpt_detail_cbr', $this->data);
@@ -1146,6 +1146,14 @@ class MyCbr extends CI_Controller
         $Cbrs = $this->input->post('CBReq_No_Resubmission');
         $CbrsMissingAttachment = '';
         $CbrsUnchangedAttachment = '';
+
+        // Guard: pastikan input berupa array dan tidak kosong
+        if (empty($Cbrs) || !is_array($Cbrs)) {
+            return $this->help->Fn_resulting_response([
+                'code' => 400,
+                'msg'  => 'No CBR selected for resubmission.'
+            ]);
+        }
 
         // 1. Validasi Aturan Approval (Rule Check)
         $RulesApprovals = $this->db->get_where($this->Qview_Assignment_Approval_User, ['UserName_Employee' => $this->session->userdata('sys_sba_username')]);
@@ -1161,7 +1169,8 @@ class MyCbr extends CI_Controller
         $cbrs_with_no_attachments_query = $this->db->select('CBReq_No')
             ->from('TAccCashBookReq_Header') // Asumsi tabel master CBR
             ->where_in('CBReq_No', $Cbrs)
-            ->where_not_exists("(SELECT 1 FROM {$this->Ttrx_Dtl_Attachment_Cbr} WHERE CbrNo = TAccCashBookReq_Header.CBReq_No)")
+            // Non-escape raw SQL supaya NOT EXISTS tidak menjadi quoted identifier pada driver MSSQL
+            ->where("NOT EXISTS (SELECT 1 FROM {$this->Ttrx_Dtl_Attachment_Cbr} WHERE CbrNo = TAccCashBookReq_Header.CBReq_No)", NULL, FALSE)
             ->get();
 
         if ($cbrs_with_no_attachments_query->num_rows() > 0) {
@@ -1173,7 +1182,9 @@ class MyCbr extends CI_Controller
             // b. Cek Perubahan Attachment (Harus diubah dari reject terakhir)
             $max_sub_query = $this->db->select_max('SubmissionCount')
                 ->where('CbrNo', $CBReq_No_Validate)
-                ->get_compiled_select('Thst_trx_Dtl_Attachment_Cbr_Rejected', FALSE);
+                ->get_compiled_select('Thst_trx_Dtl_Attachment_Cbr_Rejected', TRUE);
+            // Pastikan tidak ada trailing semicolon atau whitespace pada subquery
+            $max_sub_query = rtrim($max_sub_query, " \t\n\r\0\x0B;");
             if ($this->db->where('CbrNo', $CBReq_No_Validate)->from('Thst_trx_Dtl_Attachment_Cbr_Rejected')->count_all_results() > 0) {
                 $this->db->reset_query();
 
@@ -1279,13 +1290,16 @@ class MyCbr extends CI_Controller
             ]);
         }
 
-        $error_msg = $this->db->error()["message"];
         $this->db->trans_complete();
+        // Ambil pesan error DB jika tersedia (compat CI3 versi berbeda)
+        $error_info = (method_exists($this->db, 'error')) ? $this->db->error() : null;
+        $error_msg = is_array($error_info) && isset($error_info['message']) ? $error_info['message'] : '';
+
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
             return $this->help->Fn_resulting_response([
                 'code' => 505,
-                'msg'  => $error_msg,
+                'msg'  => $error_msg ?: 'Database transaction failed.',
             ]);
         } else {
             $this->db->trans_commit();
