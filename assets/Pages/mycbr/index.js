@@ -239,29 +239,29 @@ $(document).ready(function () {
             text: `-`,
             className: "btn btn-default btn-icon disabled",
         },
-        {
-            text: `<i class="fas fa-times text-white fs-3"></i> Reject (Not Send)`,
-            className: "btn btn-danger",
-            action: function (e, dt, node, config) {
-                Swal.fire({
-                    title: 'System Message !',
-                    text: `Are you sure to reject all checked submission ?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Fn_Reject_Submission();
-                    }
-                })
-            }
-        },
-        {
-            text: `-`,
-            className: "btn btn-default btn-icon disabled",
-        },
+        // {
+        //     text: `<i class="fas fa-times text-white fs-3"></i> Reject (Not Send)`,
+        //     className: "btn btn-danger",
+        //     action: function (e, dt, node, config) {
+        //         Swal.fire({
+        //             title: 'System Message !',
+        //             text: `Are you sure to reject all checked submission ?`,
+        //             icon: 'warning',
+        //             showCancelButton: true,
+        //             confirmButtonColor: '#3085d6',
+        //             cancelButtonColor: '#d33',
+        //             confirmButtonText: 'Yes'
+        //         }).then((result) => {
+        //             if (result.isConfirmed) {
+        //                 Fn_Reject_Submission();
+        //             }
+        //         })
+        //     }
+        // },
+        // {
+        //     text: `-`,
+        //     className: "btn btn-default btn-icon disabled",
+        // },
         {
             text: `<i class="fas fa-calendar-alt"></i> Set Payment Date`,
             className: "btn btn-info",
