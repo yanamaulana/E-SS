@@ -37,8 +37,7 @@ class EmailAttendance extends CI_Controller
         $date_h_plus_1 = date('Y-m-d', strtotime('+1 day', strtotime($date_h))); // Hari H+1 untuk batas akhir (Contoh: 2026-07-29)
 
         // 3. Susun Query (Menggunakan Binding Parameter '?' agar aman dari SQL Injection)
-        $sql = "
-            SELECT 
+        $sql = "SELECT 
                 C.Emp_No AS NIP, 
                 LTRIM(RTRIM(
                     ISNULL(P.First_Name + ' ', '') + 
