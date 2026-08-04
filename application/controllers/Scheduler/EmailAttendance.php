@@ -92,8 +92,7 @@ class EmailAttendance extends CI_Controller
                 TDiv.Position_Name_en
                 
             ORDER BY 
-                C.Cost_Center, C.Emp_No
-        ";
+                C.Cost_Center, C.Emp_No";
 
         // 4. Siapkan array parameter berurutan sesuai tanda '?' pada query
         $bindings = [
