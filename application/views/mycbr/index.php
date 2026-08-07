@@ -71,7 +71,7 @@
                                                 <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
-                                                <th class="text-center text-white">Payment Date</th>
+                                                <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                                 <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
                                             </tr>
                                         </thead>
@@ -84,7 +84,7 @@
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title">Bulk Update Payment Plan Date</h5>
+                                            <h5 class="modal-title">Bulk Update Sign Plan Date</h5>
                                             <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
                                                 <i class="fas fa-times"></i>
                                             </div>
@@ -92,10 +92,10 @@
                                         <div class="modal-body">
                                             <div class="alert alert-light-primary d-flex align-items-center p-5 mb-5">
                                                 <i class="fas fa-info-circle fs-1 text-primary me-3"></i>
-                                                <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count">0</b> dokumen yang dipilih.</span>
+                                                <span>Anda akan mengubah tanggal Sign Plan untuk <b id="bulk-count">0</b> dokumen yang dipilih.</span>
                                             </div>
 
-                                            <label class="form-label fw-bold required">Set Payment Plan Date</label>
+                                            <label class="form-label fw-bold required">Set Sign Plan Date</label>
                                             <div class="input-group mb-3">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon3"><?= $this->session->userdata('sys_sba_department') ?>_</span>
@@ -199,7 +199,7 @@
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Type</th>
-                                            <th class="text-center text-white">Payment Date</th>
+                                            <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                             <th class="text-center text-white">Doc Date</th>
                                             <th class="text-center text-white">Submit <i class="far fa-calendar-alt text-white"></i></th>
                                             <th class="text-center text-white">Curr</th>
@@ -240,7 +240,7 @@
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title text-danger"><i class="fas fa-history text-danger me-2"></i> Bulk Update History Payment Date</h5>
+                                            <h5 class="modal-title text-danger"><i class="fas fa-history text-danger me-2"></i> Bulk Update History Sign Plan Date</h5>
                                             <div class="btn btn-icon btn-sm btn-active-light-primary ms-2" data-bs-dismiss="modal">
                                                 <i class="fas fa-times"></i>
                                             </div>
@@ -248,10 +248,10 @@
                                         <div class="modal-body">
                                             <div class="alert alert-light-danger d-flex align-items-center p-5 mb-5 border border-danger">
                                                 <i class="fas fa-exclamation-triangle fs-1 text-danger me-3"></i>
-                                                <span>Anda akan mengubah tanggal Payment Plan untuk <b id="bulk-count-history">0</b> data di <b>History</b>.</span>
+                                                <span>Anda akan mengubah tanggal Sign Plan untuk <b id="bulk-count-history">0</b> data di <b>History</b>.</span>
                                             </div>
 
-                                            <label class="form-label fw-bold required">New Payment Plan Date</label>
+                                            <label class="form-label fw-bold required">New Sign Plan Date</label>
                                             <div class="input-group mb-3">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text" id="basic-addon3"><?= $this->session->userdata('sys_sba_department') ?>_</span>

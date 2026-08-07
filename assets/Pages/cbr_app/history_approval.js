@@ -56,6 +56,10 @@ $(document).ready(function () {
                 },
                 { data: "Document_Number", name: "Document_Number" },
                 { data: "Descript", name: "Descript" },
+                {
+                    data: "Payment_Plan_Date",
+                    name: "Payment_Plan_Date",
+                },
                 { data: "baseamount", name: "baseamount", visible: false },
                 { data: "curr_rate", name: "curr_rate", visible: false },
                 { data: "Approval_Status", name: "Approval_Status", visible: false },
@@ -70,16 +74,19 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    data: "Paid_Status", name: "Paid_Status",
+                    data: "Payment_Status", // <-- Ganti data dan name ke Payment_Status
+                    name: "Payment_Status",
                     render: function (data) {
-                        if (data == 'NP') {
-                            return `<span class="text-dark badge badge-danger">Not Paid</span>`
-                        } else if (data == 'HP') {
-                            return `<span class="text-dark badge badge-warning">Half Paid</span>`
-                        } else if (data == 'FP') {
-                            return `<span class="text-dark badge badge-success">Full Paid</span>`
+                        if (data == 0 || data == null || data == '') {
+                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                        } else if (data == 3) {
+                            return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
+                        } else if (data == 1) {
+                            return `<span class="text-white badge badge-success">Fully Paid</span>`;
+                        } else if (data == 2) {
+                            return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
                         } else {
-                            return ''
+                            return `<span class="text-dark badge badge-light">-</span>`;
                         }
                     }
                 },
@@ -137,10 +144,7 @@ $(document).ready(function () {
                         return renderApprovalStatus(data, row.Status_AppvPresidentDirector);
                     }
                 },
-                {
-                    data: "Payment_Plan_Date",
-                    name: "Payment_Plan_Date",
-                },
+
             ],
             order: [
                 [3, "DESC"]
@@ -150,7 +154,7 @@ $(document).ready(function () {
                 targets: 7
             }, {
                 className: "text-center dt-nowrap",
-                targets: [0, 3, 4, 6, 11, 12, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+                targets: [0, 3, 4, 6, 12, 13, 16, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
             }, {
                 className: "details-control pr-4 dt-nowrap",
                 targets: [1]
@@ -186,16 +190,16 @@ $(document).ready(function () {
                 }
             },
             preDrawCallback: function () {
-                $("TableDataHistory tbody td").addClass("blurry");
+                $("#TableDataHistory tbody td").addClass("blurry");
             },
             language: {
                 processing: '<i style="color:#4a4a4a" class="fa fa-spinner fa-spin fa-3x fa-fw"></i><span class="sr-only"></span><p><span style="color:#4a4a4a" style="text-align:center" class="loading-text"></span> ',
                 searchPlaceholder: "Search..."
             },
             drawCallback: function () {
-                $("TableDataHistory tbody td").addClass("blurry");
+                $("#TableDataHistory tbody td").addClass("blurry");
                 setTimeout(function () {
-                    $("TableDataHistory tbody td").removeClass("blurry");
+                    $("#TableDataHistory tbody td").removeClass("blurry");
                 });
                 $('[data-bs-toggle="tooltip"]').tooltip();
                 DataTable.tables({ visible: true, api: true }).columns.adjust();
@@ -219,7 +223,7 @@ $(document).ready(function () {
                 }
             }
             ],
-        }).buttons().container().appendTo('TableDataHistory_wrapper .col-md-6:eq(0)');
+        }).buttons().container().appendTo('#TableDataHistory_wrapper .col-md-6:eq(0)');
     }
 
     document.querySelectorAll('a[data-bs-toggle="tab"]').forEach((el) => {

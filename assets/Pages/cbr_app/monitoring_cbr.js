@@ -260,6 +260,10 @@ $(document).ready(function () {
                     render: function (data, type, row) {
                         return renderApprovalStatusWithName(row.Has_Submitted_Approval, data, row.Status_AppvPresidentDirector) + ' <br/> ' + row.AppvPresidentDirector_At;
                     }
+                },
+                {
+                    data: "Payment_Plan_Date",
+                    name: "Payment_Plan_Date",
                 }
             ],
             order: [

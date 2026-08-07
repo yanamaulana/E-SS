@@ -203,26 +203,29 @@ class MonitoringTermin extends CI_Controller
         $columns = array(
             0 => 'H.CBReq_No',
             1 => 'H.CBReq_No',
-            2 => 'TM.Termin_Ke', // <-- FIX: Sudah dimasukkan!
-            3 => 'H.Document_Date',
-            4 => 'H.Currency_Id',
-            5 => 'TM.Amount_Termin',
-            6 => 'H.Descript',
-            7 => 'H.isClose',
-            8 => 'TM.Status_AppvPresdir',
-            9 => 'TM.Termin_Payment_status',
-            10 => 'TA.UserDivision',
-            11 => 'U.First_Name',
-            12 => 'TA.Status_AppvAsstManager',
-            13 => 'TA.Status_AppvManager',
-            14 => 'TA.Status_AppvSeniorManager',
-            15 => 'TA.Status_AppvGeneralManager',
-            16 => 'TA.Status_AppvAdditional',
-            17 => 'TA.Status_AppvFinancePerson',
-            18 => 'TA.Status_AppvDirector',
-            19 => 'TA.Status_AppvFinanceDirector',
-            20 => 'TM.Status_AppvPresdir',
-            21 => 'TM.Termin_Payment_status_at',
+            2 => 'TM.Termin_Ke',
+            3 => 'TM.Amount_Type',
+            4 => 'H.Document_Date',
+            5 => 'TM.Payment_Plan_Date',
+            6 => 'H.Payment_Plan_Date',
+            7 => 'H.Currency_Id',
+            8 => 'TM.Amount_Termin',
+            9 => 'H.Descript',
+            10 => 'H.isClose',
+            11 => 'TM.Status_AppvPresdir',
+            12 => 'TM.Termin_Payment_status',
+            13 => 'TA.UserDivision',
+            14 => 'U.First_Name',
+            15 => 'TA.IsAppvAsstManager',
+            16 => 'TA.IsAppvManager',
+            17 => 'TA.IsAppvSeniorManager',
+            18 => 'TA.IsAppvGeneralManager',
+            19 => 'TA.IsAppvAdditional',
+            20 => 'TA.IsAppvFinancePerson',
+            21 => 'TA.IsAppvDirector',
+            22 => 'TA.IsAppvFinanceDirector',
+            23 => 'TA.IsAppvPresidentDirector',
+            24 => 'TM.Termin_Payment_status_at',
         );
 
         $order  = $columns[$requestData['order']['0']['column']] ?? 'H.Document_Date';
@@ -250,9 +253,10 @@ class MonitoringTermin extends CI_Controller
 
         // --- 2. KUERI UTAMA ---
         $sql = "SELECT DISTINCT 
-                H.CBReq_No, TM.Termin_Ke, H.Document_Date, H.Document_Number, 
+                H.CBReq_No, TM.Termin_Ke, TM.Amount_Type, H.Document_Date, H.Document_Number, 
                 H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
-                
+                TM.Payment_Plan_Date AS Termin_Payment_Plan_Date, 
+                H.Payment_Plan_Date AS Header_Payment_Plan_Date, 
                 TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
                 TM.AppvPresdir_By AS AppvPresidentDirector_By,
                 TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
@@ -302,6 +306,9 @@ class MonitoringTermin extends CI_Controller
                 OR TA.UserDivision LIKE '%$searchValue%' ESCAPE '!'
                 OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Descript LIKE '%$searchValue%' ESCAPE '!'
+                OR TM.Amount_Type LIKE '%$searchValue%' ESCAPE '!'
+                OR CAST(TM.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' ESCAPE '!'
+                OR CAST(H.Payment_Plan_Date AS VARCHAR) LIKE '%$searchValue%' ESCAPE '!'
             ) ";
         }
 
@@ -352,12 +359,15 @@ class MonitoringTermin extends CI_Controller
             $nestedData = array();
 
             $nestedData['CBReq_No'] = $row['CBReq_No'];
-            $nestedData['Termin_Ke'] = $row['Termin_Ke']; // <-- FIX: Sudah dimasukkan!
-            $nestedData['isClose'] = $row['isClose'];
+            $nestedData['Termin_Ke'] = $row['Termin_Ke'];
+            $nestedData['Amount_Type'] = $row['Amount_Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
+            $nestedData['Termin_Payment_Plan_Date'] = $row['Termin_Payment_Plan_Date'];
+            $nestedData['Header_Payment_Plan_Date'] = $row['Header_Payment_Plan_Date'];
             $nestedData['Currency_Id'] = $row['Currency_Id'];
             $nestedData['Amount'] = $row['Amount'];
             $nestedData['Descript'] = $row['Descript'];
+            $nestedData['isClose'] = $row['isClose'];
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['First_Name'] = $row['First_Name'];
 

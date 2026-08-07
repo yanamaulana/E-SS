@@ -59,7 +59,7 @@ class MonitoringCbr extends CI_Controller
                     A.IsAppvFinancePerson, A.Status_AppvFinancePerson, A.AppvFinancePerson_At,
                     A.IsAppvDirector, A.Status_AppvDirector, A.AppvDirector_At,
                     A.IsAppvFinanceDirector, A.Status_AppvFinanceDirector, A.AppvFinanceDirector_At,
-                    A.IsAppvPresidentDirector, A.Status_AppvPresidentDirector, A.AppvPresidentDirector_At
+                    A.IsAppvPresidentDirector, A.Status_AppvPresidentDirector, A.AppvPresidentDirector_At, H.Payment_Plan_Date
                 FROM TAccCashBookReq_Header H
                 INNER JOIN TUserPersonal P ON H.Created_By = P.User_ID
                 LEFT JOIN Ttrx_Cbr_Approval A ON H.CBReq_No = A.CBReq_No
@@ -98,6 +98,7 @@ class MonitoringCbr extends CI_Controller
                       OR P.First_Name LIKE '%$searchValue%' ESCAPE '!'
                       OR A.UserDivision LIKE '%$searchValue%' ESCAPE '!'
                       OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
+                      OR H.Payment_Plan_Date LIKE '%$searchValue%' ESCAPE '!'
                       OR H.Descript LIKE '%$searchValue%' ESCAPE '!') ";
         }
 

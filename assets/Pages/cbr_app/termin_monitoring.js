@@ -40,10 +40,20 @@ $(document).ready(function () {
                         return `<span class="badge badge-light-primary text-dark border">Termin ${data}</span>`;
                     }
                 },
+                { data: "Amount_Type", name: "Amount_Type" },
                 {
                     data: "Document_Date", name: "Document_Date", render: function (data) {
                         return data ? data.substring(0, data.indexOf(' ')) : '-';
                     }
+                },
+                {
+                    data: "Termin_Payment_Plan_Date", name: "Termin_Payment_Plan_Date", render: function (data) {
+                        return data ? data.substring(0, data.indexOf(' ')) : '-';
+                    }
+                },
+                {
+                    data: "Header_Payment_Plan_Date",
+                    name: "Header_Payment_Plan_Date",
                 },
                 { data: "Currency_Id", name: "Currency_Id" },
                 {
@@ -127,22 +137,22 @@ $(document).ready(function () {
                 },
                 { data: "Payment_Status_Time_Change", name: "Payment_Status_Time_Change" }
             ],
-            // 1. Order: Berdasarkan Document_Date sekarang berada di kolom indeks 3 (karena ada kolom Termin di indeks 2)
+            // 1. Order: Berdasarkan Document_Date sekarang berada di kolom indeks 4
             order: [
-                [3, "DESC"]
+                [4, "DESC"]
             ],
 
             // 2. Gabungan ColumnDefs yang rapi
             columnDefs: [
                 {
-                    // Pengaturan lebar khusus untuk kolom Description (sekarang di indeks 6)
+                    // Pengaturan lebar khusus untuk kolom Description (sekarang di indeks 9)
                     width: "220px",
-                    targets: [6]
+                    targets: [9]
                 },
                 {
                     // Alignment center untuk kolom yang sifatnya status/ID/tanggal
                     className: "text-center dt-nowrap",
-                    targets: [0, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+                    targets: [0, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
                 },
                 {
                     // Ikon detail
@@ -150,9 +160,9 @@ $(document).ready(function () {
                     targets: [1]
                 },
                 {
-                    // Alignment kanan untuk angka (Amount di indeks 4)
+                    // Alignment kanan untuk angka (Amount di indeks 8)
                     className: "dt-nowrap text-end",
-                    targets: [4]
+                    targets: [8]
                 }
             ],
             // orderCellsTop: true,

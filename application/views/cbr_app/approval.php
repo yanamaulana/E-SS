@@ -54,25 +54,25 @@
                                                     </div>
                                                 </th>
                                                 <th class="text-center text-white">Doc Numb</th>
-                                                <th class="text-center text-white">Type</th>
+                                                <th class="d-none text-center text-white">Type</th>
                                                 <th class="text-center text-white">Date</th>
                                                 <th class="text-center text-white">Curr</th>
                                                 <th class="text-center text-white">Amount</th>
                                                 <th class="text-center text-white">Ref No</th>
-                                                <th class="text-center text-white">Description</th>
-                                                <th class="text-center text-white">baseamount</th>
-                                                <th class="text-center text-white">curr_rate</th>
-                                                <th class="text-center text-white">Approval_Status</th>
+                                                <th class="text-white">Description</th>
+                                                <th class="d-none text-center text-white">baseamount</th>
+                                                <th class="d-none text-center text-white">curr_rate</th>
+                                                <th class="d-none text-center text-white">Approval_Status</th>
                                                 <th class="text-center text-white">Status</th>
                                                 <th class="text-center text-white">Paid Status</th>
-                                                <th class="text-center text-white">Creation_DateTime</th>
-                                                <th class="text-center text-white">Created_By</th>
+                                                <th class="d-none text-center text-white">Creation_DateTime</th>
+                                                <th class="d-none text-center text-white">Created_By</th>
                                                 <th class="text-center text-white">Department</th>
                                                 <th class="text-center text-white">Created By</th>
-                                                <th class="text-center text-white">Last Update</th>
-                                                <th class="text-center text-white">Acc_ID</th>
-                                                <th class="text-center text-white">Approved Date</th>
-                                                <th class="text-center text-white">Payment Plan Date</th>
+                                                <th class="d-none text-center text-white">Last Update</th>
+                                                <th class="d-none text-center text-white">Acc_ID</th>
+                                                <th class="d-none text-center text-white">Approved Date</th>
+                                                <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                                 <!-- <th class="text-center text-white"><i class="fas fa-cogs"></i></th> -->
                                             </tr>
                                         </thead>
@@ -116,27 +116,28 @@
                                         <tr class="text-white fw-bolder text-uppercase">
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
-                                            <th class="text-center text-white">Type</th>
+                                            <th class="d-none text-center text-white">Type</th>
                                             <th class="text-center text-white">Date</th>
                                             <th class="text-center text-white">Curr</th>
                                             <th class="text-center text-white">Amount</th>
-                                            <th class="text-center text-white">Ref No</th>
+                                            <th class="text-center text-white">Document Number</th>
                                             <th class="text-white" style="min-width: 220px;">Description</th>
-                                            <th class="text-center text-white">baseamount</th>
-                                            <th class="text-center text-white">curr_rate</th>
-                                            <th class="text-center text-white">Approval_Status</th>
+                                            <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
+                                            <th class="d-none text-center text-white">baseamount</th>
+                                            <th class="d-none text-center text-white">curr_rate</th>
+                                            <th class="d-none text-center text-white">Approval_Status</th>
                                             <th class="text-center text-white">Status</th>
                                             <th class="text-center text-white">Paid Status</th>
-                                            <th class="text-center text-white">Creation_DateTime</th>
-                                            <th class="text-center text-white">Created_By</th>
+                                            <th class="d-none text-center text-white">Creation_DateTime</th>
+                                            <th class="d-none text-center text-white">Created_By</th>
                                             <th class="text-center text-white">Department</th>
                                             <th class="text-center text-white">Created By</th>
-                                            <th class="text-center text-white">Last_Update</th>
-                                            <th class="text-center text-white">Acc_ID</th>
-                                            <th class="text-center text-white">Approved Date</th>
+                                            <th class="d-none text-center text-white">Last Update</th>
+                                            <th class="d-none text-center text-white">Acc_ID</th>
+                                            <th class="d-none text-center text-white">Approved Date</th>
                                             <!-- APPROVAL SECTION -->
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; STAFF</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; CHIEF</th>
+                                            <th class="d-none text-center text-white">ASST STAFF</th>
+                                            <th class="d-none text-center text-white">CHIEF</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ASST.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; SR.MANAGER</th>
@@ -146,7 +147,6 @@
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>
-                                            <th class="text-center text-white">Payment Plan Date</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600 fw-bold">
@@ -189,35 +189,24 @@
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Termin</th>
-                                            <!-- <th class="text-center text-white">Type</th> -->
+                                            <th class="text-center text-white">Amount Type</th>
                                             <th class="text-center text-white">Date</th>
+                                            <th class="text-center text-white">ACC Plan <i class="fas fa-calendar-alt text-white"></i></th>
+                                            <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                             <th class="text-center text-white">Curr</th>
                                             <th class="text-center text-white">Amount</th>
-                                            <!-- <th class="text-center text-white">Ref No</th> -->
                                             <th class="text-white" style="min-width: 220px;">Description</th>
-                                            <!-- <th class="text-center text-white">baseamount</th> -->
-                                            <!-- <th class="text-center text-white">curr_rate</th> -->
-                                            <!-- <th class="text-center text-white">Approval_Status</th> -->
                                             <th class="text-center text-white">Status</th>
                                             <th class="text-center text-white">Approval Status</th>
-                                            <!-- <th class="text-center text-white">paid_status erp</th> -->
                                             <th class="text-center text-white">Paid Status</th>
-                                            <!-- <th class="text-center text-white">Creation_DateTime</th> -->
-                                            <!-- <th class="text-center text-white">Created_By</th> -->
                                             <th class="text-center text-white">Department</th>
                                             <th class="text-center text-white">Created By</th>
-                                            <!-- <th class="text-center text-white">Last_Update</th> -->
-                                            <!-- <th class="text-center text-white">Acc_ID</th> -->
-                                            <!-- <th class="text-center text-white">Approved Date</th> -->
-                                            <!-- APPROVAL SECTION -->
-                                            <!-- <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; STAFF</th> -->
-                                            <!-- <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; CHIEF</th> -->
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ASST.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; SR.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; G.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ADDITIONAL</th>
-                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ACCOUNTING</th>
+                                            <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i;&nbsp; ACCOUNTING</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>

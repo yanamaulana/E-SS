@@ -295,24 +295,27 @@ class CbrAppPresidentDirector extends CI_Controller
             1  => 'H.CBReq_No',
             2  => 'TM.Termin_Ke',
             3  => 'H.Type',
-            4  => 'H.Document_Date',
-            5  => 'H.Currency_Id',
-            6  => 'TM.Amount_Termin',
-            7  => 'H.Document_Number',
-            8  => 'H.Descript',
-            9  => 'H.baseamount',
-            10 => 'H.curr_rate',
-            11 => 'H.Approval_Status',
-            12 => 'TM.Status_AppvPresdir',
-            13 => 'TA.Payment_Status',
-            14 => 'H.Creation_DateTime',
-            15 => 'H.Created_By',
-            16 => 'TA.UserDivision',
-            17 => 'U.First_Name',
-            18 => 'H.Last_Update',
-            19 => 'H.Acc_ID',
-            20 => 'H.Approve_Date',
-            21 => 'H.Payment_Plan_Date',
+            4  => 'TM.Amount_Type',
+            5  => 'H.Document_Date',
+            6  => 'TM.Payment_Plan_Date',
+            7  => 'H.Payment_Plan_Date',
+            8  => 'H.Currency_Id',
+            9  => 'TM.Amount_Termin',
+            10 => 'H.Document_Number',
+            11 => 'H.Descript',
+            12 => 'H.baseamount',
+            13 => 'H.curr_rate',
+            14 => 'H.Approval_Status',
+            15 => 'TM.Status_AppvPresdir',
+            16 => 'TA.Payment_Status',
+            17 => 'H.Creation_DateTime',
+            18 => 'H.Created_By',
+            19 => 'TA.UserDivision',
+            20 => 'U.First_Name',
+            21 => 'H.Last_Update',
+            22 => 'H.Acc_ID',
+            23 => 'H.Approve_Date',
+            24 => 'H.Payment_Plan_Date',
         );
         $columnIndex = isset($requestData['order'][0]['column']) ? (int) $requestData['order'][0]['column'] : 0;
         $order = isset($columns[$columnIndex]) ? $columns[$columnIndex] : 'H.CBReq_No';
@@ -323,7 +326,9 @@ class CbrAppPresidentDirector extends CI_Controller
             H.CBReq_No, 
             TM.SysID AS Termin_SysID,
             TM.Termin_Ke, 
+            TM.Amount_Type,
             TM.Amount_Termin AS Amount,
+            TM.Payment_Plan_Date AS Termin_Payment_Plan_Date,
             H.Payment_Plan_Date,
             H.Type, H.Document_Date, H.Document_Number, H.Acc_ID, H.Descript, 
             H.baseamount, H.curr_rate, H.Approval_Status, H.CBReq_Status, H.Paid_Status, 
@@ -365,6 +370,8 @@ class CbrAppPresidentDirector extends CI_Controller
             $searchSql = " AND (
                 H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Payment_Plan_Date LIKE '%$searchValue%' ESCAPE '!'
+                OR TM.Amount_Type LIKE '%$searchValue%' ESCAPE '!'
+                OR TM.Payment_Plan_Date LIKE '%$searchValue%' ESCAPE '!'
                 OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Currency_Id LIKE '%$searchValue%' ESCAPE '!'
@@ -392,7 +399,9 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['Acc_ID'] = $row['Acc_ID'];
             $nestedData['Descript'] = $row['Descript'];
             $nestedData['Document_Number'] = $row['Document_Number'];
+            $nestedData['Amount_Type'] = $row['Amount_Type'];
             $nestedData['Amount'] = $row['Amount']; // Amount sudah berasal dari TM.Amount_Termin
+            $nestedData['Termin_Payment_Plan_Date'] = $row['Termin_Payment_Plan_Date'];
             $nestedData['baseamount'] = $row['baseamount'];
             $nestedData['curr_rate'] = $row['curr_rate'];
             $nestedData['Approval_Status'] = $row['Approval_Status'];
@@ -408,6 +417,7 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            // $nestedData['Termin_Payment_Plan_Date'] = $row['Termin_Payment_Plan_Date'];
             $nestedData['Payment_Plan_Date'] = $row['Payment_Plan_Date'];
 
             $data[] = $nestedData;
@@ -632,26 +642,27 @@ class CbrAppPresidentDirector extends CI_Controller
         $columns = array(
             0 => 'H.CBReq_No',
             1 => 'H.CBReq_No',
-            2 => 'TM.Termin_Ke', // <-- FIX: Sudah dimasukkan!
-            3 => 'H.Document_Date',
-            4 => 'H.Currency_Id',
-            5 => 'TM.Amount_Termin',
-            6 => 'H.Descript',
-            7 => 'H.isClose',
-            8 => 'TM.Status_AppvPresdir',
-            9 => 'TM.Termin_Payment_status',
-            10 => 'TA.UserDivision',
-            11 => 'U.First_Name',
-            12 => 'TA.Status_AppvAsstManager',
-            13 => 'TA.Status_AppvManager',
-            14 => 'TA.Status_AppvSeniorManager',
-            15 => 'TA.Status_AppvGeneralManager',
-            16 => 'TA.Status_AppvAdditional',
-            17 => 'TA.Status_AppvFinancePerson',
-            18 => 'TA.Status_AppvDirector',
-            19 => 'TA.Status_AppvFinanceDirector',
-            20 => 'TM.Status_AppvPresdir',
-            21 => 'TM.Termin_Payment_status_at',
+            2 => 'TM.Termin_Ke', // <-- Sudah dimasukkan
+            3 => 'TM.Amount_Type',
+            4 => 'H.Document_Date',
+            5 => 'H.Currency_Id',
+            6 => 'TM.Amount_Termin',
+            7 => 'H.Descript',
+            8 => 'H.isClose',
+            9 => 'TM.Status_AppvPresdir',
+            10 => 'TM.Termin_Payment_status',
+            11 => 'TA.UserDivision',
+            12 => 'U.First_Name',
+            13 => 'TA.Status_AppvAsstManager',
+            14 => 'TA.Status_AppvManager',
+            15 => 'TA.Status_AppvSeniorManager',
+            16 => 'TA.Status_AppvGeneralManager',
+            17 => 'TA.Status_AppvAdditional',
+            18 => 'TA.Status_AppvFinancePerson',
+            19 => 'TA.Status_AppvDirector',
+            20 => 'TA.Status_AppvFinanceDirector',
+            21 => 'TM.Status_AppvPresdir',
+            22 => 'TM.Termin_Payment_status_at',
         );
 
         $order  = $columns[$requestData['order']['0']['column']] ?? 'H.Document_Date';
@@ -663,40 +674,41 @@ class CbrAppPresidentDirector extends CI_Controller
 
         // --- 2. KUERI UTAMA ---
         $sql = "SELECT DISTINCT 
-                TM.SysID as SysID_Termin, H.CBReq_No, TM.Termin_Ke, H.Document_Date, H.Document_Number, 
-                H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
+            TM.SysID as SysID_Termin, H.CBReq_No, TM.Termin_Ke, TM.Amount_Type, H.Document_Date, H.Document_Number, 
+            H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
                 
-                TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
-                TM.AppvPresdir_By AS AppvPresidentDirector_By,
-                TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
-                TM.AppvPresdir_At AS AppvPresidentDirector_At,
+            TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
+            TM.AppvPresdir_By AS AppvPresidentDirector_By,
+            TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
+            TM.AppvPresdir_At AS AppvPresidentDirector_At,
+            TA.IsAppvPresidentDirector,
                 
-                TM.Termin_Payment_status AS Payment_Status,
-                TM.Termin_Payment_status_at AS Payment_Status_Time_Change,
+            TM.Termin_Payment_status AS Payment_Status,
+            TM.Termin_Payment_status_at AS Payment_Status_Time_Change,
                 
-                TA.UserDivision, U.First_Name,
+            TA.UserDivision, U.First_Name,
                 
-                TA.IsAppvAsstManager, TA.Status_AppvAsstManager, TA.AppvAsstManager_At,
-                TA.IsAppvManager, TA.Status_AppvManager, TA.AppvManager_At,
-                TA.IsAppvSeniorManager, TA.Status_AppvSeniorManager, TA.AppvSeniorManager_At,
-                TA.IsAppvGeneralManager, TA.Status_AppvGeneralManager, TA.AppvGeneralManager_At,
-                TA.IsAppvAdditional, TA.Status_AppvAdditional, TA.AppvAdditional_At,
-                TA.IsAppvFinancePerson, TA.Status_AppvFinancePerson, TA.AppvFinancePerson_At,
-                TA.IsAppvDirector, TA.Status_AppvDirector, TA.AppvDirector_At,
-                TA.IsAppvFinanceDirector, TA.Status_AppvFinanceDirector, TA.AppvFinanceDirector_At
+            TA.IsAppvAsstManager, TA.Status_AppvAsstManager, TA.AppvAsstManager_At,
+            TA.IsAppvManager, TA.Status_AppvManager, TA.AppvManager_At,
+            TA.IsAppvSeniorManager, TA.Status_AppvSeniorManager, TA.AppvSeniorManager_At,
+            TA.IsAppvGeneralManager, TA.Status_AppvGeneralManager, TA.AppvGeneralManager_At,
+            TA.IsAppvAdditional, TA.Status_AppvAdditional, TA.AppvAdditional_At,
+            TA.IsAppvFinancePerson, TA.Status_AppvFinancePerson, TA.AppvFinancePerson_At,
+            TA.IsAppvDirector, TA.Status_AppvDirector, TA.AppvDirector_At,
+            TA.IsAppvFinanceDirector, TA.Status_AppvFinanceDirector, TA.AppvFinanceDirector_At
                 
-                FROM Ttrx_Cbr_Approval_Termin TM
-                INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
-                INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
-                INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
+            FROM Ttrx_Cbr_Approval_Termin TM
+            INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+            INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
+            INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
                 
-                WHERE H.Type='D'
-                AND H.Company_ID = 2 
-                AND ISNULL(H.isSPJ,0) = 0
-                AND H.Approval_Status = 3
-                AND H.CBReq_Status = 3
-                AND TM.AppvPresdir_By = '$username'
-                AND TM.Status_AppvPresdir <> 0 ";
+            WHERE H.Type='D'
+            AND H.Company_ID = 2 
+            AND ISNULL(H.isSPJ,0) = 0
+            AND H.Approval_Status = 3
+            AND H.CBReq_Status = 3
+            AND TM.AppvPresdir_By = '$username'
+            AND TM.Status_AppvPresdir <> 0 ";
 
         if (!empty($from) && !empty($until) && !empty($column_range)) {
             $sql .= " AND $column_range >= '$from' AND $column_range <= '$until 23:59:59' ";
@@ -710,6 +722,7 @@ class CbrAppPresidentDirector extends CI_Controller
             $sql .= " AND (
                 H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
+                OR TM.Amount_Type LIKE '%$searchValue%' ESCAPE '!'
                 OR TA.UserDivision LIKE '%$searchValue%' ESCAPE '!'
                 OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
                 OR H.Descript LIKE '%$searchValue%' ESCAPE '!'
@@ -765,6 +778,7 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['SysID_Termin'] = $row['SysID_Termin'];
             $nestedData['CBReq_No'] = $row['CBReq_No'];
             $nestedData['Termin_Ke'] = $row['Termin_Ke']; // <-- FIX: Sudah dimasukkan!
+            $nestedData['Amount_Type'] = $row['Amount_Type'];
             $nestedData['isClose'] = $row['isClose'];
             $nestedData['Document_Date'] = $row['Document_Date'];
             $nestedData['Currency_Id'] = $row['Currency_Id'];
@@ -819,7 +833,7 @@ class CbrAppPresidentDirector extends CI_Controller
             $nestedData['AppvFinanceDirector_At'] = !empty($row['AppvFinanceDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-';
 
             // President Director (Tambahan jika di-render juga di frontend)
-            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'] ?? 0;
+            $nestedData['IsAppvPresidentDirector'] = $row['IsAppvPresidentDirector'];
             $nestedData['Status_AppvPresidentDirector'] = $row['Status_AppvPresidentDirector'] ?? 0;
             $nestedData['AppvPresidentDirector_At'] = !empty($row['AppvPresidentDirector_At']) ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-';
 

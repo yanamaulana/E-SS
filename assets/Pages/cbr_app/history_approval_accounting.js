@@ -11,7 +11,25 @@ $(document).ready(function () {
         }
     })
 
-    $('.date-picker').flatpickr();
+    function initFlatpickr(selector, defaultDateValue = null) {
+        const futureYear = new Date().getFullYear() + 10;
+        $(selector).flatpickr({
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            defaultDate: defaultDateValue || null,
+            minDate: '2020-01-01',
+            maxDate: new Date(futureYear, 11, 31),
+            yearSelectorType: 'dropdown',
+            monthSelectorType: 'dropdown',
+            onReady: function (selectedDates, dateStr, instance) {
+                if (!dateStr) {
+                    instance.clear();
+                }
+            }
+        });
+    }
+
+    initFlatpickr('.date-picker');
 
 
     $(document).on('input', '.inp-amount-termin', function () {
@@ -634,6 +652,96 @@ $(document).ready(function () {
     let totalCbrAmount = 0;
     let cbrCurrency = 'IDR';
 
+    function normalizeAmountType(value) {
+        if (!value) {
+            return 'AP';
+        }
+
+        const normalized = String(value).trim().toLowerCase();
+        if (['pph', 'pph21', 'pph22', 'pph23', 'withholding', 'withholdingtax'].includes(normalized)) {
+            return 'PPH';
+        }
+
+        if (['ppn', 'vat', 'pajak', 'tax', 'taxes', 'pajakpertambahannilai', 'pajak-pertambahan-nilai'].includes(normalized)) {
+            return 'PPN';
+        }
+
+        if (['dpp', 'ap', 'base', 'utama', 'main'].includes(normalized)) {
+            return 'AP';
+        }
+
+        return 'AP';
+    }
+
+    function getRowStatusValue(status) {
+        if (status === 1 || status === 2 || status === '1' || status === '2') {
+            return String(status);
+        }
+
+        return 'draft';
+    }
+
+    function getAmountTypeBadge(amountType) {
+        const normalizedType = normalizeAmountType(amountType);
+        let badgeClass = 'badge-light-success';
+
+        if (normalizedType === 'PPH') {
+            badgeClass = 'badge-light-warning';
+        } else if (normalizedType === 'PPN') {
+            badgeClass = 'badge-light-danger';
+        }
+
+        return `<span class="badge badge-sm ${badgeClass} fw-bold amount-type-badge">${normalizedType}</span>`;
+    }
+
+    function refreshRowAmountTypeBadge(rowElement) {
+        const select = $(rowElement).find('select[name="amount_type[]"]');
+        const currentType = select.val();
+        const badgeContainer = $(rowElement).find('.amount-type-badge-wrapper');
+        if (badgeContainer.length > 0) {
+            badgeContainer.html(getAmountTypeBadge(currentType));
+        }
+    }
+
+    function validateAmountTypeLimit(rowElement, newType) {
+        if (newType !== 'PPH' && newType !== 'PPN') {
+            return true;
+        }
+
+        let count = 0;
+        $('.termin-row').each(function () {
+            const rowType = $(this).find('select[name="amount_type[]"]').val();
+            if (this !== rowElement && rowType === newType) {
+                count++;
+            }
+        });
+
+        if (count > 0) {
+            Swal.fire({
+                text: `${newType} hanya boleh ada 1 baris termin.`,
+                icon: 'warning',
+                buttonsStyling: false,
+                confirmButtonText: 'Mengerti',
+                customClass: { confirmButton: 'btn btn-sm btn-warning' }
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    function getAmountTypeValue(item) {
+        const candidates = [
+            item?.Amount_Type,
+            item?.AmountType,
+            item?.amount_type,
+            item?.amountType,
+        ];
+
+        const foundValue = candidates.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+        return normalizeAmountType(foundValue);
+    }
+
     $(document).on('click', '.btn-set-termin', function () {
         const cbreqNo = $(this).data('cbreq-no');
         totalCbrAmount = parseFloat($(this).data('amount')) || 0;
@@ -655,12 +763,14 @@ $(document).ready(function () {
                 let hasActiveAwaiting = false;
 
                 if (response && response.length > 0) {
-                    response.forEach(function (item, index) {
+                    response.forEach(function (item) {
                         let planDate = item.Payment_Plan_Date ? item.Payment_Plan_Date.split(' ')[0] : '';
+                        if (planDate === '0000-00-00' || planDate === '1900-01-01') {
+                            planDate = '';
+                        }
 
-                        addTerminRow(item.Amount_Termin, planDate, item.Status_AppvPresdir, cbrCurrency);
+                        addTerminRow(item.Amount_Termin, planDate, item.Status_AppvPresdir, cbrCurrency, getAmountTypeValue(item));
 
-                        // Akumulasi hanya yang sudah APPROVED (Status 1)
                         if (item.Status_AppvPresdir == 1) {
                             totalApproved += parseFloat(item.Amount_Termin);
                         }
@@ -670,28 +780,16 @@ $(document).ready(function () {
                         }
                     });
 
-                    // LOGIKA: Jika nominal Approved sudah sama dengan Total CBR
-                    // Kita gunakan Math.abs agar toleransi desimal aman
                     if (Math.abs(totalApproved - totalCbrAmount) < 0.01) {
-                        $('#msg_termin_complete').removeClass('d-none'); // Tampilkan pesan
-                        $('#table_termin_wrapper').addClass('d-none');   // Sembunyikan tabel
-                        $('#btn_save_termin').hide();                    // Sembunyikan tombol simpan
+                        $('#msg_termin_complete').removeClass('d-none');
+                        $('#btn_save_termin').hide();
                     } else {
                         $('#msg_termin_complete').addClass('d-none');
-                        $('#table_termin_wrapper').removeClass('d-none');
-
-                        // Jika tidak ada yang awaiting, baru buatkan baris draft sisa
-                        let outstanding = totalCbrAmount - totalApproved; // Outstanding dari yang sudah approved
-                        if (!hasActiveAwaiting && outstanding > 0.01) {
-                            addTerminRow(outstanding, '', 'draft', cbrCurrency);
-                        }
                     }
 
                 } else {
-                    // Jika data benar-benar kosong
                     $('#msg_termin_complete').addClass('d-none');
-                    $('#table_termin_wrapper').removeClass('d-none');
-                    addTerminRow(totalCbrAmount, '', 'draft', cbrCurrency);
+                    addTerminRow(totalCbrAmount, '', 'draft', cbrCurrency, 'AP');
                 }
 
                 calculateRemaining();
@@ -700,68 +798,118 @@ $(document).ready(function () {
         });
     });
 
-    function addTerminRow(amount = 0, date = '', status = 0, cbrCurrency) {
+    function addTerminRow(amount = 0, date = '', status = 0, cbrCurrency, amountType = 'AP') {
         const rowCount = $('.termin-row').length + 1;
-
-        // Input terkunci HANYA jika status dari DB adalah 1 (Approved) atau 2 (Rejected)
-        // Jika statusnya 0 (Awaiting) atau 'draft', input tetap TERBUKA agar bisa di-split/diubah
         const isDisabled = (status == 1 || status == 2) ? 'disabled' : '';
-        const isDeleteHidden = (status == 1 || status == 2) ? 'd-none' : '';
+        const normalizedAmountType = normalizeAmountType(amountType);
+        const rowStatusValue = getRowStatusValue(status);
 
-        // Pemetaan Badge Status berdasarkan standarisasi angka Anda + kondisi 'draft'
         let badgeStatus = '';
         if (status == 1) {
             badgeStatus = '<span class="badge badge-sm badge-light-success fw-bold">Approved</span>';
         } else if (status == 2) {
             badgeStatus = '<span class="badge badge-sm badge-light-danger fw-bold">Rejected</span>';
         } else if (status === 'draft') {
-            // Tampilan khusus untuk baris otomatis yang belum masuk DB
             badgeStatus = '<span class="badge badge-sm badge-light-primary fw-bold">Draft</span>';
         } else {
-            // Status 0 dari DB
             badgeStatus = '<span class="badge badge-sm badge-light-warning fw-bold">Awaiting</span>';
         }
 
-        const html = `<tr class="termin-row fs-7" data-status="${status}">
+        const canDelete = rowStatusValue !== '1' && rowStatusValue !== '2' && status !== 1 && status !== 2;
+        const deleteButtonHtml = canDelete
+            ? `<button type="button" class="btn btn-icon btn-light-danger btn-sm btn-delete-termin-row" title="Hapus baris ini"><i class="fas fa-trash fs-8"></i></button>`
+            : '';
+
+        const html = `<tr class="termin-row fs-7" data-status="${rowStatusValue}">
                     <td class="text-center fw-bold row-number ps-2">${rowCount}</td>
                     <td class="text-center">${badgeStatus}</td>
                     <td>
                         <div class="input-group input-group-sm input-group-solid">
                             <span class="input-group-text fw-bold fs-7 py-1 px-2">${cbrCurrency}</span>
                             <input type="text" name="amount_termin[]" class="form-control form-control-sm form-control-solid inp-amount-termin fs-7 py-1" value="${amount}" required ${isDisabled}>
-                            ${(status == 1 || status == 2) ? `<input type="hidden" name="amount_termin[]" value="${amount}">` : ''}
                         </div>
                     </td>
                     <td>
                         <input type="text" name="payment_plan_date[]" class="form-control form-control-sm form-control-solid date-picker fs-7 py-1" value="${date}" required ${isDisabled}>
-                        ${(status == 1 || status == 2) ? `<input type="hidden" name="payment_plan_date[]" value="${date}">` : ''}
                     </td>
-                   <!-- <td class="text-center pe-2">
-                        <button type="button" class="btn btn-icon btn-light-danger btn-sm w-25px h-25px btn-delete-row ${isDeleteHidden}" title="Hapus">
-                            <i class="fas fa-trash fs-8"></i>
-                        </button> --!> 
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="amount-type-badge-wrapper">${getAmountTypeBadge(normalizedAmountType)}</span>
+                                <select name="amount_type[]" class="form-select form-select-sm form-select-solid fs-7 py-1" required ${isDisabled}>
+                                    <option value="AP" ${normalizedAmountType === 'AP' ? 'selected' : ''}>AP</option>
+                                    <option value="PPH" ${normalizedAmountType === 'PPH' ? 'selected' : ''}>PPH</option>
+                                    <option value="PPN" ${normalizedAmountType === 'PPN' ? 'selected' : ''}>PPN</option>
+                                </select>
+                            </div>
+                        </div>
                     </td>
+                    <td class="text-center">
+                        ${deleteButtonHtml}
+                    </td>
+                    <input type="hidden" name="row_status[]" value="${rowStatusValue}">
                 </tr>`;
 
         $('#termin_table_body').append(html);
+        const newRow = $('#termin_table_body .termin-row').last();
+        newRow.find('select[name="amount_type[]"]').data('last-value', normalizedAmountType);
+        refreshRowAmountTypeBadge(newRow);
         calculateRemaining();
-        $('.date-picker').flatpickr({
-            dateFormat: "Y-m-d"
-        });
+        initFlatpickr(newRow.find('.date-picker'), date || null);
     }
 
-    // Handler tombol "Hapus" baris termin
-    $(document).on('click', '.btn-delete-row', function () {
-        if ($('.termin-row').length > 1) {
-            $(this).closest('.termin-row').remove();
-            // Susun ulang nomor urut termin (1, 2, 3...)
-            $('.termin-row').each(function (index) {
-                $(this).find('.row-number').text(index + 1);
+    $(document).on('click', '#btn_add_termin_row', function () {
+        const remaining = parseFloat($('#txt_modal_remaining_amount').data('val')) || 0;
+
+        if (remaining <= 0.01) {
+            Swal.fire({
+                text: 'Sisa limit sudah habis, tidak bisa menambah baris termin lagi.',
+                icon: 'warning',
+                buttonsStyling: false,
+                confirmButtonText: 'Mengerti',
+                customClass: { confirmButton: 'btn btn-sm btn-warning' }
             });
-            calculateRemaining();
-        } else {
-            alert('Minimal harus ada 1 termin pembayaran!');
+            return;
         }
+
+        addTerminRow(remaining, '', 'draft', cbrCurrency, 'AP');
+        calculateRemaining();
+    });
+
+    $(document).on('change', 'select[name="amount_type[]"]', function () {
+        const row = $(this).closest('.termin-row');
+        const previousType = $(this).data('last-value') || $(this).val();
+        const newType = $(this).val();
+
+        if (!validateAmountTypeLimit(row.get(0), newType)) {
+            $(this).val(previousType);
+        } else {
+            $(this).data('last-value', newType);
+        }
+
+        refreshRowAmountTypeBadge(row);
+    });
+
+    $(document).on('click', '.btn-delete-termin-row', function () {
+        const row = $(this).closest('.termin-row');
+        const rowStatus = row.data('status');
+
+        if (rowStatus === '1' || rowStatus === '2' || rowStatus === 1 || rowStatus === 2) {
+            Swal.fire({
+                text: 'Baris yang sudah Approved/Rejected tidak dapat dihapus.',
+                icon: 'warning',
+                buttonsStyling: false,
+                confirmButtonText: 'Mengerti',
+                customClass: { confirmButton: 'btn btn-sm btn-warning' }
+            });
+            return;
+        }
+
+        row.remove();
+        $('.termin-row').each(function (index) {
+            $(this).find('.row-number').text(index + 1);
+        });
+        calculateRemaining();
     });
 
     // Handler hitung ulang tiap kali akuntan mengubah angka input secara manual
@@ -786,6 +934,9 @@ $(document).ready(function () {
 
         let remaining = totalCbrAmount - totalInputed;
         $('#txt_modal_remaining_amount').text(formatRupiah(remaining)).data('val', remaining);
+
+        const canAddRow = remaining > 0.01;
+        $('#btn_add_termin_row').prop('disabled', !canAddRow);
 
         // Jika total yang disetujui (Approved) sudah sama dengan total anggaran CBR
         let approvedRemaining = totalCbrAmount - totalApprovedOnly;
@@ -824,8 +975,22 @@ $(document).ready(function () {
         let totalInputed = 0;
 
         // LOOPING UNTUK VALIDASI PER BARIS TABEL
+        const amountTypeCounts = { AP: 0, PPH: 0, PPN: 0 };
+
         $('.termin-row').each(function (index) {
             const rowNum = index + 1;
+            const rowStatus = $(this).find('input[name="row_status[]"]').val();
+            const isLocked = rowStatus === '1' || rowStatus === '2' || rowStatus === 1 || rowStatus === 2;
+            const amountTypeVal = $(this).find('select[name="amount_type[]"]').val();
+
+            if (amountTypeVal && amountTypeCounts.hasOwnProperty(amountTypeVal)) {
+                amountTypeCounts[amountTypeVal]++;
+            }
+
+            if (isLocked) {
+                return true;
+            }
+
             const amountVal = parseFloat($(this).find('.inp-amount-termin').val()) || 0;
             const dateVal = $(this).find('.date-picker').val();
 
@@ -844,10 +1009,28 @@ $(document).ready(function () {
                 errorMsg = `Rencana Tanggal Bayar pada baris ke-${rowNum} wajib diisi!`;
                 return false; // Break loop jQuery
             }
+
+            // 3. Validasi Amount Type Required
+            if (!amountTypeVal || amountTypeVal.trim() === "") {
+                isValid = false;
+                errorMsg = `Jenis nominal pada baris ke-${rowNum} wajib dipilih (AP, PPH, atau PPN)!`;
+                return false; // Break loop jQuery
+            }
         });
 
         if (!isValid) {
             Swal.fire({ text: errorMsg, icon: "warning", buttonsStyling: false, confirmButtonText: "Ok, Perbaiki", customClass: { confirmButton: "btn btn-sm btn-warning" } });
+            return false;
+        }
+
+        if (amountTypeCounts.PPH > 1 || amountTypeCounts.PPN > 1) {
+            Swal.fire({
+                text: 'PPH dan PPN hanya boleh ada 1 baris termin masing-masing. AP dapat lebih dari satu.',
+                icon: 'warning',
+                buttonsStyling: false,
+                confirmButtonText: 'Perbaiki Data',
+                customClass: { confirmButton: 'btn btn-sm btn-warning' }
+            });
             return false;
         }
 

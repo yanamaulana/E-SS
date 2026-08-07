@@ -79,6 +79,7 @@
                                     <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. MANAGER</th> -->
                                     <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. DIRECTOR</th>
                                     <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>
+                                    <th class="text-center text-white">Payment Plan Date</th>
 
                                 </tr>
                             </thead>

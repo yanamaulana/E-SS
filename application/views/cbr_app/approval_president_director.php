@@ -51,7 +51,10 @@
                                                 <th class="text-center text-white">Doc Numb</th>
                                                 <th class="text-center text-white">Termin</th>
                                                 <th class="text-center text-white">Type</th>
-                                                <th class="text-center text-white">Date</th>
+                                                <th class="text-center text-white">Amount Type</th>
+                                                <th class="text-center text-white">Doc Date</th>
+                                                <th class="text-center text-white">ACC Plan <i class="fas fa-calendar-alt text-white"></i></th>
+                                                <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                                 <th class="text-center text-white">Curr</th>
                                                 <th class="text-center text-white">Amount</th>
                                                 <th class="text-center text-white">Ref No</th>
@@ -68,7 +71,6 @@
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Approved Date</th>
-                                                <th class="text-center text-white">Payment Plan Date</th>
                                             </tr>
                                         </thead>
                                         <tbody class="text-gray-600 fw-bold">
@@ -118,6 +120,7 @@
                                             </th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Termin</th>
+                                            <th class="text-center text-white">Amount Type</th>
                                             <!-- <th class="text-center text-white">Type</th> -->
                                             <th class="text-center text-white">Date</th>
                                             <th class="text-center text-white">Curr</th>

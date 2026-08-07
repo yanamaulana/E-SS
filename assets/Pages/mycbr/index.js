@@ -263,7 +263,7 @@ $(document).ready(function () {
         //     className: "btn btn-default btn-icon disabled",
         // },
         {
-            text: `<i class="fas fa-calendar-alt"></i> Set Payment Date`,
+            text: `<i class="fas fa-calendar-alt"></i> Sign Plan Date`,
             className: "btn btn-info",
             action: function (e, dt, node, config) {
                 if (selected_cbr.length === 0) {
@@ -564,7 +564,7 @@ $(document).ready(function () {
             { text: `<i class="far fa-file-excel fs-2"></i>`, extend: 'excelHtml5', title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"), className: "btn btn-light-success" },
             { text: `-`, className: "btn disabled text-dark bg-white" },
             {
-                text: `<i class="fas fa-calendar-alt"></i> Bulk Payment Plan`,
+                text: `<i class="fas fa-calendar-alt"></i> Sign Plan Date`,
                 className: "btn btn-info",
                 action: function (e, dt, node, config) {
                     if (selected_cbr_history.length === 0) {

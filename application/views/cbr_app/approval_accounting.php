@@ -73,7 +73,7 @@
                                                 <th class="text-center text-white">Last_Update</th>
                                                 <th class="text-center text-white">Acc_ID</th>
                                                 <th class="text-center text-white">Approved Date</th>
-                                                <th class="text-center text-white">Payment Plan Date</th>
+                                                <th class="text-center text-white">Sign Plan <i class="fas fa-calendar-alt text-white"></i></th>
                                             </tr>
                                         </thead>
                                         <tbody class="text-gray-600 fw-bold">
@@ -191,29 +191,18 @@
                                             <th class="text-center text-white">#</th>
                                             <th class="text-center text-white">Doc Numb</th>
                                             <th class="text-center text-white">Termin</th>
-                                            <!-- <th class="text-center text-white">Type</th> -->
+                                            <th class="text-center text-white">Amount Type</th>
                                             <th class="text-center text-white">Date</th>
+                                            <th class="text-center text-white">Schedule Acc</th>
+                                            <th class="text-center text-white">Sign Schedule</th>
                                             <th class="text-center text-white">Curr</th>
                                             <th class="text-center text-white">Amount</th>
-                                            <!-- <th class="text-center text-white">Ref No</th> -->
                                             <th class="text-white" style="min-width: 220px;">Description</th>
-                                            <!-- <th class="text-center text-white">baseamount</th> -->
-                                            <!-- <th class="text-center text-white">curr_rate</th> -->
-                                            <!-- <th class="text-center text-white">Approval_Status</th> -->
                                             <th class="text-center text-white">Status</th>
                                             <th class="text-center text-white">Approval Status</th>
-                                            <!-- <th class="text-center text-white">paid_status erp</th> -->
                                             <th class="text-center text-white">Paid Status</th>
-                                            <!-- <th class="text-center text-white">Creation_DateTime</th> -->
-                                            <!-- <th class="text-center text-white">Created_By</th> -->
                                             <th class="text-center text-white">Department</th>
                                             <th class="text-center text-white">Created By</th>
-                                            <!-- <th class="text-center text-white">Last_Update</th> -->
-                                            <!-- <th class="text-center text-white">Acc_ID</th> -->
-                                            <!-- <th class="text-center text-white">Approved Date</th> -->
-                                            <!-- APPROVAL SECTION -->
-                                            <!-- <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; STAFF</th> -->
-                                            <!-- <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; CHIEF</th> -->
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; ASST.MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; MANAGER</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; SR.MANAGER</th>
@@ -262,6 +251,9 @@
                                 <span class="text-gray-700 fs-6">Sisa Limit: <span id="txt_modal_remaining_amount" class="text-danger fw-bold">0</span></span>
                             </div>
                         </div>
+                        <button type="button" class="btn btn-sm btn-success text-dark" id="btn_add_termin_row" disabled>
+                            <i class="fas fa-plus me-1"></i>Tambah Baris
+                        </button>
                     </div>
                     <input type="hidden" name="cbreq_no" id="inp_modal_cbreq_no">
                     <input type="hidden" id="inp_modal_total_amount_raw">
@@ -274,7 +266,8 @@
                                     <th class="w-120px text-center">Status</th>
                                     <th class="min-w-150px">Nominal Pembayaran</th>
                                     <th class="min-w-150px">Rencana Tgl Bayar</th>
-                                    <!-- <th class="w-50px text-center pe-2">Aksi</th> -->
+                                    <th class="min-w-150px">Amount Type</th>
+                                    <th class="w-50px text-center pe-2"><i class="fas fa-trash"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="termin_table_body">
@@ -283,7 +276,7 @@
                     </div>
                 </div>
                 <div class="modal-footer py-3">
-                    <button type="button" class="btn btn-sm btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-sm btn-primary" id="btn_save_termin">Simpan Termin</button>
                 </div>
             </form>

@@ -55,7 +55,14 @@ $(document).ready(function () {
         { data: "CBReq_No", name: "CBReq_No" },
         { data: "Termin_Ke", name: "Termin_Ke" },
         { data: "Type", name: "Type", visible: false },
+        { data: "Amount_Type", name: "Amount_Type" },
         { data: "Document_Date", name: "Document_Date", render: function (data) { return data.substring(0, data.indexOf(' ')); } },
+        { data: "Termin_Payment_Plan_Date", name: "Termin_Payment_Plan_Date", render: function (data) { return data ? data.substring(0, data.indexOf(' ')) : ''; } },
+        {
+            data: "Payment_Plan_Date",
+            name: "Payment_Plan_Date",
+            // render: function (data) { return data ? data.substring(0, data.indexOf(' ')) : ''; }
+        },
         { data: "Currency_Id", name: "Currency_Id" },
         { data: "Amount", name: "Amount", render: function (data) { return parseFloat(data).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } },
         { data: "Document_Number", name: "Document_Number" },
@@ -64,11 +71,12 @@ $(document).ready(function () {
         { data: "curr_rate", name: "curr_rate", visible: false },
         { data: "Approval_Status", name: "Approval_Status", visible: false },
         {
-            data: "Status_AppvPresidentDirector", name: "Status_AppvPresidentDirector", render: function (data) {
-                if (data == 0) return `<a href="javascript:void(0)" class="text-dark badge badge-warning btn-icon" title="Waiting">Waiting</a>`;
-                if (data == 1) return `<a href="javascript:void(0)" class="badge badge-success btn-icon" title="Approved">Approved</a>`;
-                if (data == 2) return `<a href="javascript:void(0)" class="badge badge-danger btn-icon" title="Rejected">Rejected</a>`;
-            }
+            data: "Status_AppvPresidentDirector", name: "Status_AppvPresidentDirector", visible: false
+            // render: function (data) {
+            //     if (data == 0) return `<a href="javascript:void(0)" class="text-dark badge badge-warning btn-icon" title="Waiting">Waiting</a>`;
+            //     if (data == 1) return `<a href="javascript:void(0)" class="badge badge-success btn-icon" title="Approved">Approved</a>`;
+            //     if (data == 2) return `<a href="javascript:void(0)" class="badge badge-danger btn-icon" title="Rejected">Rejected</a>`;
+            // }
         },
         {
             data: "Payment_Status", // Mengambil dari TA.Payment_Status
@@ -87,21 +95,25 @@ $(document).ready(function () {
         { data: "First_Name", name: "First_Name" },
         { data: "Last_Update", name: "Last_Update", visible: false },
         { data: "Acc_ID", name: "Acc_ID", visible: false },
-        { data: "Approve_Date", name: "Approve_Date", visible: false },
-        { data: "Payment_Plan_Date", name: "Payment_Plan_Date" }
+        { data: "Approve_Date", name: "Approve_Date", visible: false }
         ],
         order: [
             [3, "DESC"]
         ],
         columnDefs: [{
             className: "text-center",
-            targets: [0, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13, 14, 15, 18],
+            // center all columns except Amount (9) and Descript (11)
+            targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
         }, {
             className: "details-control pr-4 dt-nowrap",
             targets: [1]
         }, {
-            className: "dt-nowrap text-end",
+            className: "dt-nowrap text-center",
             targets: [5]
+        }, {
+            className: "text-start",
+            // Amount and Description should be left aligned
+            targets: [9, 11]
         }],
         autoWidth: false,
         responsive: false,
@@ -196,6 +208,15 @@ $(document).ready(function () {
         }],
     }).buttons().container().appendTo('#TableData_wrapper .col-md-6:eq(0)');
 
+    // 2.a Clear selection ketika filter/search berubah,
+    // agar checkbox tersembunyi dari hasil pencarian sebelumnya tidak ikut ter-approve.
+    TableData.on('search.dt', function () {
+        selected_cbr = [];
+        selected_details = {};
+        $('#CheckAll').prop('checked', false);
+        renderSummaryHTML();
+    });
+
     // 3. Listener Checkbox Individu (Support SHIFT + CLICK)
     $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function (e) {
         var $chkboxes = $('input[name="CBReq_No[]"]'); // Ambil semua checkbox di halaman aktif
@@ -256,6 +277,11 @@ $(document).ready(function () {
     // 4. Listener Tombol "Check All" di Header (Pastikan ID checkbox header Anda adalah #CheckAll)
     $('#CheckAll').on('click', function () {
         var isChecked = $(this).is(':checked');
+        if (isChecked) {
+            // Reset selection sebelum memilih semua baris yang sedang tampil.
+            selected_cbr = [];
+            selected_details = {};
+        }
         check_uncheck_checkbox(isChecked);
     });
 

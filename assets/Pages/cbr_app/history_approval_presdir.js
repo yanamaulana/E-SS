@@ -167,6 +167,7 @@ $(document).ready(function () {
                         return `<span class="badge badge-light-primary text-dark border">Termin ${data}</span>`;
                     }
                 },
+                { data: "Amount_Type", name: "Amount_Type" },
                 {
                     data: "Document_Date", name: "Document_Date", render: function (data) {
                         return data ? data.substring(0, data.indexOf(' ')) : '-';
@@ -190,11 +191,12 @@ $(document).ready(function () {
                 {
                     data: "Status_AppvPresidentDirector",
                     name: "Status_AppvPresidentDirector",
-                    render: function (data, type, row, meta) {
-                        if (data == 0) return `<span class="text-dark badge badge-warning">Waiting</span>`;
-                        if (data == 1) return `<span class="badge badge-success">Approved</span><br>${row.AppvPresidentDirector_At}`;
-                        if (data == 2) return `<span class="badge badge-danger">Rejected</span><br>${row.AppvPresidentDirector_At}`;
-                    }
+                    visible: false,
+                    // render: function (data, type, row, meta) {
+                    //     if (data == 0) return `<span class="text-dark badge badge-warning">Waiting</span>`;
+                    //     if (data == 1) return `<span class="badge badge-success">Approved</span><br>${row.AppvPresidentDirector_At}`;
+                    //     if (data == 2) return `<span class="badge badge-danger">Rejected</span><br>${row.AppvPresidentDirector_At}`;
+                    // }
                 },
                 {
                     data: "Payment_Status",
@@ -262,14 +264,14 @@ $(document).ready(function () {
             // 2. Gabungan ColumnDefs yang rapi
             columnDefs: [
                 {
-                    // Pengaturan lebar khusus untuk kolom Description (sekarang di indeks 6)
+                    // Pengaturan lebar khusus untuk kolom Description (sekarang di indeks 7)
                     width: "220px",
-                    targets: [6]
+                    targets: [7]
                 },
                 {
-                    // Alignment center untuk kolom yang sifatnya status/ID/tanggal
+                    // Alignment center untuk kolom yang sifatnya status/ID/tanggal (center all except Amount and Description)
                     className: "text-center dt-nowrap",
-                    targets: [0, 2, 3, 4, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+                    targets: [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
                 },
                 {
                     // Ikon detail
@@ -277,9 +279,9 @@ $(document).ready(function () {
                     targets: [1]
                 },
                 {
-                    // Alignment kanan untuk angka (Amount di indeks 4)
+                    // Alignment kanan untuk angka (Amount di indeks 6)
                     className: "dt-nowrap text-end",
-                    targets: [4]
+                    targets: [6]
                 }
             ],
             // orderCellsTop: true,
