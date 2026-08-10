@@ -176,6 +176,20 @@ $(document).ready(function () {
             className: "btn btn-default btn-icon disabled",
         },
         {
+            text: `ALL AP`,
+            className: "btn btn-info text-white",
+            action: function (e, dt, node, config) {
+                selectRowsByAmountType('AP', true);
+            }
+        },
+        {
+            text: `ALL TAX`,
+            className: "btn btn-warning text-dark",
+            action: function (e, dt, node, config) {
+                selectRowsByAmountType('AP', false);
+            }
+        },
+        {
             text: `<i class="fas fa-times text-white fs-3"></i> Reject`,
             className: "btn btn-danger",
             action: function (e, dt, node, config) {
@@ -313,6 +327,40 @@ $(document).ready(function () {
         renderSummaryHTML();
     }
 
+    function selectRowsByAmountType(amountType, equal) {
+        selected_cbr = [];
+        selected_details = {};
+        $('#CheckAll').prop('checked', false);
+
+        var tableApi = $('#TableData').DataTable();
+        tableApi.rows({ page: 'current', search: 'applied' }).every(function () {
+            var row = this.data();
+            if (!row) return;
+
+            var match = equal ? row.Amount_Type === amountType : row.Amount_Type !== amountType;
+            var $checkbox = $(this.node()).find('input[name="CBReq_No[]"]');
+
+            if (match) {
+                var id = row.CBReq_No;
+                var curr = row.Currency_Id;
+                var amount = parseFloat(row.Amount) || 0;
+
+                $checkbox.prop('checked', true);
+                if (!selected_cbr.includes(id)) {
+                    selected_cbr.push(id);
+                    selected_details[id] = {
+                        curr: curr,
+                        amount: amount
+                    };
+                }
+            } else {
+                $checkbox.prop('checked', false);
+            }
+        });
+
+        updateCheckAllStatus();
+        renderSummaryHTML();
+    }
 
 
     // function renderSummaryHTML() {
