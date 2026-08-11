@@ -163,14 +163,16 @@
                                                 <option value="H.Document_Date" selected>Document Date</option>
                                                 <!-- <option value="TA.AppvPresidentDirector_At" selected>Approved Date</option> -->
                                                 <option value="TA.Rec_Created_At">Submission Date</option>
+                                                <option value="H.Payment_Plan_Date">Sign Plan Date</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="py-2 col-md-4">
-                                        <div class="input-group">
+                                        <div class="input-group" id="range-date">
                                             <input type="text" name="from_termin" id="from_termin" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
-                                            <span class="input-group-text btn btn-sm btn-primary" title="Date Range" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
+                                            <span class="input-group-text btn btn-sm btn-primary" title="Date Range" id="dash" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
                                             <input type="text" name="until_termin" id="until_termin" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-t') ?>">
+                                            <input type="text" class="form-control form-control-sm" id="param_plan_date" name="param_plan_date" placeholder="Plan Date...">
                                             <button type="button" id="do--filter_termin" class="btn btn-danger btn-sm text-white">&nbsp;<i class="fas fa-search fs-4 me-2"></i> Search</button>
                                         </div>
                                     </div>

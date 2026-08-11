@@ -1,6 +1,11 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+
 class Logistic extends CI_Controller
 {
     private $Date;
@@ -128,6 +133,227 @@ class Logistic extends CI_Controller
         ")->result();
 
         $this->load->view('Report/Logistic/Rpt_item_price_comparison', $this->data);
+    }
+
+    public function upload_tax_invoice()
+    {
+        $this->data['page_title'] = "Upload Faktur Pajak";
+        $this->data['page_content'] = "Report/Logistic/upload_tax_invoice_view";
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Report/Logistic/upload_tax_invoice.js"></script>';
+
+        $this->load->view($this->layout, $this->data);
+    }
+
+    public function template_faktur_pajak()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // 1. Set Judul Kolom
+        $sheet->setCellValue('A1', 'Invoice_Number');
+        $sheet->setCellValue('B1', 'TaxDocNumber');
+        $sheet->setCellValue('C1', 'TaxDate');
+        $sheet->setCellValue('D1', 'Notes');
+
+        // 2. Mengatur Format Kolom menjadi Teks
+        // Ini penting agar nomor faktur yang panjang atau tanggal tidak otomatis diubah formatnya oleh Excel.
+        $sheet->getStyle('A:A')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+        $sheet->getStyle('B:B')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+        $sheet->getStyle('C:C')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+        $sheet->getStyle('D:D')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
+
+        // 3. Mengatur Lebar Kolom secara Otomatis
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+        $sheet->getColumnDimension('C')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
+
+        // 4. Menyiapkan file untuk di-download
+        $filename = 'template_upload_faktur_pajak.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function process_upload_tax_invoice()
+    {
+        // 1. Pastikan request berasal dari AJAX
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(['status' => 'error', 'message' => 'Akses tidak sah.']);
+            return;
+        }
+
+        // 2. Validasi apakah ada file yang diunggah
+        if (empty($_FILES['file_excel']['name'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Pilih file Excel terlebih dahulu!']);
+            return;
+        }
+
+        $file_tmp = $_FILES['file_excel']['tmp_name'];
+        $file_ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
+
+        // 3. Validasi Ekstensi File
+        $allowed_ext = ['xls', 'xlsx'];
+        if (!in_array(strtolower($file_ext), $allowed_ext)) {
+            echo json_encode(['status' => 'error', 'message' => 'Format file tidak didukung! Gunakan .xls atau .xlsx']);
+            return;
+        }
+
+        $this->db->trans_start(); // Mulai transaksi database
+
+        try {
+            $reader = IOFactory::createReaderForFile($file_tmp);
+            $reader->setReadDataOnly(true); // Membaca data saja agar lebih cepat
+            $spreadsheet = $reader->load($file_tmp);
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $data_to_insert = [];
+            $errors = [];
+            $row_num = 1; // Untuk pelacakan baris di Excel
+
+            $datetime = $this->DateTime; // Gunakan satu variabel datetime untuk semua record
+            $created_by = $this->session->userdata('sys_sba_userid');
+
+            // --- OPTIMASI VALIDASI INVOICE ---
+            // 1. Kumpulkan semua nomor invoice dari Excel terlebih dahulu.
+            $invoice_numbers_from_excel = [];
+            foreach ($sheetData as $index => $row) {
+                if ($index === 1) continue; // Lewati header
+                $invoice_number = trim($row['A'] ?? '');
+                if (!empty($invoice_number)) {
+                    $invoice_numbers_from_excel[] = $invoice_number;
+                }
+            }
+
+            // 2. Lakukan satu query 'WHERE IN' untuk mendapatkan invoice yang valid dari database.
+            $validated_invoices_map = [];
+            if (!empty($invoice_numbers_from_excel)) {
+                $unique_invoices = array_unique($invoice_numbers_from_excel);
+                $query = $this->db->select('Invoice_Number')->where_in('Invoice_Number', $unique_invoices)->get('TAccVI_Header');
+                $validated_invoices = $query->result_array();
+                // Buat map untuk pencarian cepat (O(1) lookup)
+                $validated_invoices_map = array_flip(array_column($validated_invoices, 'Invoice_Number'));
+            }
+            // --- AKHIR OPTIMASI ---
+
+            foreach ($sheetData as $index => $row) {
+                if ($index === 1) { // Skip header row (assuming header is in row 1)
+                    $row_num++;
+                    continue;
+                }
+
+                $invoice_number = trim($row['A'] ?? ''); // Kolom A
+                $tax_doc_number = trim($row['B'] ?? ''); // Kolom B
+                $tax_date_str = trim($row['C'] ?? '');   // Kolom C
+                $notes = trim($row['D'] ?? '');          // Kolom D
+
+                // Skip empty rows
+                if (empty($invoice_number) && empty($tax_doc_number) && empty($tax_date_str)) {
+                    $row_num++;
+                    continue;
+                }
+
+                // Validation 1: Invoice_Number must exist in TAccVI_Header
+                if (empty($invoice_number)) {
+                    $errors[] = "Baris {$row_num}: Kolom 'Invoice_Number' tidak boleh kosong.";
+                } elseif (!isset($validated_invoices_map[$invoice_number])) { // Cek ke map yang sudah divalidasi
+                    $errors[] = "Baris {$row_num}: 'Invoice_Number' ({$invoice_number}) tidak ditemukan di TAccVI_Header.";
+                }
+
+                // Validation 2: TaxDocNumber must not contain letters
+                if (empty($tax_doc_number)) {
+                    $errors[] = "Baris {$row_num}: 'TaxDocNumber' tidak boleh kosong.";
+                } elseif (preg_match('/[a-zA-Z]/', $tax_doc_number)) {
+                    $errors[] = "Baris {$row_num}: 'TaxDocNumber' ({$tax_doc_number}) mengandung huruf. Hanya angka yang diizinkan.";
+                }
+
+                // Validation 3: TaxDate format (YYYY-MM-DD)
+                if (empty($tax_date_str)) {
+                    $errors[] = "Baris {$row_num}: 'TaxDate' tidak boleh kosong.";
+                } else {
+                    $date_obj = DateTime::createFromFormat('Y-m-d', $tax_date_str);
+                    if ($date_obj === false || $date_obj->format('Y-m-d') !== $tax_date_str) {
+                        $errors[] = "Baris {$row_num}: 'TaxDate' ({$tax_date_str}) tidak dalam format YYYY-MM-DD yang benar.";
+                    }
+                }
+
+                // Validation 4: Notes must not contain special characters that need escaping
+                if (preg_match('/[\'"]|\\\\/', $notes)) {
+                    $errors[] = "Baris {$row_num}: Kolom 'Notes' mengandung karakter terlarang (seperti ', \", \\). Harap hapus karakter tersebut.";
+                }
+
+                // If no errors for this row, prepare for insertion
+                if (empty($errors)) {
+                    $data_to_insert[] = [
+                        'Invoice_Number' => $invoice_number,
+                        'TaxDocNumber' => $tax_doc_number,
+                        'TaxDate' => $tax_date_str,
+                        'Notes' => $notes, // Menggunakan nilai dari kolom D
+                        'Created_By' => $created_by,
+                        'Created_At' => $datetime
+                    ];
+                }
+                $row_num++;
+            }
+
+            // If any errors occurred, rollback and return all errors
+            if (!empty($errors)) {
+                $this->db->trans_rollback();
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Validasi data gagal. Semua transaksi dibatalkan.',
+                    'details' => $errors
+                ]);
+                return;
+            }
+
+            // If no data to insert (e.g., only header or empty rows)
+            if (empty($data_to_insert)) {
+                $this->db->trans_rollback(); // Still rollback if transaction was started
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Tidak ada data valid yang ditemukan di file Excel untuk diunggah.'
+                ]);
+                return;
+            }
+
+            // Perform batch insert
+            $this->db->insert_batch('TAccVI_TaxDetail', $data_to_insert);
+
+            $this->db->trans_complete(); // Selesaikan transaksi
+
+            if ($this->db->trans_status() === FALSE) {
+                // Transaction failed
+                $error_message = $this->db->error()['message'] ?? 'Terjadi kesalahan database yang tidak diketahui.';
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Gagal menyimpan data ke database. Transaksi dibatalkan.',
+                    'details' => $error_message
+                ]);
+            } else {
+                // Transaction successful
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => count($data_to_insert) . ' nomor faktur pajak berhasil diunggah dan disimpan!'
+                ]);
+            }
+        } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+            $this->db->trans_rollback(); // Rollback in case of spreadsheet reading error
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Gagal membaca file Excel: ' . $e->getMessage()
+            ]);
+        } catch (Exception $e) {
+            $this->db->trans_rollback(); // Rollback for any other unexpected errors
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ]);
+        }
     }
 }
 // ---------------------------- query lama

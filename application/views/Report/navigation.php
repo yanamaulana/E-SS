@@ -9,7 +9,7 @@
                                 <div class="card-body p-0">
                                     <div class="dropdown text-center">
                                         <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <strong>Sales Report</strong>
+                                            <strong>Sales & Marketing</strong>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu1">
                                             <li><a href="<?= base_url('Report/Sales/sales_order_report?SelCurr=IDR') ?>" class="dropdown-item">Sales Order Report</a></li>
@@ -45,12 +45,19 @@
                                 <div class="card-body p-0">
                                     <div class="dropdown text-center">
                                         <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenu3" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <strong>Logistic Report</strong>
+                                            <strong>Logistic & Purchasing</strong>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenu3">
-                                            <li><a href="<?= base_url('Report/Logistic/eta_purchase_order') ?>" class="dropdown-item">ETA Purchase Order</a></li>
-                                            <li><a href="<?= base_url('Report/Logistic/index_price_comparison_last_v_this_year') ?>" class="dropdown-item">Item Price Comparison </a></li>
-                                            <li><a href="<?= base_url('ScriptTool/update_costcenter') ?>" class="dropdown-item"> Repair VIN Cost Center</a></li>
+                                            <li><a href="<?= base_url('Report/Logistic/eta_purchase_order') ?>" class="dropdown-item"><i class="fas fa-truck-loading me-2"></i>ETA Purchase Order</a></li>
+                                            <li><a href="<?= base_url('Report/Logistic/index_price_comparison_last_v_this_year') ?>" class="dropdown-item"><i class="fas fa-balance-scale me-2"></i>Item Price Comparison </a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a href="<?= base_url('Report/Logistic/upload_tax_invoice') ?>" class="dropdown-item"><i class="fas fa-file-invoice-dollar me-2"></i>Upload Faktur Pajak</a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a href="<?= base_url('ScriptTool/update_costcenter') ?>" class="dropdown-item"><i class="fas fa-cogs me-2"></i>Repair VIN Cost Center</a></li>
                                         </ul>
                                     </div>
                                     <div class="text-center px-4">
@@ -64,7 +71,7 @@
                                 <div class="card-body p-0">
                                     <div class="dropdown text-center">
                                         <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenuRnd" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <strong>RND Guitar Report</strong>
+                                            <strong>RND Guitar</strong>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuRnd">
                                             <li><a href="<?= base_url('Report/RND/guitar_report') ?>" class="dropdown-item">BOM Detail Report</a></li>

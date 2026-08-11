@@ -3,6 +3,26 @@ $(document).ready(function () {
     // yang akan di kiprim ke controller nanti controller yang akan memproses keputusan data tersebut.
     const SegmentMenu = window.location.pathname.split('/').pop();
 
+    // Fungsi untuk validasi format H.Payment_Plan_Date
+    function validatePaymentPlanDateFormat() {
+        if ($('#column_range_termin').val() === 'H.Payment_Plan_Date') {
+            const paramPlanDateValue = $('#param_plan_date').val();
+
+            // Validasi gagal jika string kosong ATAU jumlah strip kurang dari 2
+            if (!paramPlanDateValue || (paramPlanDateValue.match(/-/g) || []).length < 2) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Format Salah',
+                    text: 'Saat memfilter "Sign Plan Date", harus dalam format "[DIVISI]_YYYY-MM-DD", contoh: logistic_2026-08-11',
+                });
+                return false; // Validasi gagal
+            }
+        }
+        return true; // Validasi berhasil atau tidak relevan
+    }
+
+
+
     function Fn_Initialized_DataTable() {
         $("#TableDataTermin").DataTable({
             destroy: true,
@@ -23,6 +43,7 @@ $(document).ready(function () {
                     from: $('#from_termin').val(),
                     until: $('#until_termin').val(),
                     column_range: $('#column_range_termin').val(),
+                    param_plan_date: $('#param_plan_date').val(),
                     SegmentMenu: SegmentMenu,
                 }
             },
@@ -268,10 +289,30 @@ $(document).ready(function () {
                 extend: 'copy',
                 className: "btn btn-light-warning",
             }, {
-                text: `<i class="far fa-file-excel fs-2"></i>`,
-                extend: 'excelHtml5',
-                title: $('#table-title-history').text() + '~' + moment().format("YYYY-MM-DD"),
+                text: `<i class="far fa-file-excel fs-2"></i> Export`,
                 className: "btn btn-light-success",
+                action: function (e, dt, node, config) {
+                    if (!validatePaymentPlanDateFormat()) {
+                        return; // Hentikan eksekusi jika validasi gagal
+                    }
+
+                    // Ambil semua parameter filter yang sama dengan yang dikirim oleh DataTable
+                    let from = $('#from_termin').val();
+                    let until = $('#until_termin').val();
+                    let column_range = $('#column_range_termin').val();
+                    let param_plan_date = $('#param_plan_date').val();
+
+                    // Bangun URL dengan parameter
+                    let url = new URL($('meta[name="base_url"]').attr('content') + 'MonitoringTermin/exportExcelTerminMonitoring');
+                    url.searchParams.append('from', from);
+                    url.searchParams.append('until', until);
+                    url.searchParams.append('column_range', column_range);
+                    url.searchParams.append('param_plan_date', param_plan_date);
+                    url.searchParams.append('SegmentMenu', SegmentMenu);
+
+                    // Buka URL di tab baru
+                    window.open(url, '_blank');
+                }
             }
             ],
         }).buttons().container().appendTo('TableDataTermin_wrapper .col-md-6:eq(0)');
@@ -283,9 +324,37 @@ $(document).ready(function () {
         });
     });
 
+    Fn_Initialized_DataTable()
+
+    // Function to toggle visibility of date inputs
+    function toggleDateInputs() {
+        if ($('#column_range_termin').val() === 'H.Payment_Plan_Date') {
+            $('#param_plan_date').show();
+            $('#from_termin').hide();
+            $('#dash').hide();
+            $('#until_termin').hide();
+        } else {
+            $('#param_plan_date').hide();
+            $('#from_termin').show();
+            $('#dash').show();
+            $('#until_termin').show();
+        }
+    }
+
+    // Add the change event listener
+    $('#column_range_termin').on('change', function () {
+        toggleDateInputs();
+    });
+
+    // Trigger the function on page load to set the initial state
+    toggleDateInputs();
+
     $('#do--filter_termin').on('click', function () {
+        // Panggil fungsi validasi yang sudah dibuat
+        if (!validatePaymentPlanDateFormat()) {
+            return; // Hentikan eksekusi jika validasi gagal
+        }
         $("#TableDataTermin").DataTable().clear().destroy(), Fn_Initialized_DataTable(), DataTable.tables({ visible: true, api: true }).columns.adjust();
     })
 
-    Fn_Initialized_DataTable()
 })

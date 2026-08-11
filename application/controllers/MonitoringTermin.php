@@ -1,6 +1,9 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 class MonitoringTermin extends CI_Controller
 {
     private $Date;
@@ -233,6 +236,7 @@ class MonitoringTermin extends CI_Controller
         $from   = $this->input->post('from');
         $until  = $this->input->post('until');
         $column_range  = $this->input->post('column_range');
+        $param_plan_date  = $this->input->post('param_plan_date');
         $username = $this->session->userdata('sys_sba_username');
         $SegmentMenu = $this->input->post('SegmentMenu');
 
@@ -291,8 +295,15 @@ class MonitoringTermin extends CI_Controller
                 AND IsAppvFinancePerson = 1 
                 AND Status_AppvFinancePerson <> 0";
 
-        if (!empty($from) && !empty($until) && !empty($column_range)) {
-            $sql .= " AND $column_range >= '$from' AND $column_range <= '$until 23:59:59' ";
+        // --- PENYESUAIAN LOGIKA FILTER TANGGAL ---
+        if ($column_range == 'H.Payment_Plan_Date') {
+            if (!empty($param_plan_date)) {
+                $sql .= " AND H.Payment_Plan_Date LIKE '%" . $param_plan_date . "%' ";
+            }
+        } else {
+            if (!empty($from) && !empty($until)) {
+                $sql .= " AND $column_range >= '$from' AND $column_range <= '$until 23:59:59' ";
+            }
         }
 
         $totalData = $this->db->query($sql)->num_rows();
@@ -432,5 +443,187 @@ class MonitoringTermin extends CI_Controller
             "summary"         => $summary
         );
         echo json_encode($json_data);
+    }
+
+    public function exportExcelTerminMonitoring()
+    {
+        // Ambil parameter dari GET request
+        $from = $this->input->get('from');
+        $until = $this->input->get('until');
+        $column_range = $this->input->get('column_range');
+        $param_plan_date = $this->input->get('param_plan_date');
+        $SegmentMenu = $this->input->get('SegmentMenu');
+        $username = $this->session->userdata('sys_sba_username');
+
+        // Replikasi logika SQL dari DT_List_Hst_Submission_Termin
+        $additional_sql_conditions = '';
+        if ($SegmentMenu != 'CbrAppAccounting') {
+            $additional_sql_conditions = " AND (
+                (IsAppvFinanceDirector = 1 and Status_AppvFinanceDirector <> 0 and AppvFinanceDirector_By = '$username') OR
+                (IsAppvPresidentDirector = 1 and Status_AppvPresidentDirector <> 0 and AppvPresidentDirector_By = '$username') OR
+                (IsAppvDirector = 1 and Status_AppvDirector <> 0 and AppvDirector_By = '$username') OR
+                (IsAppvAdditional = 1 and Status_AppvAdditional <> 0 and AppvAdditional_By = '$username') OR
+                (IsAppvGeneralManager = 1 and Status_AppvGeneralManager <> 0 and AppvGeneralManager_By = '$username') OR
+                (IsAppvSeniorManager = 1 and Status_AppvSeniorManager <> 0 and AppvSeniorManager_By = '$username') OR
+                (IsAppvManager = 1 and Status_AppvManager <> 0 and AppvManager_By = '$username') OR
+                (IsAppvAsstManager = 1 and Status_AppvAsstManager <> 0 and AppvAsstManager_By = '$username')
+            ) ";
+        }
+
+        $sql = "SELECT DISTINCT 
+                H.CBReq_No, TM.Termin_Ke, TM.Amount_Type, H.Document_Date, H.Document_Number, 
+                H.Currency_Id, TM.Amount_Termin AS Amount, H.Descript, H.isClose, 
+                TM.Payment_Plan_Date AS Termin_Payment_Plan_Date, 
+                H.Payment_Plan_Date AS Header_Payment_Plan_Date, 
+                TM.Status_AppvPresdir AS Status_AppvPresidentDirector, 
+                TM.AppvPresdir_By AS AppvPresidentDirector_By,
+                TM.AppvPresdir_Name AS AppvPresidentDirector_Name,
+                TM.AppvPresdir_At AS AppvPresidentDirector_At,
+                TA.IsAppvPresidentDirector,
+                
+                TM.Termin_Payment_status AS Payment_Status,
+                TM.Termin_Payment_status_at AS Payment_Status_Time_Change,
+                
+                TA.UserDivision, U.First_Name,
+                
+                TA.IsAppvAsstManager, TA.Status_AppvAsstManager, TA.AppvAsstManager_At,
+                TA.IsAppvManager, TA.Status_AppvManager, TA.AppvManager_At,
+                TA.IsAppvSeniorManager, TA.Status_AppvSeniorManager, TA.AppvSeniorManager_At,
+                TA.IsAppvGeneralManager, TA.Status_AppvGeneralManager, TA.AppvGeneralManager_At,
+                TA.IsAppvAdditional, TA.Status_AppvAdditional, TA.AppvAdditional_At,
+                TA.IsAppvFinancePerson, TA.Status_AppvFinancePerson, TA.AppvFinancePerson_At,
+                TA.IsAppvDirector, TA.Status_AppvDirector, TA.AppvDirector_At,
+                TA.IsAppvFinanceDirector, TA.Status_AppvFinanceDirector, TA.AppvFinanceDirector_At
+                
+                FROM Ttrx_Cbr_Approval_Termin TM
+                INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
+                INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
+                
+                WHERE H.Type='D'
+                AND H.Company_ID = 2 
+                AND ISNULL(H.isSPJ,0) = 0
+                AND H.Approval_Status = 3
+                AND H.CBReq_Status = 3
+                {$additional_sql_conditions}
+                AND IsAppvFinancePerson = 1 
+                AND Status_AppvFinancePerson <> 0";
+
+        // Penyesuaian logika filter tanggal
+        if ($column_range == 'H.Payment_Plan_Date') {
+            if (!empty($param_plan_date)) {
+                $sql .= " AND H.Payment_Plan_Date LIKE '%" . $param_plan_date . "%' ";
+            }
+        } else {
+            if (!empty($from) && !empty($until)) {
+                $sql .= " AND $column_range >= '$from' AND $column_range <= '$until 23:59:59' ";
+            }
+        }
+
+        $query = $this->db->query($sql);
+        $results = $query->result_array();
+
+        // Inisialisasi PhpSpreadsheet
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Monitoring Termin');
+
+        // Header Excel
+        $headers = [
+            'No',
+            'Doc Numb',
+            'Termin',
+            'Amount Type',
+            'Document Date',
+            'ACC Plan Date',
+            'Sign Plan Date',
+            'Currency',
+            'Amount',
+            'Description',
+            'Status',
+            'Approval Status (Presdir)',
+            'Paid Status',
+            'Department',
+            'Created By',
+            'Asst. Manager At',
+            'Manager At',
+            'Sr. Manager At',
+            'G. Manager At',
+            'Additional At',
+            'Accounting At',
+            'Director At',
+            'Fin. Director At',
+            'Presdir At',
+            'Transfer Date'
+        ];
+
+        $col = 'A';
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . '1', $header);
+            $sheet->getStyle($col . '1')->getFont()->setBold(true);
+            $col++;
+        }
+
+        // Data
+        $rowNum = 2;
+        foreach ($results as $key => $row) {
+            $sheet->setCellValue('A' . $rowNum, $key + 1);
+            $sheet->setCellValue('B' . $rowNum, $row['CBReq_No']);
+            $sheet->setCellValue('C' . $rowNum, $row['Termin_Ke']);
+            $sheet->setCellValue('D' . $rowNum, $row['Amount_Type']);
+            $sheet->setCellValue('E' . $rowNum, date('Y-m-d', strtotime($row['Document_Date'])));
+            $sheet->setCellValue('F' . $rowNum, $row['Termin_Payment_Plan_Date'] ? date('Y-m-d', strtotime($row['Termin_Payment_Plan_Date'])) : '-');
+            $sheet->setCellValue('G' . $rowNum, $row['Header_Payment_Plan_Date'] ? date('Y-m-d', strtotime($row['Header_Payment_Plan_Date'])) : '-');
+            $sheet->setCellValue('H' . $rowNum, $row['Currency_Id']);
+            $sheet->setCellValue('I' . $rowNum, $row['Amount']);
+            $sheet->setCellValue('J' . $rowNum, $row['Descript']);
+            $sheet->setCellValue('K' . $rowNum, ($row['isClose'] == 0 || $row['isClose'] == '' || $row['isClose'] == null) ? 'Open' : 'VOID');
+
+            // Status Approval Presdir
+            $presdir_status = '';
+            if ($row['Status_AppvPresidentDirector'] == 0) $presdir_status = 'Waiting';
+            else if ($row['Status_AppvPresidentDirector'] == 1) $presdir_status = 'Approved';
+            else if ($row['Status_AppvPresidentDirector'] == 2) $presdir_status = 'Rejected';
+            $sheet->setCellValue('L' . $rowNum, $presdir_status);
+
+            // Payment Status
+            $payment_status = '';
+            if ($row['Payment_Status'] == 0) $payment_status = 'Pending';
+            else if ($row['Payment_Status'] == 1) $payment_status = 'Paid';
+            else if ($row['Payment_Status'] == 2) $payment_status = 'Rejected';
+            $sheet->setCellValue('M' . $rowNum, $payment_status);
+
+            $sheet->setCellValue('N' . $rowNum, $row['UserDivision']);
+            $sheet->setCellValue('O' . $rowNum, $row['First_Name']);
+
+            // Approval Dates
+            $sheet->setCellValue('P' . $rowNum, $row['AppvAsstManager_At'] ? date('Y-m-d H:i', strtotime($row['AppvAsstManager_At'])) : '-');
+            $sheet->setCellValue('Q' . $rowNum, $row['AppvManager_At'] ? date('Y-m-d H:i', strtotime($row['AppvManager_At'])) : '-');
+            $sheet->setCellValue('R' . $rowNum, $row['AppvSeniorManager_At'] ? date('Y-m-d H:i', strtotime($row['AppvSeniorManager_At'])) : '-');
+            $sheet->setCellValue('S' . $rowNum, $row['AppvGeneralManager_At'] ? date('Y-m-d H:i', strtotime($row['AppvGeneralManager_At'])) : '-');
+            $sheet->setCellValue('T' . $rowNum, $row['AppvAdditional_At'] ? date('Y-m-d H:i', strtotime($row['AppvAdditional_At'])) : '-');
+            $sheet->setCellValue('U' . $rowNum, $row['AppvFinancePerson_At'] ? date('Y-m-d H:i', strtotime($row['AppvFinancePerson_At'])) : '-');
+            $sheet->setCellValue('V' . $rowNum, $row['AppvDirector_At'] ? date('Y-m-d H:i', strtotime($row['AppvDirector_At'])) : '-');
+            $sheet->setCellValue('W' . $rowNum, $row['AppvFinanceDirector_At'] ? date('Y-m-d H:i', strtotime($row['AppvFinanceDirector_At'])) : '-');
+            $sheet->setCellValue('X' . $rowNum, $row['AppvPresidentDirector_At'] ? date('Y-m-d H:i', strtotime($row['AppvPresidentDirector_At'])) : '-');
+            $sheet->setCellValue('Y' . $rowNum, $row['Payment_Status_Time_Change'] ? date('Y-m-d H:i', strtotime($row['Payment_Status_Time_Change'])) : '-');
+
+            $rowNum++;
+        }
+
+        // Auto-size columns
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Set response headers for download
+        $filename = 'Monitoring_Termin_' . date('Y-m-d_His') . '.xlsx';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
     }
 }
