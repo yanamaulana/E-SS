@@ -103,6 +103,25 @@
                                 </div>
                             </div>
                         <?php endif; ?>
+                        <?php if ($this->session->userdata('sys_sba_isAdm') == true): ?>
+                            <div class="col-lg-4 col-md-4">
+                                <div class="card card-bordered shadow-sm">
+                                    <div class="card-body p-0">
+                                        <div class="dropdown text-center">
+                                            <button class="btn btn-lg dropdown-toggle text-dark" type="button" id="dropdownMenuRnd" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <strong>MIS Panel</strong>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuRnd">
+                                                <li><a href="<?= base_url('Report/MIS/ERP_AccessPermission') ?>" class="dropdown-item">ERP Access Permission</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="text-center px-4">
+                                            <img class="mw-100 mh-300px card-rounded-bottom" alt="Image Illustration" src="<?= base_url() ?>assets/media/illustrations/Mis.png">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
