@@ -103,7 +103,7 @@ $(document).ready(function () {
         columnDefs: [{
             className: "text-center",
             // center all columns except Amount (9) and Descript (11)
-            targets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+            targets: [0, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
         }, {
             className: "details-control pr-4 dt-nowrap",
             targets: [1]
