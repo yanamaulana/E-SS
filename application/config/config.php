@@ -23,9 +23,17 @@ date_default_timezone_set('Asia/Jakarta');
 | a PHP script and you can easily do that on your own.
 |
 */
-$http = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://';
-$newurl = str_replace("index.php", "", $_SERVER['SCRIPT_NAME']);
-$config['base_url'] = "$http" . $_SERVER['SERVER_NAME'] . ":" . $_SERVER['SERVER_PORT'] . "" . $newurl;
+if (PHP_SAPI === 'cli' || defined('STDIN')) {
+    // Atur base_url secara statis untuk permintaan CLI (Cron Job).
+    // URL ini mungkin diperlukan untuk membuat URL dalam email atau tugas background lainnya.
+    // Sesuaikan dengan domain Anda jika perlu.
+    $config['base_url'] = 'http://127.0.0.1:8010/ESBA/';
+} else {
+    // Logika base_url dinamis untuk permintaan web (HTTP)
+    $http = 'http' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 's' : '') . '://';
+    $newurl = str_replace("index.php", "", $_SERVER['SCRIPT_NAME']);
+    $config['base_url'] = "$http" . $_SERVER['SERVER_NAME'] . ":" . $_SERVER['SERVER_PORT'] . "" . $newurl;
+}
 
 /*
 |--------------------------------------------------------------------------

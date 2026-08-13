@@ -10,7 +10,7 @@ class RevertAccess extends CI_Controller
     public function revert_permissions()
     {
         // 1. Keamanan: Pastikan skrip ini hanya dijalankan dari CLI (Cron Job)
-        if (!$this->input->is_cli()) {
+        if (!is_cli()) {
             echo "This script can only be accessed via the command line.";
             show_error('Forbidden', 403);
             return;
