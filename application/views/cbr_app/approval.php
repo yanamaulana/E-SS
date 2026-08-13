@@ -89,14 +89,14 @@
                                         <div class="col-xl-2 py-2 col-md-2">
                                             <div class="input-group">
                                                 <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
-                                                    <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                                    <option value="TaccCashBookReq_Header.Document_Date" selected>Document Date</option>
+                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At">Submission Date</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="col-xl-4 py-2 col-md-6">
                                             <div class="input-group">
-                                                <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01') ?>">
+                                                <input type="text" name="from" id="from" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-01', strtotime('-1 month')) ?>">
                                                 <span class="input-group-text btn btn-sm btn-primary" title="Date Range" data-toggle="tooltip"><i class="fas fa-calendar"></i> UNTIL</span>
                                                 <input type="text" name="until" id="until" class="form-control form-control-sm  date-picker text-center readonly" value="<?= date('Y-m-t') ?>">
                                             </div>
