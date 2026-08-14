@@ -69,17 +69,107 @@ $(document).ready(function () {
 
     // --- 3. EVENT SAAT SWITCH AKSES DIUBAH ---
     $('#table_erp_access tbody').on('change', '.access-switch', function () {
-        let id = $(this).data('id');
-        let hasAccess = $(this).is(':checked');
+        const sw = $(this);
+        const id = sw.data('id');
+        const hasAccess = sw.is(':checked');
+
+        // --- JIKA MEMBERIKAN AKSES (SWITCH ON) ---
+        if (hasAccess) {
+            // Diasumsikan variabel 'employees' berisi daftar karyawan dari controller.
+            // Anda perlu menambahkan query di controller dan mengirimkannya ke view.
+            // Contoh di view: <script>const employees = <?= json_encode($employees); ?>;</script>
+            let employeeOptions = '<option value="">-- Pilih Karyawan --</option>';
+            if (typeof employees !== 'undefined' && Array.isArray(employees)) {
+                employees.forEach(emp => {
+                    employeeOptions += `<option value="${emp.User_ID}">${emp.First_Name} (${emp.Emp_ID})</option>`;
+                });
+            } else {
+                console.error("Variabel 'employees' tidak ditemukan. Harap teruskan dari controller.");
+                sw.prop('checked', false);
+                Swal.fire('Error', 'Data karyawan tidak ditemukan untuk konfirmasi.', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Konfirmasi Pemberian Akses',
+                html: `
+                    <p>Anda akan memberikan akses.</p>
+                    <p>Pilih karyawan yang bertanggung jawab atas pemberian akses ini:</p>
+                    <select id="swal-employee" class="form-select">
+                        ${employeeOptions}
+                    </select>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Berikan Akses',
+                cancelButtonText: 'Batal',
+                didOpen: () => {
+                    const confirmButton = Swal.getConfirmButton();
+                    const employeeSelect = document.getElementById('swal-employee');
+                    confirmButton.disabled = true; // Tombol konfirmasi nonaktif di awal
+
+                    // Aktifkan tombol jika karyawan dipilih
+                    employeeSelect.addEventListener('change', () => {
+                        confirmButton.disabled = !employeeSelect.value;
+                    });
+                },
+                preConfirm: () => {
+                    const employeeId = document.getElementById('swal-employee').value;
+                    if (!employeeId) {
+                        Swal.showValidationMessage('Harap pilih seorang karyawan');
+                        return false;
+                    }
+                    return employeeId;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Panggil AJAX dengan menyertakan ID karyawan
+                    ajaxUpdatePermission(id, hasAccess, sw, result.value);
+                } else {
+                    // Kembalikan switch jika dibatalkan
+                    sw.prop('checked', false);
+                }
+            });
+        }
+        // --- JIKA MENCABUT AKSES (SWITCH OFF) ---
+        else {
+            Swal.fire({
+                title: 'Anda yakin?',
+                text: "Akses akan dicabut untuk grup fungsi ini.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Cabut Akses!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Panggil AJAX tanpa ID karyawan
+                    ajaxUpdatePermission(id, hasAccess, sw);
+                } else {
+                    // Kembalikan switch jika dibatalkan
+                    sw.prop('checked', true);
+                }
+            });
+        }
+    });
+
+    // Fungsi helper untuk AJAX agar tidak duplikat kode
+    function ajaxUpdatePermission(id, hasAccess, switchElement, employeeId = null) {
+        let ajaxData = {
+            id: id,
+            access: hasAccess
+        };
+
+        if (employeeId) {
+            ajaxData.employee_id = employeeId;
+        }
 
         $.ajax({
             url: site_url + 'Report/MIS/update_access_permission',
             type: 'POST',
             dataType: 'json',
-            data: {
-                id: id,
-                access: hasAccess
-            },
+            data: ajaxData,
             success: function (response) {
                 if (response.status === 'success') {
                     Swal.fire({
@@ -97,7 +187,7 @@ $(document).ready(function () {
                         text: response.message
                     });
                     // Kembalikan posisi switch jika update gagal
-                    $(this).prop('checked', !hasAccess);
+                    switchElement.prop('checked', !hasAccess);
                 }
             },
             error: function () {
@@ -107,9 +197,9 @@ $(document).ready(function () {
                     text: 'Terjadi kesalahan saat mengirim permintaan!'
                 });
                 // Kembalikan posisi switch jika error
-                $(this).prop('checked', !hasAccess);
+                switchElement.prop('checked', !hasAccess);
             }
         });
-    });
+    }
 
 });

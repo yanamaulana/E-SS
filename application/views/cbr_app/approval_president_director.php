@@ -86,8 +86,8 @@
                                     <div class="py-2 col-md-2">
                                         <div class="input-group">
                                             <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                <option value="H.Document_Date">Document Date</option>
-                                                <option value="TA.AppvPresidentDirector_At" selected>Approved Date</option>
+                                                <option value="H.Document_Date" selected>Document Date</option>
+                                                <option value="TA.AppvPresidentDirector_At">Approved Date</option>
                                                 <option value="TA.Rec_Created_At">Submission Date</option>
                                             </select>
                                         </div>

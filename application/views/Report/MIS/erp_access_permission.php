@@ -40,3 +40,7 @@
         </table>
     </div>
 </div>
+<!-- Letakkan di bagian mana saja di dalam view, bisa sebelum memanggil file .js utama -->
+<script>
+    const employees = <?= json_encode($employees); ?>;
+</script>

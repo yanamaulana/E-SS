@@ -200,6 +200,111 @@ class CbrPaymentStatus extends CI_Controller
         }
     }
 
+    public function revoke_approval()
+    {
+        $TerminIdx = $this->input->post('TerminIdx'); // Assuming an array of SysIDs
+        if (empty($TerminIdx)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'No items selected for revocation.']);
+        }
+
+        $validation_errors = [];
+        $items_to_process = []; // Stores validated termin data
+
+        // --- PRE-VALIDATE ALL ITEMS BEFORE STARTING TRANSACTION ---
+        foreach ($TerminIdx as $SysID) {
+            $termin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', ['SysID' => $SysID])->row();
+
+            if (!$termin) {
+                $validation_errors[] = "Termin with SysID $SysID not found.";
+                continue;
+            }
+
+            // Business Rule: Cannot revoke already paid termin
+            if ($termin->Termin_Payment_status == 1) {
+                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} already paid, can't do revoke.";
+                continue;
+            }
+
+            // Business Rule: Cannot revoke a termin that is already pending (0)
+            if ($termin->Termin_Payment_status == 0) {
+                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} is already pending.";
+                continue;
+            }
+
+            $items_to_process[] = $termin;
+        }
+
+        if (!empty($validation_errors)) {
+            return $this->help->Fn_resulting_response([
+                'code' => 400,
+                'msg'  => 'Revoke Approval Failed:',
+                'details' => $validation_errors
+            ]);
+        }
+
+        $unique_cbr_to_sync = [];
+        $revoked_items_count = 0;
+
+        $this->db->trans_start();
+
+        foreach ($items_to_process as $termin) {
+            // 1. Record history
+            $max_sub_q = $this->db->select_max('SubmissionCount', 'max_count')
+                ->where('CBReq_No', $termin->CBReq_No)
+                ->get('Thst_Trx_Cbr_Approval_Termin')
+                ->row();
+
+            $submission_count = ($max_sub_q && $max_sub_q->max_count !== null) ? (int)$max_sub_q->max_count + 1 : 1;
+
+            $history_data = [
+                'SubmissionCount'       => $submission_count,
+                'SysID'                 => $termin->SysID,
+                'CBReq_No'              => $termin->CBReq_No,
+                'Termin_Ke'             => $termin->Termin_Ke,
+                'Amount_Termin'         => $termin->Amount_Termin,
+                'Payment_Plan_Date'     => $termin->Payment_Plan_Date,
+                'Status_AppvPresdir'    => $termin->Status_AppvPresdir,
+                'Termin_Payment_status' => $termin->Termin_Payment_status,
+                'Reject_Payment_Reason' => 'Revoked Payment Status, Old : ' . $termin->Termin_Payment_status_by . '--' . $termin->Termin_Payment_status_at,
+                'Created_By'            => $this->session->userdata('sys_sba_username'),
+                'Created_at'            => $this->DateTime
+            ];
+            $this->db->insert('Thst_Trx_Cbr_Approval_Termin', $history_data);
+
+            // 2. Rollback payment status in Ttrx_Cbr_Approval_Termin
+            $this->db->where('SysID', $termin->SysID)->update('Ttrx_Cbr_Approval_Termin', [
+                'Termin_Payment_status'      => 0, // Set back to Pending
+                'Termin_Payment_status_by'   => NULL,
+                'Termin_Payment_status_at'   => NULL,
+                'Reject_Payment_Reason'      => NULL // Clear rejection reason
+            ]);
+
+            $unique_cbr_to_sync[$termin->CBReq_No] = true;
+            $revoked_items_count++;
+        }
+
+        // 3. Synchronize header status for affected CBRs
+        foreach (array_keys($unique_cbr_to_sync) as $cbr_no) {
+            $this->Sync_Header_Status($cbr_no);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            return $this->help->Fn_resulting_response([
+                'code' => 505,
+                'msg'  => 'Database transaction failed during revocation. All changes have been rolled back.',
+            ]);
+        } else {
+            $this->db->trans_commit();
+            return $this->help->Fn_resulting_response([
+                'code' => 200,
+                'msg' => $revoked_items_count . " item(s) payment status successfully revoked.",
+            ]);
+        }
+    }
+
     public function Proses_Excel()
     {
         // 1. Pastikan request berasal dari AJAX
@@ -425,81 +530,87 @@ class CbrPaymentStatus extends CI_Controller
     {
         $requestData = $_REQUEST;
         $columns = array(
-            0 => 'TAccCashBookReq_Header.CBReq_No',
-            1 => 'TAccCashBookReq_Header.CBReq_No',
-            2 => 'Type',
-            3 => 'TAccCashBookReq_Header.Document_Date',
-            4 => 'TAccCashBookReq_Header.Currency_Id',
-            5 => 'Amount',
-            6 => 'Document_Number',
-            7 => 'Descript',
-            8 => 'baseamount',
-            9 => 'curr_rate',
-            10 => 'Approval_Status',
-            11 => 'CBReq_Status',
-            12 => 'Legitimate',
-            13 => 'Paid_Status',
-            14 => 'Payment_Status',
-            15 => 'Creation_DateTime',
-            16 => 'Created_By',
-            17 => 'UserDivision',
-            18 => 'First_Name',
-            19 => 'Last_Update',
-            20 => 'Acc_ID',
-            21 => 'Approve_Date',
-            22 => 'IsAppvStaff ',
-            23 => 'IsAppvChief',
-
+            0 => 'H.CBReq_No',
+            1 => 'H.CBReq_No',
+            2 => 'TM.Termin_Ke',
+            3 => 'H.Document_Date',
+            4 => 'H.Currency_Id',
+            5 => 'TM.Amount_Termin',
+            6 => 'H.Document_Number',
+            7 => 'H.Descript',
+            8 => 'TA.Status_AppvPresidentDirector',
+            9 => 'TM.Termin_Payment_status',
+            10 => 'TA.UserDivision',
+            11 => 'U.First_Name',
         );
-        $order  = $columns[$requestData['order']['0']['column']];
-        $dir    = $requestData['order']['0']['dir'];
-        $from   = $this->input->post('from');
-        $until  = $this->input->post('until');
-        $column_range  = $this->input->post('column_range');
-        $username = $this->session->userdata('sys_sba_username');
+        $order = $columns[$requestData['order'][0]['column']] ?? 'H.Document_Date';
+        $dir = $requestData['order'][0]['dir'] ?? 'DESC';
+        $from = $this->input->post('from');
+        $until = $this->input->post('until');
+        $column_range = $this->input->post('column_range');
 
-        $sql = "SELECT distinct TAccCashBookReq_Header.CBReq_No, Type, Document_Date, Document_Number, TAccCashBookReq_Header.Acc_ID, Descript, Amount, baseamount, curr_rate,
-        Approval_Status, CBReq_Status, Paid_Status, Creation_DateTime, Created_By, First_Name AS Created_By_Name, Last_Update, Update_By, TAccCashBookReq_Header.Currency_Id,
-        TAccCashBookReq_Header.Approve_Date, Ttrx_Cbr_Approval.IsAppvStaff, Ttrx_Cbr_Approval.Status_AppvStaff, Ttrx_Cbr_Approval.AppvStaff_By, Ttrx_Cbr_Approval.AppvStaff_Name,
-        Ttrx_Cbr_Approval.AppvStaff_At, Ttrx_Cbr_Approval.IsAppvChief, Ttrx_Cbr_Approval.Status_AppvChief, Ttrx_Cbr_Approval.AppvChief_By, Ttrx_Cbr_Approval.AppvChief_Name,
-        Ttrx_Cbr_Approval.AppvChief_At, Ttrx_Cbr_Approval.IsAppvAsstManager, Ttrx_Cbr_Approval.Status_AppvAsstManager, Ttrx_Cbr_Approval.AppvAsstManager_By,
-        Ttrx_Cbr_Approval.AppvAsstManager_Name, Ttrx_Cbr_Approval.AppvAsstManager_At, Ttrx_Cbr_Approval.IsAppvManager, Ttrx_Cbr_Approval.Status_AppvManager, Ttrx_Cbr_Approval.AppvManager_By,
-        Ttrx_Cbr_Approval.AppvManager_Name, Ttrx_Cbr_Approval.AppvManager_At, Ttrx_Cbr_Approval.IsAppvSeniorManager, Ttrx_Cbr_Approval.Status_AppvSeniorManager,
-        Ttrx_Cbr_Approval.AppvSeniorManager_By, Ttrx_Cbr_Approval.AppvSeniorManager_Name, Ttrx_Cbr_Approval.AppvSeniorManager_At, Ttrx_Cbr_Approval.IsAppvGeneralManager,
-        Ttrx_Cbr_Approval.Status_AppvGeneralManager, Ttrx_Cbr_Approval.AppvGeneralManager_By, Ttrx_Cbr_Approval.AppvGeneralManager_Name, Ttrx_Cbr_Approval.AppvGeneralManager_At,
-        Ttrx_Cbr_Approval.IsAppvAdditional,Ttrx_Cbr_Approval.Status_AppvAdditional,Ttrx_Cbr_Approval.AppvAdditional_By,Ttrx_Cbr_Approval.AppvAdditional_Name,Ttrx_Cbr_Approval.AppvAdditional_At,
-        Ttrx_Cbr_Approval.IsAppvDirector, Ttrx_Cbr_Approval.Status_AppvDirector, Ttrx_Cbr_Approval.AppvDirector_By, Ttrx_Cbr_Approval.AppvDirector_Name, Ttrx_Cbr_Approval.AppvDirector_At,
-        Ttrx_Cbr_Approval.IsAppvPresidentDirector, Ttrx_Cbr_Approval.Status_AppvPresidentDirector, Ttrx_Cbr_Approval.AppvPresidentDirector_By, Ttrx_Cbr_Approval.AppvPresidentDirector_Name,
-        Ttrx_Cbr_Approval.AppvPresidentDirector_At, Ttrx_Cbr_Approval.IsAppvFinanceDirector, Ttrx_Cbr_Approval.Status_AppvFinanceDirector, Ttrx_Cbr_Approval.AppvFinanceDirector_By,
-        Ttrx_Cbr_Approval.AppvFinanceDirector_Name, Ttrx_Cbr_Approval.AppvFinanceDirector_At, Ttrx_Cbr_Approval.UserName_User, Ttrx_Cbr_Approval.Rec_Created_At, Ttrx_Cbr_Approval.Legitimate, IsAppvFinancePerson,Status_AppvFinancePerson,AppvFinancePerson_By,AppvFinancePerson_Name,AppvFinancePerson_At,Ttrx_Cbr_Approval.Payment_Status, Ttrx_Cbr_Approval.Payment_Status_Time_Change,Ttrx_Cbr_Approval.Payment_Status_Change_By,
-        Ttrx_Cbr_Approval.UserDivision
-        FROM TAccCashBookReq_Header
-        INNER JOIN TUserGroupL ON TAccCashBookReq_Header.Created_By = TUserGroupL.User_ID
-        INNER JOIN TUserPersonal ON TAccCashBookReq_Header.Created_By = TUserPersonal.User_ID
-        LEFT OUTER JOIN Ttrx_Cbr_Approval ON TAccCashBookReq_Header.CBReq_No = Ttrx_Cbr_Approval.CBReq_No
-        WHERE TAccCashBookReq_Header.Type='D'
-        And $column_range >= {d '$from'}
-        And $column_range <= {d '$until'}
-        AND TAccCashBookReq_Header.Company_ID = 2 
-        AND isNull(isSPJ,0) = 0
-        AND Approval_Status  = 3
-        AND CBReq_Status = 3
-        AND (isClose IS NULL OR isClose = 0)
-        AND Ttrx_Cbr_Approval.CBReq_No IS NOT NULL
-        -- AND Legitimate = 1
-        AND Payment_Status <>0
-        ";
+        $sql = "SELECT DISTINCT
+                    TM.SysID AS SysID_Termin,
+                    H.CBReq_No,
+                    TM.Termin_Ke,
+                    H.Type,
+                    H.Document_Date,
+                    H.Document_Number,
+                    H.Acc_ID,
+                    H.Descript,
+                    TM.Amount_Termin AS Amount,
+                    H.baseamount,
+                    H.curr_rate,
+                    H.Approval_Status,
+                    H.CBReq_Status,
+                    H.Paid_Status,
+                    H.Creation_DateTime,
+                    H.Created_By,
+                    U.First_Name AS Created_By_Name,
+                    H.Last_Update,
+                    H.Update_By,
+                    H.Currency_Id,
+                    H.Approve_Date,
+                    TA.IsAppvStaff, TA.Status_AppvStaff, TA.AppvStaff_By, TA.AppvStaff_Name, TA.AppvStaff_At,
+                    TA.IsAppvChief, TA.Status_AppvChief, TA.AppvChief_By, TA.AppvChief_Name, TA.AppvChief_At,
+                    TA.IsAppvAsstManager, TA.Status_AppvAsstManager, TA.AppvAsstManager_By, TA.AppvAsstManager_Name, TA.AppvAsstManager_At,
+                    TA.IsAppvManager, TA.Status_AppvManager, TA.AppvManager_By, TA.AppvManager_Name, TA.AppvManager_At,
+                    TA.IsAppvSeniorManager, TA.Status_AppvSeniorManager, TA.AppvSeniorManager_By, TA.AppvSeniorManager_Name, TA.AppvSeniorManager_At,
+                    TA.IsAppvGeneralManager, TA.Status_AppvGeneralManager, TA.AppvGeneralManager_By, TA.AppvGeneralManager_Name, TA.AppvGeneralManager_At,
+                    TA.IsAppvAdditional, TA.Status_AppvAdditional, TA.AppvAdditional_By, TA.AppvAdditional_Name, TA.AppvAdditional_At,
+                    TA.IsAppvDirector, TA.Status_AppvDirector, TA.AppvDirector_By, TA.AppvDirector_Name, TA.AppvDirector_At,
+                    TA.IsAppvPresidentDirector, TA.Status_AppvPresidentDirector, TA.AppvPresidentDirector_By, TA.AppvPresidentDirector_Name, TA.AppvPresidentDirector_At,
+                    TA.IsAppvFinanceDirector, TA.Status_AppvFinanceDirector, TA.AppvFinanceDirector_By, TA.AppvFinanceDirector_Name, TA.AppvFinanceDirector_At,
+                    TA.UserName_User, TA.Rec_Created_At, TA.Legitimate,
+                    TA.IsAppvFinancePerson, TA.Status_AppvFinancePerson, TA.AppvFinancePerson_By, TA.AppvFinancePerson_Name, TA.AppvFinancePerson_At,
+                    TM.Termin_Payment_status AS Payment_Status,
+                    TM.Termin_Payment_status_at AS Payment_Status_Time_Change,
+                    TM.Termin_Payment_status_by AS Payment_Status_Change_By,
+                    TA.UserDivision
+                FROM
+                    Ttrx_Cbr_Approval_Termin TM
+                INNER JOIN TAccCashBookReq_Header H ON TM.CBReq_No = H.CBReq_No
+                INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
+                INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
+                WHERE
+                    H.Type = 'D'
+                    AND H.Company_ID = 2
+                    AND ISNULL(H.isSPJ, 0) = 0
+                    AND H.Approval_Status = 3
+                    AND H.CBReq_Status = 3
+                    AND (H.isClose IS NULL OR H.isClose = 0)
+                    AND TA.CBReq_No IS NOT NULL
+                    AND TM.Termin_Payment_status <> 0
+                    AND $column_range >= {d '$from'}
+                    AND $column_range <= {d '$until'}";
 
         $totalData = $this->db->query($sql)->num_rows();
         if (!empty($requestData['search']['value'])) {
-            $sql .= " AND (TAccCashBookReq_Header.CBReq_No LIKE '%" . $requestData['search']['value'] . "%' ";
-            $sql .= " OR First_Name LIKE '%" . $requestData['search']['value'] . "%') ";
-            // $sql .= " OR Document_Number LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR Document_Date LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR TAccCashBookReq_Header.Currency_Id LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR Descript LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR CBReq_Status LIKE '%" . $requestData['search']['value'] . "%' ";
-            // $sql .= " OR Amount LIKE '%" . $requestData['search']['value'] . "%') ";
+            $searchValue = $this->db->escape_like_str($requestData['search']['value']);
+            $sql .= " AND (H.CBReq_No LIKE '%$searchValue%' ESCAPE '!'
+                      OR U.First_Name LIKE '%$searchValue%' ESCAPE '!'
+                      OR H.Document_Number LIKE '%$searchValue%' ESCAPE '!'
+                      OR H.Descript LIKE '%$searchValue%' ESCAPE '!') ";
         }
         //----------------------------------------------------------------------------------
         $totalFiltered = $this->db->query($sql)->num_rows();
@@ -508,7 +619,9 @@ class CbrPaymentStatus extends CI_Controller
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
+            $nestedData['SysID_Termin'] = $row['SysID_Termin'];
             $nestedData['CBReq_No'] = $row['CBReq_No'];
+            $nestedData['Termin_Ke'] = $row['Termin_Ke'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Document_Date'] = $row['Document_Date'];
             $nestedData['Acc_ID'] = $row['Acc_ID'];
@@ -518,7 +631,6 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['baseamount'] = $row['baseamount'];
             $nestedData['curr_rate'] = $row['curr_rate'];
             $nestedData['Approval_Status'] = $row['Approval_Status'];
-            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
             $nestedData['Paid_Status'] = $row['Paid_Status'];
             $nestedData['Creation_DateTime'] = $row['Creation_DateTime'];
             $nestedData['Created_By'] = $row['Created_By'];
@@ -570,6 +682,7 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['AppvFinancePerson_At'] = $row['AppvFinancePerson_At'];
 
             $nestedData['IsAppvDirector'] = $row['IsAppvDirector'];
+            $nestedData['CBReq_Status'] = $row['CBReq_Status'];
             $nestedData['Status_AppvDirector'] = $row['Status_AppvDirector'];
             $nestedData['AppvDirector_By'] = $row['AppvDirector_By'];
             $nestedData['AppvDirector_Name'] = $row['AppvDirector_Name'] ?? '';
@@ -597,6 +710,8 @@ class CbrPaymentStatus extends CI_Controller
             $nestedData['UserDivision'] = $row['UserDivision'];
             $nestedData['Legitimate'] = $row['Legitimate'];
             $nestedData['Payment_Status'] = $row['Payment_Status'];
+            $nestedData['Payment_Status_Time_Change'] = $row['Payment_Status_Time_Change'];
+            $nestedData['Payment_Status_Change_By'] = $row['Payment_Status_Change_By'];
 
             $data[] = $nestedData;
         }

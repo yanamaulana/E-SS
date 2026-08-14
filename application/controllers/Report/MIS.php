@@ -32,6 +32,14 @@ class MIS extends CI_Controller
             WHERE Tgf.sf_ufunc_id IN ('ERSTD07854', 'ERSTD08128', 'ERSTD07148', 'ERSTD07142')
             ORDER BY Tuf.SF_UFUNC_NAME_EN")->result();
 
+        $this->data['employees'] = $this->db->query("
+        SELECT THRMEmpPersonalData.User_ID, THRMEmpPersonalData.Emp_ID, THRMEmpPersonalData.First_Name
+        FROM THRMEmpPersonalData, THRMCompany
+        WHERE THRMEmpPersonalData.Company_ID = THRMCompany.Company_ID 
+        AND THRMCompany.Company_ID = 2 
+        AND THRMEmpPersonalData.Terminate_Date IS NULL
+        ORDER BY THRMEmpPersonalData.First_Name ASC")->result();
+
         $this->load->view($this->layout, $this->data);
     }
 
@@ -73,6 +81,7 @@ class MIS extends CI_Controller
 
         $id = $this->input->post('id');
         $access = $this->input->post('access'); // 'true' atau 'false'
+        $employeeId = $this->input->post('employee_id');
 
         if (empty($id)) {
             echo json_encode(['status' => 'error', 'message' => 'ID tidak valid.']);
@@ -101,9 +110,10 @@ class MIS extends CI_Controller
         // LOGIKA: Hanya catat log jika hak akses dinaikkan dari 'read' ke 'delete'
         if ($access === 'true' && $previous_access === 'read') {
             $is_temporary = true;
-            $revert_duration = '+4 hours'; // Durasi akses sementara sesuai contoh Anda
+            $revert_duration = '+3 hours'; // Durasi akses sementara sesuai contoh Anda
             $log_data = [
                 'UserGroupFuncL_ID' => $id,
+                'UserAsk' => $employeeId,
                 'Previous_Access'   => 'read',
                 'New_Access'        => 'delete',
                 'Changed_By'        => $this->session->userdata('sys_sba_userid'),

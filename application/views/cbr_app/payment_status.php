@@ -124,8 +124,8 @@
                                         <div class="col-xl-2 py-2 col-md-2">
                                             <div class="input-group">
                                                 <select name="column_range" id="column_range" class="form-control form-control-sm text-center readonly">
-                                                    <option value="Ttrx_Cbr_Approval.Rec_Created_At" selected>Submission Date</option>
-                                                    <option value="TaccCashBookReq_Header.Document_Date">Document Date</option>
+                                                    <option value="TA.Rec_Created_At">Submission Date</option>
+                                                    <option value="H.Document_Date" selected>Document Date</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -149,27 +149,30 @@
                                 <table id="TableDataHistory" class="table-sm align-middle display compact table-rounded table-striped table-bordered border dataTable no-footer dt-inline">
                                     <thead style="background-color: #3B6D8C;">
                                         <tr class="text-white fw-bolder text-uppercase">
-                                            <th class="text-center text-white">#</th>
+                                            <th class="text-center text-white">
+                                                <input class="form-check-input" type="checkbox" id="CheckAll_hst" value="checkall_hst">
+                                            </th>
                                             <th class="text-center text-white">Doc Numb</th>
-                                            <th class="text-center text-white">Type</th>
+                                            <th class="text-center text-white">Termin</th>
                                             <th class="text-center text-white">Date</th>
                                             <th class="text-center text-white">Curr</th>
                                             <th class="text-center text-white">Amount</th>
                                             <th class="text-center text-white">Ref No</th>
                                             <th class="text-white" style="min-width: 220px;">Description</th>
-                                            <th class="text-center text-white">baseamount</th>
-                                            <th class="text-center text-white">curr_rate</th>
-                                            <th class="text-center text-white">Approval_Status</th>
-                                            <th class="text-center text-white">Status</th>
+                                            <th class="text-center text-white">Base Amount</th>
                                             <th class="text-center text-white">Approval Status</th>
-                                            <th class="text-center text-white">paid_status erp</th>
+                                            <th class="text-center text-white">Status</th>
+                                            <th class="text-center text-white">Presdir Approval</th>
                                             <th class="text-center text-white">Paid Status</th>
-                                            <th class="text-center text-white">Creation_DateTime</th>
-                                            <th class="text-center text-white">Created_By</th>
-                                            <th class="text-center text-white">Department</th>
+                                            <!-- Kolom ini ditambahkan agar sesuai dengan JS index ke-13 -->
+                                            <th class="text-center text-white">Payment Status Detail</th>
+                                            <th class="text-center text-white">Action By</th>
+                                            <th class="text-center text-white">Paid Status (ERP)</th>
+                                            <th class="text-center text-white">Creation DateTime</th>
                                             <th class="text-center text-white">Created By</th>
-                                            <th class="text-center text-white">Last_Update</th>
-                                            <th class="text-center text-white">Acc_ID</th>
+                                            <th class="text-center text-white">Department</th>
+                                            <th class="text-center text-white">Created By (Name)</th>
+                                            <th class="text-center text-white">Last Update</th>
                                             <th class="text-center text-white">Approved Date</th>
                                             <!-- APPROVAL SECTION -->
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; STAFF</th>
@@ -183,7 +186,6 @@
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; FIN. DIRECTOR</th>
                                             <th class="text-center text-white"><i class="fas fa-edit fs-5 text-white"></i>&nbsp; PRESDIR</th>
-
                                         </tr>
                                     </thead>
                                     <tbody class="text-gray-600 fw-bold">
