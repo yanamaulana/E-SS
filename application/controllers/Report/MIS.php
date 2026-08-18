@@ -134,7 +134,7 @@ class MIS extends CI_Controller
             $this->db->trans_commit();
             $success_message = 'Hak akses diubah menjadi ' . $new_access_text . '.';
             if ($is_temporary) {
-                $success_message = 'Hak akses sementara diubah menjadi ' . $new_access_text . '. Akan kembali otomatis dalam 8 jam.';
+                $success_message = 'Hak akses sementara diubah menjadi ' . $new_access_text . '. Akan kembali otomatis dalam +-3 jam.';
             }
             $message = ['status' => 'success', 'message' => $success_message];
         }
