@@ -22,6 +22,13 @@ class CbrPaymentStatus extends CI_Controller
         $this->DateTime = date("Y-m-d H:i:s");
         $this->load->model('m_helper', 'help');
         $this->load->model('m_DataTable', 'M_Datatables');
+
+        $username = $this->session->userdata('sys_sba_username');
+        $has_permission = $this->db->where('UserName', $username)
+            ->count_all_results('tmst_user_check_payment_permission') > 0;
+        if (!$has_permission) {
+            show_error('You are not authorized to manage CBR payment status.', 403, 'Forbidden');
+        }
     }
 
     public function index()
@@ -42,38 +49,29 @@ class CbrPaymentStatus extends CI_Controller
         $time_change = $this->DateTime;
 
         // 1. Ambil nilai total nominal CBR dari Header
-        $cbr_header = $this->db->query("SELECT Amount FROM TAccCashBookReq_Header WHERE CBReq_No = '$cbreq_no'")->row_array();
+        $cbr_header = $this->db->select('Amount')->get_where('TAccCashBookReq_Header', ['CBReq_No' => $cbreq_no])->row_array();
         $total_cbr_amount = (float)($cbr_header['Amount'] ?? 0);
 
-        // 2. Hitung akumulasi dari Termin (Approve Presdir)
-        $sum_approved = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Status_AppvPresdir = 1")->row_array();
-        $total_approved_termin = (float)($sum_approved['total'] ?? 0);
-
-        // 3. Hitung akumulasi dari Termin yang DIBAYAR Bank (Payment Status = 1)
-        $sum_paid = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 1")->row_array();
+        // Payment hanya dihitung dari termin yang sudah disetujui Presdir.
+        $sum_paid = $this->db->select_sum('Amount_Termin', 'total')
+            ->get_where('Ttrx_Cbr_Approval_Termin', ['CBReq_No' => $cbreq_no, 'Status_AppvPresdir' => 1, 'Termin_Payment_status' => 1])
+            ->row_array();
         $total_paid_termin = (float)($sum_paid['total'] ?? 0);
 
         // 4. Hitung akumulasi dari Termin yang DI-REJECT Bank (Payment Status = 2)
-        $sum_rejected_payment = $this->db->query("SELECT SUM(Amount_Termin) AS total FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 2")->row_array();
+        $sum_rejected_payment = $this->db->select_sum('Amount_Termin', 'total')
+            ->get_where('Ttrx_Cbr_Approval_Termin', ['CBReq_No' => $cbreq_no, 'Status_AppvPresdir' => 1, 'Termin_Payment_status' => 2])
+            ->row_array();
         $total_rejected_payment_termin = (float)($sum_rejected_payment['total'] ?? 0);
 
-        // 5. Cek apakah ada termin yang di REJECT PRESDIR (Status 2)
-        $check_rejected_presdir = $this->db->query("SELECT COUNT(*) AS count FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Status_AppvPresdir = 2")->row_array();
-        $is_any_termin_rejected = (int)($check_rejected_presdir['count'] ?? 0);
-
-        // 6. Cek jumlah baris yang di-reject bank untuk validasi flag
-        $check_rejected_payment = $this->db->query("SELECT COUNT(*) AS count FROM Ttrx_Cbr_Approval_Termin WHERE CBReq_No = '$cbreq_no' AND Termin_Payment_status = 2")->row_array();
-        $is_any_payment_rejected = (int)($check_rejected_payment['count'] ?? 0);
-
-        // --- UPDATE STATUS PRESDIR ---
-        if ($total_approved_termin == $total_cbr_amount) {
-            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, ['Status_AppvPresidentDirector' => 1]);
-        } elseif ($is_any_termin_rejected > 0 && $total_approved_termin < $total_cbr_amount) {
-            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, ['Status_AppvPresidentDirector' => 2]);
-        }
+        $is_any_payment_rejected = $this->db->where([
+            'CBReq_No' => $cbreq_no,
+            'Status_AppvPresdir' => 1,
+            'Termin_Payment_status' => 2
+        ])->count_all_results('Ttrx_Cbr_Approval_Termin') > 0;
 
         // --- UPDATE STATUS PAYMENT (BANK) ---
-        if ($total_paid_termin == $total_cbr_amount) {
+        if (abs($total_paid_termin - $total_cbr_amount) < 0.01) {
             // Fully Paid
             $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, [
                 'Payment_Status' => 1,
@@ -101,31 +99,65 @@ class CbrPaymentStatus extends CI_Controller
                 'Payment_Status_Time_Change' => $time_change,
                 'Payment_Status_Change_By' => $change_by
             ]);
+        } else {
+            // Semua keputusan pembayaran telah dikembalikan ke waiting.
+            $this->db->where('CBReq_No', $cbreq_no)->update($this->Ttrx_Cbr_Approval, [
+                'Payment_Status' => 0,
+                'Payment_Status_Time_Change' => $time_change,
+                'Payment_Status_Change_By' => $change_by,
+                'Reject_Payment_Reason' => NULL
+            ]);
         }
+    }
+
+    private function is_cbr_open($cbreq_no)
+    {
+        return $this->db->where('CBReq_No', $cbreq_no)
+            ->group_start()->where('isClose IS NULL', NULL, FALSE)->or_where('isClose', 0)->group_end()
+            ->count_all_results('TAccCashBookReq_Header') === 1;
     }
 
 
     public function approve_submission()
     {
-        $Inputs = $this->input->post('CBReq_No'); // Berisi array: ["CBR001|1", "CBR001|2"]
+        $Inputs = $this->input->post('Termin_SysID');
+        if (empty($Inputs) || !is_array($Inputs)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'No termin selected.']);
+        }
+        $Inputs = array_values(array_unique(array_filter(array_map('intval', $Inputs))));
         $unique_cbr = [];
 
         $this->db->trans_start();
-        foreach ($Inputs as $val) {
-            $parts = explode('|', $val);
-            if (count($parts) !== 2) continue;
-
-            $CBReq_No = $parts[0];
-            $Termin_Ke = $parts[1];
+        foreach ($Inputs as $sysId) {
+            $termin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                'SysID' => $sysId,
+                'Status_AppvPresdir' => 1,
+                'Termin_Payment_status' => 0
+            ])->row();
+            if (!$termin) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$sysId} is invalid or no longer waiting for payment."]);
+            }
+            if (!$this->is_cbr_open($termin->CBReq_No)) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "CBR {$termin->CBReq_No} is closed or invalid."]);
+            }
+            $CBReq_No = $termin->CBReq_No;
             $unique_cbr[$CBReq_No] = true; // Simpan CBR untuk di-sync nanti
 
-            $this->db->where('CBReq_No', $CBReq_No)
-                ->where('Termin_Ke', $Termin_Ke)
+            $this->db->where('SysID', $sysId)
+                ->where('Status_AppvPresdir', 1)
+                ->where('Termin_Payment_status', 0)
                 ->update('Ttrx_Cbr_Approval_Termin', [
                     'Termin_Payment_status' => 1,
                     'Termin_Payment_status_by' => $this->session->userdata('sys_sba_nama'),
                     'Termin_Payment_status_at' => $this->DateTime,
+                    'Reject_Payment_Reason' => NULL,
                 ]);
+            if ($this->db->affected_rows() !== 1) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$sysId} was already processed."]);
+            }
         }
 
         // Sinkronisasi Header
@@ -152,28 +184,47 @@ class CbrPaymentStatus extends CI_Controller
 
     public function reject_submission()
     {
-        $Inputs = $this->input->post('CBReq_No');
-        $rejection_reason = $this->input->post('rejection_reason');
+        $Inputs = $this->input->post('Termin_SysID');
+        $rejection_reason = trim((string)$this->input->post('rejection_reason'));
+        if (empty($Inputs) || !is_array($Inputs) || $rejection_reason === '') {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'Termin selection and rejection reason are required.']);
+        }
+        $Inputs = array_values(array_unique(array_filter(array_map('intval', $Inputs))));
         $unique_cbr = [];
 
         $this->db->trans_start();
-        foreach ($Inputs as $val) {
-            $parts = explode('|', $val);
-            if (count($parts) !== 2) continue;
-
-            $CBReq_No = $parts[0];
-            $Termin_Ke = $parts[1];
+        foreach ($Inputs as $sysId) {
+            $termin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                'SysID' => $sysId,
+                'Status_AppvPresdir' => 1,
+                'Termin_Payment_status' => 0
+            ])->row();
+            if (!$termin) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$sysId} is invalid or no longer waiting for payment."]);
+            }
+            if (!$this->is_cbr_open($termin->CBReq_No)) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "CBR {$termin->CBReq_No} is closed or invalid."]);
+            }
+            $CBReq_No = $termin->CBReq_No;
+            $Termin_Ke = $termin->Termin_Ke;
             $unique_cbr[$CBReq_No] = true;
 
             // UPDATE SEKARANG MENYIMPAN ALASAN REJECT PER TERMIN
-            $this->db->where('CBReq_No', $CBReq_No)
-                ->where('Termin_Ke', $Termin_Ke)
+            $this->db->where('SysID', $sysId)
+                ->where('Status_AppvPresdir', 1)
+                ->where('Termin_Payment_status', 0)
                 ->update('Ttrx_Cbr_Approval_Termin', [
                     'Termin_Payment_status' => 2,
                     'Termin_Payment_status_by' => $this->session->userdata('sys_sba_nama'),
                     'Termin_Payment_status_at' => $this->DateTime,
                     'Reject_Payment_Reason' => $rejection_reason, // <-- SEKARANG SUDAH AKTIF bray!
                 ]);
+            if ($this->db->affected_rows() !== 1) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$sysId} was already processed."]);
+            }
 
             // Tetap catat ke history approval global sebagai audit trail tambahan
             $this->help->record_history_approval($CBReq_No, "Termin $Termin_Ke: " . $rejection_reason);
@@ -219,15 +270,9 @@ class CbrPaymentStatus extends CI_Controller
                 continue;
             }
 
-            // Business Rule: Cannot revoke already paid termin
-            if ($termin->Termin_Payment_status == 1) {
-                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} already paid, can't do revoke.";
-                continue;
-            }
-
-            // Business Rule: Cannot revoke a termin that is already pending (0)
-            if ($termin->Termin_Payment_status == 0) {
-                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} is already pending.";
+            // Revoke hanya berlaku untuk keputusan "tidak jadi bayar".
+            if ($termin->Status_AppvPresdir != 1 || $termin->Termin_Payment_status != 2) {
+                $validation_errors[] = "Termin #{$termin->Termin_Ke} from CBR {$termin->CBReq_No} is not an approved-Presdir rejected payment.";
                 continue;
             }
 
@@ -272,12 +317,19 @@ class CbrPaymentStatus extends CI_Controller
             $this->db->insert('Thst_Trx_Cbr_Approval_Termin', $history_data);
 
             // 2. Rollback payment status in Ttrx_Cbr_Approval_Termin
-            $this->db->where('SysID', $termin->SysID)->update('Ttrx_Cbr_Approval_Termin', [
-                'Termin_Payment_status'      => 0, // Set back to Pending
-                'Termin_Payment_status_by'   => NULL,
-                'Termin_Payment_status_at'   => NULL,
-                'Reject_Payment_Reason'      => NULL // Clear rejection reason
-            ]);
+            $this->db->where('SysID', $termin->SysID)
+                ->where('Status_AppvPresdir', 1)
+                ->where('Termin_Payment_status', 2)
+                ->update('Ttrx_Cbr_Approval_Termin', [
+                    'Termin_Payment_status'      => 0, // Set back to Pending
+                    'Termin_Payment_status_by'   => NULL,
+                    'Termin_Payment_status_at'   => NULL,
+                    'Reject_Payment_Reason'      => NULL // Clear rejection reason
+                ]);
+            if ($this->db->affected_rows() !== 1) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$termin->SysID} was changed by another process."]);
+            }
 
             $unique_cbr_to_sync[$termin->CBReq_No] = true;
             $revoked_items_count++;
@@ -366,6 +418,7 @@ class CbrPaymentStatus extends CI_Controller
             $username = $this->session->userdata('sys_sba_username');
             $generic_rejection_reason = "Rejected via Excel bulk upload"; // Alasan generik untuk penolakan massal
             $unique_cbr = []; // Array untuk menampung CBR unik agar sinkronisasi lebih efisien
+            $seen_rows = [];
 
             $this->db->trans_start();
 
@@ -377,7 +430,36 @@ class CbrPaymentStatus extends CI_Controller
                 } else if ($action_flag == 2) {
                     $status_update = 2; // 2 untuk Rejected
                 } else {
-                    continue; // Skip jika angka action tidak valid (bukan 1 atau 2)
+                    $this->db->trans_rollback();
+                    echo json_encode(['code' => 400, 'msg' => "Invalid ACTION for CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']}. Use 1 or 2."]);
+                    return;
+                }
+
+                $row_key = $data['CBR_NUMBER'] . '|' . $data['TERMIN_KE'];
+                if (isset($seen_rows[$row_key])) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['code' => 400, 'msg' => "Duplicate Excel row: {$row_key}."]);
+                    return;
+                }
+                $seen_rows[$row_key] = true;
+
+                // SysID tetap internal: resolve dari tiga kolom Excel yang diketahui user.
+                $matches = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                    'CBReq_No' => $data['CBR_NUMBER'],
+                    'Termin_Ke' => $data['TERMIN_KE'],
+                    'Status_AppvPresdir' => 1,
+                    'Termin_Payment_status' => 0,
+                ]);
+                if ($matches->num_rows() !== 1) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['code' => 409, 'msg' => "CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} was not found uniquely or is no longer waiting."]);
+                    return;
+                }
+                $termin = $matches->row();
+                if (!$this->is_cbr_open($termin->CBReq_No)) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['code' => 409, 'msg' => "CBR {$termin->CBReq_No} is closed or invalid."]);
+                    return;
                 }
 
                 $update_data_termin = [
@@ -396,7 +478,15 @@ class CbrPaymentStatus extends CI_Controller
                 $unique_cbr[$data['CBR_NUMBER']] = true;
 
                 // UPDATE KE TABEL TERMIN
-                $this->db->where('CBReq_No', $data['CBR_NUMBER'])->where('Termin_Ke', $data['TERMIN_KE'])->update('Ttrx_Cbr_Approval_Termin', $update_data_termin);
+                $this->db->where('SysID', $termin->SysID)
+                    ->where('Status_AppvPresdir', 1)
+                    ->where('Termin_Payment_status', 0)
+                    ->update('Ttrx_Cbr_Approval_Termin', $update_data_termin);
+                if ($this->db->affected_rows() !== 1) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['code' => 409, 'msg' => "CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} was already processed."]);
+                    return;
+                }
             }
 
             // JALANKAN SINKRONISASI HEADER
@@ -457,7 +547,7 @@ class CbrPaymentStatus extends CI_Controller
 
         // Hanya tarik Termin yang sudah di-Approve Presdir (1) dan Belum Dibayar (0)
         $sql = "SELECT DISTINCT 
-                H.CBReq_No, TM.Termin_Ke, H.Type, H.Document_Date, H.Document_Number, 
+                TM.SysID AS Termin_SysID, H.CBReq_No, TM.Termin_Ke, H.Type, H.Document_Date, H.Document_Number, 
                 H.Descript, TM.Amount_Termin AS Amount, H.Currency_Id, 
                 TA.UserDivision, U.First_Name, TM.Termin_Payment_status AS Payment_Status, 
                 TM.Payment_Plan_Date, TA.Legitimate,
@@ -468,7 +558,9 @@ class CbrPaymentStatus extends CI_Controller
                 INNER JOIN Ttrx_Cbr_Approval TA ON TM.CBReq_No = TA.CBReq_No
                 INNER JOIN TUserPersonal U ON H.Created_By = U.User_ID
                 WHERE H.Type='D' AND H.Company_ID = 2 AND ISNULL(H.isSPJ,0) = 0
-                -- AND TA.Legitimate = 1 
+                AND H.Approval_Status = 3
+                AND H.CBReq_Status = 3
+                AND (H.isClose IS NULL OR H.isClose = 0)
                 AND TM.Status_AppvPresdir = 1 
                 AND TM.Termin_Payment_status = 0 ";
 
@@ -493,6 +585,7 @@ class CbrPaymentStatus extends CI_Controller
         foreach ($query->result_array() as $row) {
             $nestedData = array();
 
+            $nestedData['Termin_SysID'] = $row['Termin_SysID'];
             $nestedData['CBReq_No'] = $row['CBReq_No'];
             $nestedData['Termin_Ke'] = $row['Termin_Ke'];
             $nestedData['Type'] = $row['Type'];

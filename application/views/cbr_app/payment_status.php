@@ -87,7 +87,7 @@
                                                     <h4 class="mb-1">Format Template</h4>
                                                     <span>Silakan gunakan template Excel yang telah disediakan agar format sesuai dengan sistem.
                                                         <br />
-                                                        <strong>Jangan merubah tipe data, kolom action harus diisi dengan : 1 Untuk Approve & 2 Untuk Reject.</strong>
+                                                        <strong>Kolom wajib: CBR_NUMBER, ACTION, TERMIN_KE. ACTION: 1 = Paid, 2 = Tidak Jadi Bayar.</strong>
                                                         <br />
                                                         <a href="<?= base_url('assets/templates/Mass_Action_Temp.xlsx') ?>" class="fw-bolder fs-6 text-primary border-bottom border-primary" download>
                                                             <i class="fas fa-file-excel text-primary me-1"></i> Download Template .xlsx
@@ -99,8 +99,8 @@
                                             <form id="form-upload-excel" enctype="multipart/form-data">
                                                 <div class="mb-3">
                                                     <label for="file_excel" class="required form-label fw-bold">Pilih File Excel</label>
-                                                    <input class="form-control" type="file" id="file_excel" name="file_excel" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" required>
-                                                    <div class="text-muted fs-7 mt-2">Hanya diperbolehkan mengunggah file dengan ekstensi <strong>.xlsx</strong>.</div>
+                                                    <input class="form-control" type="file" id="file_excel" name="file_excel" accept=".xls,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" required>
+                                                    <div class="text-muted fs-7 mt-2">Gunakan file <strong>.xls atau .xlsx</strong>. SysID termin tidak diperlukan dan tetap dikelola internal oleh sistem.</div>
                                                 </div>
                                             </form>
                                         </div>

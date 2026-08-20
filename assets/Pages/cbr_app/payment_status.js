@@ -32,14 +32,13 @@ $(document).ready(function () {
         },
         columns: [
             {
-                data: 'CBReq_No',
+                data: 'Termin_SysID',
                 name: "CheckBox",
                 orderable: false,
                 render: function (data, type, row, meta) {
-                    // Value sekarang adalah gabungan CBR_No dan Termin_Ke
-                    let val = row.CBReq_No + '|' + row.Termin_Ke;
+                    let val = row.Termin_SysID;
                     return `<div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="${val}" id="${val}" name="CBReq_No[]">
+                    <input class="form-check-input" type="checkbox" value="${val}" id="termin-${val}" name="Termin_SysID[]">
                   </div>`
                 }
             },
@@ -202,12 +201,12 @@ $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
         },
         "buttons": [{
-            text: `<i class="fas fa-check"></i> Approve Payment`,
+            text: `<i class="fas fa-check"></i> Mark as Paid`,
             className: "btn btn-success",
             action: function (e, dt, node, config) {
                 Swal.fire({
                     title: 'System Message !',
-                    text: `Are you sure to approve all checked submission ?`,
+                    text: `Mark all selected termin as paid?`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -225,12 +224,12 @@ $(document).ready(function () {
             className: "btn btn-default btn-icon disabled",
         },
         {
-            text: `<i class="fas fa-times text-white fs-3"></i> Reject Payment`,
+            text: `<i class="fas fa-times text-white fs-3"></i> Tidak Jadi Bayar`,
             className: "btn btn-danger",
             action: function (e, dt, node, config) {
                 Swal.fire({
                     title: 'System Message',
-                    text: 'Please provide the reason for rejecting the submission(s) below:',
+                    text: 'Please provide the reason why the selected termin will not be paid:',
                     // 🔥 Tambahkan input textarea
                     input: 'textarea',
                     inputLabel: 'Rejection Reason (Required)',
@@ -277,7 +276,7 @@ $(document).ready(function () {
     }).buttons().container().appendTo('#TableData_wrapper .col-md-12:eq(0)');
 
     function Fn_Approve_Submission() {
-        if ($('input[name="CBReq_No[]"]:checked').length == 0) {
+        if ($('input[name="Termin_SysID[]"]:checked').length == 0) {
             return Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -330,7 +329,7 @@ $(document).ready(function () {
     }
 
     function Fn_Reject_Submission(rejectionReason) {
-        if ($('input[name="CBReq_No[]"]:checked').length == 0) {
+        if ($('input[name="Termin_SysID[]"]:checked').length == 0) {
             return Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
@@ -442,11 +441,11 @@ $(document).ready(function () {
 
 function check_uncheck_checkbox(isChecked) {
     if (isChecked) {
-        $('input[name="CBReq_No[]"]').each(function () {
+        $('input[name="Termin_SysID[]"]').each(function () {
             this.checked = true;
         });
     } else {
-        $('input[name="CBReq_No[]"]').each(function () {
+        $('input[name="Termin_SysID[]"]').each(function () {
             this.checked = false;
         });
     }

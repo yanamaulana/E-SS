@@ -14,7 +14,9 @@ $(document).ready(function () {
     $('.date-picker').flatpickr();
 
     // 1. Variabel Global Penampung ID
-    var selected_cbr = [];
+    // Selection is tracked by termin primary key, not by CBR number.
+    // One CBR can have several pending termin rows.
+    var selected_termin = [];
     var selected_details = {};
     var lastClickedBox = null;
 
@@ -36,16 +38,17 @@ $(document).ready(function () {
             type: "POST",
         },
         columns: [{
-            data: 'CBReq_No',
+            data: 'Termin_SysID',
             name: "CheckBox",
             orderable: false,
             render: function (data, type, row, meta) {
-                var isChecked = selected_cbr.includes(row.CBReq_No) ? 'checked' : '';
+                var terminId = String(row.Termin_SysID);
+                var isChecked = selected_termin.includes(terminId) ? 'checked' : '';
                 return `<div class="form-check">
                             <input class="form-check-input row-checkbox" type="checkbox" 
-                                value="${row.CBReq_No}" 
-                                id="${row.CBReq_No}" 
-                                name="CBReq_No[]" 
+                                value="${terminId}" 
+                                id="termin-${terminId}" 
+                                name="Termin_SysID[]" 
                                 ${isChecked}
                                 data-curr="${row.Currency_Id}"
                                 data-amount="${row.Amount}">
@@ -133,10 +136,10 @@ $(document).ready(function () {
             });
             $('[data-bs-toggle="tooltip"]').tooltip();
 
-            // Loop semua checkbox di halaman aktif, sinkronkan dengan array selected_cbr
-            $('input[name="CBReq_No[]"]').each(function () {
+            // Loop semua checkbox di halaman aktif, sinkronkan dengan termin terpilih.
+            $('input[name="Termin_SysID[]"]').each(function () {
                 var id = $(this).val();
-                if (selected_cbr.includes(id)) {
+                if (selected_termin.includes(id)) {
                     $(this).prop('checked', true);
                 } else {
                     $(this).prop('checked', false);
@@ -151,14 +154,13 @@ $(document).ready(function () {
             text: `<i class="fas fa-check"></i> Approve`,
             className: "btn btn-success",
             action: function (e, dt, node, config) {
-                // Panggil fungsi dengan array selected_cbr
-                if (selected_cbr.length === 0) {
+                if (selected_termin.length === 0) {
                     return Swal.fire('Error', 'Please select at least one item!', 'error');
                 }
 
                 Swal.fire({
                     title: 'System Message !',
-                    text: `Are you sure to approve ${selected_cbr.length} selected submission(s)?`,
+                    text: `Are you sure to approve ${selected_termin.length} selected termin(s)?`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -193,13 +195,13 @@ $(document).ready(function () {
             text: `<i class="fas fa-times text-white fs-3"></i> Reject`,
             className: "btn btn-danger",
             action: function (e, dt, node, config) {
-                if (selected_cbr.length === 0) {
+                if (selected_termin.length === 0) {
                     return Swal.fire('Error', 'Please select at least one item!', 'error');
                 }
 
                 Swal.fire({
                     title: 'System Message',
-                    text: `Please provide reason for rejecting ${selected_cbr.length} submission(s):`,
+                    text: `Please provide reason for rejecting ${selected_termin.length} termin(s):`,
                     input: 'textarea',
                     inputLabel: 'Rejection Reason (Required)',
                     inputPlaceholder: 'Enter your justification here...',
@@ -225,15 +227,15 @@ $(document).ready(function () {
     // 2.a Clear selection ketika filter/search berubah,
     // agar checkbox tersembunyi dari hasil pencarian sebelumnya tidak ikut ter-approve.
     TableData.on('search.dt', function () {
-        selected_cbr = [];
+        selected_termin = [];
         selected_details = {};
         $('#CheckAll').prop('checked', false);
         renderSummaryHTML();
     });
 
     // 3. Listener Checkbox Individu (Support SHIFT + CLICK)
-    $('#TableData tbody').on('click', 'input[name="CBReq_No[]"]', function (e) {
-        var $chkboxes = $('input[name="CBReq_No[]"]'); // Ambil semua checkbox di halaman aktif
+    $('#TableData tbody').on('click', 'input[name="Termin_SysID[]"]', function (e) {
+        var $chkboxes = $('input[name="Termin_SysID[]"]'); // Ambil semua checkbox di halaman aktif
         var isChecked = $(this).is(':checked');
 
         // JIKA USER MENEKAN TOMBOL SHIFT + KLIK (Dan sebelumnya sudah ada yg di-klik)
@@ -255,12 +257,12 @@ $(document).ready(function () {
 
                 // 2. Masukkan/Keluarkan dari Array sistem
                 if (isChecked) {
-                    if (!selected_cbr.includes(id)) {
-                        selected_cbr.push(id);
+                    if (!selected_termin.includes(id)) {
+                        selected_termin.push(id);
                         selected_details[id] = { curr: curr, amount: amount };
                     }
                 } else {
-                    selected_cbr = selected_cbr.filter(val => val !== id);
+                    selected_termin = selected_termin.filter(val => val !== id);
                     delete selected_details[id];
                 }
             });
@@ -271,12 +273,12 @@ $(document).ready(function () {
             var amount = parseFloat($(this).data('amount'));
 
             if (isChecked) {
-                if (!selected_cbr.includes(id)) {
-                    selected_cbr.push(id);
+                if (!selected_termin.includes(id)) {
+                    selected_termin.push(id);
                     selected_details[id] = { curr: curr, amount: amount };
                 }
             } else {
-                selected_cbr = selected_cbr.filter(val => val !== id);
+                selected_termin = selected_termin.filter(val => val !== id);
                 delete selected_details[id];
             }
         }
@@ -293,14 +295,14 @@ $(document).ready(function () {
         var isChecked = $(this).is(':checked');
         if (isChecked) {
             // Reset selection sebelum memilih semua baris yang sedang tampil.
-            selected_cbr = [];
+            selected_termin = [];
             selected_details = {};
         }
         check_uncheck_checkbox(isChecked);
     });
 
     function check_uncheck_checkbox(isChecked) {
-        $('input[name="CBReq_No[]"]').each(function () {
+        $('input[name="Termin_SysID[]"]').each(function () {
             var id = $(this).val();
 
             // 🔥 AMBIL DATA DARI ATRIBUT LANGSUNG
@@ -312,15 +314,15 @@ $(document).ready(function () {
 
             // Update Logic Array
             if (isChecked) {
-                if (!selected_cbr.includes(id)) {
-                    selected_cbr.push(id);
+                if (!selected_termin.includes(id)) {
+                    selected_termin.push(id);
                     selected_details[id] = {
                         curr: curr,
                         amount: amount
                     };
                 }
             } else {
-                selected_cbr = selected_cbr.filter(item => item !== id);
+                selected_termin = selected_termin.filter(item => item !== id);
                 delete selected_details[id];
             }
         });
@@ -328,7 +330,7 @@ $(document).ready(function () {
     }
 
     function selectRowsByAmountType(amountType, equal) {
-        selected_cbr = [];
+        selected_termin = [];
         selected_details = {};
         $('#CheckAll').prop('checked', false);
 
@@ -338,16 +340,16 @@ $(document).ready(function () {
             if (!row) return;
 
             var match = equal ? row.Amount_Type === amountType : row.Amount_Type !== amountType;
-            var $checkbox = $(this.node()).find('input[name="CBReq_No[]"]');
+            var $checkbox = $(this.node()).find('input[name="Termin_SysID[]"]');
 
             if (match) {
-                var id = row.CBReq_No;
+                var id = String(row.Termin_SysID);
                 var curr = row.Currency_Id;
                 var amount = parseFloat(row.Amount) || 0;
 
                 $checkbox.prop('checked', true);
-                if (!selected_cbr.includes(id)) {
-                    selected_cbr.push(id);
+                if (!selected_termin.includes(id)) {
+                    selected_termin.push(id);
                     selected_details[id] = {
                         curr: curr,
                         amount: amount
@@ -450,7 +452,7 @@ $(document).ready(function () {
 
     function updateCheckAllStatus() {
         var allCheckedInPage = true;
-        var checkboxes = $('input[name="CBReq_No[]"]');
+        var checkboxes = $('input[name="Termin_SysID[]"]');
 
         if (checkboxes.length === 0) {
             allCheckedInPage = false;
@@ -466,7 +468,7 @@ $(document).ready(function () {
 
     function Fn_Approve_Submission() {
         // Validasi menggunakan length array, bukan DOM element
-        if (selected_cbr.length == 0) {
+        if (selected_termin.length == 0) {
             return Swal.fire({ icon: 'error', title: 'Oops...', text: 'You need check the submission first !' });
         }
 
@@ -474,7 +476,7 @@ $(document).ready(function () {
             dataType: "json",
             type: "POST",
             url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/approve_submission",
-            data: { "CBReq_No": selected_cbr }, // Kirim array ID
+            data: { "Termin_SysID": selected_termin },
             beforeSend: function () {
                 Swal.fire({ title: 'Loading....', html: '<div class="spinner-border text-primary"></div>', showConfirmButton: false, allowOutsideClick: false })
             },
@@ -482,7 +484,7 @@ $(document).ready(function () {
                 Swal.close()
                 if (response.code == 200) {
                     Toast.fire({ icon: 'success', title: response.msg });
-                    selected_cbr = [];
+                    selected_termin = [];
                     selected_details = {}; // RESET DETAIL JUGA
                     renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#CheckAll').prop('checked', false);
@@ -499,7 +501,7 @@ $(document).ready(function () {
     }
 
     function Fn_Reject_Submission(rejectionReason) {
-        if (selected_cbr.length == 0) {
+        if (selected_termin.length == 0) {
             return Swal.fire({ icon: 'error', title: 'Oops...', text: 'You need check the submission first !' });
         }
 
@@ -508,7 +510,7 @@ $(document).ready(function () {
             type: "POST",
             url: $('meta[name="base_url"]').attr('content') + "CbrAppPresidentDirector/reject_submission",
             data: {
-                "CBReq_No": selected_cbr,
+                "Termin_SysID": selected_termin,
                 "rejection_reason": rejectionReason
             },
             beforeSend: function () {
@@ -518,7 +520,7 @@ $(document).ready(function () {
                 Swal.close()
                 if (response.code == 200) {
                     Toast.fire({ icon: 'success', title: response.msg });
-                    selected_cbr = [];
+                    selected_termin = [];
                     selected_details = {}; // RESET DETAIL JUGA
                     renderSummaryHTML();   // HILANGKAN SUMMARY
                     $('#CheckAll').prop('checked', false);

@@ -31,27 +31,47 @@ class CbrAppPresidentDirector extends CI_Controller
 
     public function approve_submission()
     {
-        $Cbrs = $this->input->post('CBReq_No');
+        $terminIds = $this->input->post('Termin_SysID');
+        if (empty($terminIds) || !is_array($terminIds)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'No termin selected.']);
+        }
+
+        $terminIds = array_values(array_unique(array_filter(array_map('intval', $terminIds))));
+        if (empty($terminIds)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'Invalid termin selection.']);
+        }
+        $username = $this->session->userdata('sys_sba_username');
+        $affectedCbrs = [];
+
         $this->db->trans_start();
-        // Asumsikan $Cbrs adalah array CBReq_No yang dikirim dari DataTables
-        foreach ($Cbrs as $CBReq_No) {
+        foreach ($terminIds as $terminId) {
+            $pendingTermin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                'SysID'                => $terminId,
+                'Status_AppvPresdir'   => 0,
+                'AppvPresdir_By'       => $username,
+            ])->row();
 
-            // 1. Dapatkan Dulu Termin Berapa yang Sedang Aktif (Status = 0)
-            $this->db->where('CBReq_No', $CBReq_No);
-            $this->db->where('Status_AppvPresdir', 0); // Cari yang belum di-approve
-            $pendingTermin = $this->db->get('Ttrx_Cbr_Approval_Termin')->row();
-
-            if ($pendingTermin) {
-                // 2. Update HANYA Termin yang sedang pending tersebut
-                $this->db->where('SysID', $pendingTermin->SysID)->update('Ttrx_Cbr_Approval_Termin', [
-                    'Status_AppvPresdir' => 1,
-                    'AppvPresdir_Name'   => $this->session->userdata('sys_sba_nama'),
-                    'AppvPresdir_By'     => $this->session->userdata('sys_sba_username'),
-                    'AppvPresdir_At'     => $this->DateTime
-                ]);
+            if (!$pendingTermin) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 400, 'msg' => "Termin ID {$terminId} is invalid, no longer pending, or is not assigned to you."]);
             }
 
-            // 3. Hitung TOTAL Termin yang SUDAH di-approve
+            $this->db->where('SysID', $terminId)
+                ->where('Status_AppvPresdir', 0)
+                ->where('AppvPresdir_By', $username)
+                ->update('Ttrx_Cbr_Approval_Termin', [
+                    'Status_AppvPresdir' => 1,
+                    'AppvPresdir_Name'   => $this->session->userdata('sys_sba_nama'),
+                    'AppvPresdir_At'     => $this->DateTime
+                ]);
+            if ($this->db->affected_rows() !== 1) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$terminId} was already processed. Please reload the list."]);
+            }
+            $affectedCbrs[$pendingTermin->CBReq_No] = true;
+        }
+
+        foreach (array_keys($affectedCbrs) as $CBReq_No) {
             $this->db->select_sum('Amount_Termin');
             $this->db->where('CBReq_No', $CBReq_No);
             $this->db->where('Status_AppvPresdir', 1);
@@ -100,32 +120,52 @@ class CbrAppPresidentDirector extends CI_Controller
 
     public function reject_submission()
     {
-        $Cbrs = $this->input->post('CBReq_No');
+        $terminIds = $this->input->post('Termin_SysID');
         $rejection_reason = $this->input->post('rejection_reason');
+
+        if (empty($terminIds) || !is_array($terminIds)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'No termin selected.']);
+        }
+
+        $terminIds = array_values(array_unique(array_filter(array_map('intval', $terminIds))));
+        if (empty($terminIds)) {
+            return $this->help->Fn_resulting_response(['code' => 400, 'msg' => 'Invalid termin selection.']);
+        }
+        $username = $this->session->userdata('sys_sba_username');
+        $affectedCbrs = [];
 
         $this->db->trans_start();
 
-        foreach ($Cbrs as $CBReq_No) {
+        foreach ($terminIds as $terminId) {
+            $pendingTermin = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                'SysID'                => $terminId,
+                'Status_AppvPresdir'   => 0,
+                'AppvPresdir_By'       => $username,
+            ])->row();
 
-            // 1. Dapatkan Termin yang sedang pending (Status = 0)
-            $this->db->where('CBReq_No', $CBReq_No);
-            $this->db->where('Status_AppvPresdir', 0); // Cari yang menunggu aksi
-            $pendingTermin = $this->db->get('Ttrx_Cbr_Approval_Termin')->row();
-
-            if ($pendingTermin) {
-                // 2. Update Termin tersebut menjadi Rejected (Status = 2)
-                $this->db->where('SysID', $pendingTermin->SysID)->update('Ttrx_Cbr_Approval_Termin', [
-                    'Status_AppvPresdir' => 2,
-                    'AppvPresdir_Name'   => $this->session->userdata('sys_sba_nama'),
-                    'AppvPresdir_By'     => $this->session->userdata('sys_sba_username'),
-                    'AppvPresdir_At'     => $this->DateTime
-                ]);
-
-                // Record history penolakan untuk termin ini
-                $this->help->record_history_approval($CBReq_No, $rejection_reason);
+            if (!$pendingTermin) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 400, 'msg' => "Termin ID {$terminId} is invalid, no longer pending, or is not assigned to you."]);
             }
 
-            // 3. Hitung TOTAL Termin yang SUDAH di-reject (Status = 2)
+            $this->db->where('SysID', $terminId)
+                ->where('Status_AppvPresdir', 0)
+                ->where('AppvPresdir_By', $username)
+                ->update('Ttrx_Cbr_Approval_Termin', [
+                    'Status_AppvPresdir' => 2,
+                    'AppvPresdir_Name'   => $this->session->userdata('sys_sba_nama'),
+                    'AppvPresdir_At'     => $this->DateTime
+                ]);
+            if ($this->db->affected_rows() !== 1) {
+                $this->db->trans_rollback();
+                return $this->help->Fn_resulting_response(['code' => 409, 'msg' => "Termin ID {$terminId} was already processed. Please reload the list."]);
+            }
+            $affectedCbrs[$pendingTermin->CBReq_No] = true;
+        }
+
+        foreach (array_keys($affectedCbrs) as $CBReq_No) {
+            $this->help->record_history_approval($CBReq_No, $rejection_reason);
+
             $this->db->select_sum('Amount_Termin');
             $this->db->where('CBReq_No', $CBReq_No);
             $this->db->where('Status_AppvPresdir', 2); // Hitung yang berstatus Rejected
@@ -392,6 +432,7 @@ class CbrAppPresidentDirector extends CI_Controller
         $data = array();
         foreach ($query->result_array() as $row) {
             $nestedData = array();
+            $nestedData['Termin_SysID'] = $row['Termin_SysID'];
             $nestedData['CBReq_No'] = $row['CBReq_No'];
             $nestedData['Type'] = $row['Type'];
             $nestedData['Termin_Ke'] = $row['Termin_Ke'];
