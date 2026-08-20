@@ -38,7 +38,7 @@ class CbrAppSeniorManager extends CI_Controller
             $this->db->where('CBReq_No', $CBReq_No)->update($this->Ttrx_Cbr_Approval, [
                 'Status_AppvSeniorManager' => 1,
                 'AppvSeniorManager_Name' => $this->session->userdata('sys_sba_nama'),
-                'AppvSeniorManager_By' => $this->session->userdata('sys_sba_username'),
+                // 'AppvSeniorManager_By' => $this->session->userdata('sys_sba_username'),
                 'AppvSeniorManager_At' => $this->DateTime,
             ]);
         }

@@ -244,6 +244,7 @@ class CbrAppAccounting extends CI_Controller
 
         $this->db->where('CBReq_No', $cbreq_no);
         $this->db->order_by('Termin_Ke', 'ASC');
+        $this->db->order_by('SysID', 'ASC');
         $query = $this->db->get('Ttrx_Cbr_Approval_Termin');
 
         echo json_encode($query->result());
@@ -265,7 +266,7 @@ class CbrAppAccounting extends CI_Controller
             return 'AP';
         }
 
-        return 'AP';
+        return NULL;
     }
 
     public function save_termin()
@@ -276,7 +277,12 @@ class CbrAppAccounting extends CI_Controller
         $amount_types = $this->input->post('amount_type');
         $row_statuses = $this->input->post('row_status');
 
-        if (empty($cbreq_no) || empty($amounts) || empty($dates) || empty($amount_types) || empty($row_statuses)) {
+        if (
+            empty($cbreq_no) || !is_array($amounts) || !is_array($dates) ||
+            !is_array($amount_types) || !is_array($row_statuses) ||
+            count($amounts) !== count($dates) || count($amounts) !== count($amount_types) ||
+            count($amounts) !== count($row_statuses)
+        ) {
             echo json_encode(
                 [
                     "code" => 400,
@@ -302,6 +308,16 @@ class CbrAppAccounting extends CI_Controller
         // 2. VALIDASI INPUT ARRAY (REQUIRED, TIDAK BOLEH 0, & TOTAL HITUNG)
         $pending_rows = [];
         $total_input_amount = 0;
+        $locked_total = (float) ($this->db->select_sum('Amount_Termin', 'total')
+            ->where('CBReq_No', $cbreq_no)
+            ->where('Status_AppvPresdir !=', 0)
+            ->get('Ttrx_Cbr_Approval_Termin')->row()->total ?? 0);
+        $available_amount = round($total_cbr_amount - $locked_total, 4);
+
+        if ($available_amount < -0.01) {
+            echo json_encode(["code" => 409, "msg" => "Gagal! Total termin yang sudah diputuskan melebihi nominal CBR. Hubungi administrator."]);
+            return;
+        }
         $existing_type_counts = ['PPN' => 0, 'PPH' => 0];
         $pending_type_counts = ['PPN' => 0, 'PPH' => 0];
 
@@ -354,12 +370,12 @@ class CbrAppAccounting extends CI_Controller
             $total_input_amount += $clean_amount;
         }
 
-        if (($total_input_amount - $total_cbr_amount) > 0.01) {
-            echo json_encode(["code" => 400, "msg" => "Gagal! Akumulasi nominal termin melebihi total batas anggaran CBR asli."]);
+        if (($total_input_amount - $available_amount) > 0.01) {
+            echo json_encode(["code" => 400, "msg" => "Gagal! Total termin aktif melebihi sisa nominal CBR setelah dikurangi termin yang sudah diputuskan."]);
             return;
         }
 
-        $remaining_amount = round($total_cbr_amount - $total_input_amount, 4);
+        $remaining_amount = round($available_amount - $total_input_amount, 4);
         $final_rows = [];
 
         foreach ($pending_rows as $row) {
@@ -386,12 +402,27 @@ class CbrAppAccounting extends CI_Controller
         // --- PROSES TRANSAKSI SIMPAN KE DATABASE (Lolos Validasi) ---
         $this->db->trans_start();
 
+        // Hindari race: Presdir mungkin memproses termin setelah modal Accounting dibuka.
+        $current_locked_total = (float) ($this->db->select_sum('Amount_Termin', 'total')
+            ->where('CBReq_No', $cbreq_no)
+            ->where('Status_AppvPresdir !=', 0)
+            ->get('Ttrx_Cbr_Approval_Termin')->row()->total ?? 0);
+        if (abs($current_locked_total - $locked_total) > 0.01) {
+            $this->db->trans_rollback();
+            echo json_encode(["code" => 409, "msg" => "Data termin berubah karena baru saja diproses President Director. Tutup modal lalu buka kembali."]);
+            return;
+        }
+
         // Bersihkan baris lama yang masih berstatus 0 (Awaiting)
         $this->db->where('CBReq_No', $cbreq_no);
         $this->db->where('Status_AppvPresdir', 0);
         $this->db->delete('Ttrx_Cbr_Approval_Termin');
 
-        $inserted_pending = 0;
+        $max_locked_termin = (int) ($this->db->select_max('Termin_Ke', 'max_termin')
+            ->where('CBReq_No', $cbreq_no)
+            ->where('Status_AppvPresdir !=', 0)
+            ->get('Ttrx_Cbr_Approval_Termin')->row()->max_termin ?? 0);
+        $inserted_pending = $max_locked_termin;
         $trx = $this->db->where('CBReq_No', $cbreq_no)->get('Ttrx_Cbr_Approval')->row();
 
         foreach ($final_rows as $row) {

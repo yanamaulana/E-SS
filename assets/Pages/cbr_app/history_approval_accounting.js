@@ -803,6 +803,11 @@ $(document).ready(function () {
         const isDisabled = (status == 1 || status == 2) ? 'disabled' : '';
         const normalizedAmountType = normalizeAmountType(amountType);
         const rowStatusValue = getRowStatusValue(status);
+        const lockedHiddenFields = isDisabled
+            ? `<input type="hidden" name="amount_termin[]" value="${amount}">
+               <input type="hidden" name="payment_plan_date[]" value="${date}">
+               <input type="hidden" name="amount_type[]" value="${normalizedAmountType}">`
+            : '';
 
         let badgeStatus = '';
         if (status == 1) {
@@ -827,6 +832,7 @@ $(document).ready(function () {
                         <div class="input-group input-group-sm input-group-solid">
                             <span class="input-group-text fw-bold fs-7 py-1 px-2">${cbrCurrency}</span>
                             <input type="text" name="amount_termin[]" class="form-control form-control-sm form-control-solid inp-amount-termin fs-7 py-1" value="${amount}" required ${isDisabled}>
+                            ${lockedHiddenFields}
                         </div>
                     </td>
                     <td>
@@ -973,6 +979,7 @@ $(document).ready(function () {
         let isValid = true;
         let errorMsg = "";
         let totalInputed = 0;
+        let totalLocked = 0;
 
         // LOOPING UNTUK VALIDASI PER BARIS TABEL
         const amountTypeCounts = { AP: 0, PPH: 0, PPN: 0 };
@@ -988,6 +995,7 @@ $(document).ready(function () {
             }
 
             if (isLocked) {
+                totalLocked += parseFloat($(this).find('.inp-amount-termin').val()) || 0;
                 return true;
             }
 
@@ -1036,9 +1044,10 @@ $(document).ready(function () {
 
         // 3. Validasi Keseluruhan Termin Tidak Boleh Lebih Besar dari Nilai Amount CBR
         // Menggunakan selisih toleransi desimal 0.01 untuk menghindari bug tipe data float
-        if ((totalInputed - totalCbrAmount) > 0.01) {
+        const totalAllTermin = totalLocked + totalInputed;
+        if ((totalAllTermin - totalCbrAmount) > 0.01) {
             Swal.fire({
-                text: `Total akumulasi termin (${formatRupiah(totalInputed)}) melebihi nilai total nominal CBR (${formatRupiah(totalCbrAmount)})!`,
+                text: `Total termin terkunci dan aktif (${formatRupiah(totalAllTermin)}) melebihi nilai total nominal CBR (${formatRupiah(totalCbrAmount)})!`,
                 icon: "error",
                 buttonsStyling: false,
                 confirmButtonText: "Sesuaikan Angka",
