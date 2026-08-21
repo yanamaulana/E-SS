@@ -6,9 +6,9 @@
             </div>
             <div class="card-body">
                 <form method="get" action="<?= base_url('ReportPemakaianCuti/export_excel') ?>" class="row align-items-end g-5">
-                    <div class="form-text">Data ANL dihitung dalam rentang EmpGetLeave Date sampai EmpGetLeave End Date.</div>
+                    <div class="form-text">Data ANL dihitung dari 1 Januari sampai 31 Desember pada tahun yang dipilih.</div>
                     <div class="col-md-5">
-                        <label for="annual_year" class="form-label required">Tahun Awal Cuti (Annual Date)</label>
+                        <label for="annual_year" class="form-label required">Tahun Report</label>
                         <select id="annual_year" name="year" class="form-select" required>
                             <?php for ($year = (int) date('Y'); $year >= 2014; $year--) : ?>
                                 <option value="<?= $year ?>" <?= $year === (int) date('Y') ? 'selected' : '' ?>><?= $year ?></option>

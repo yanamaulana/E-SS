@@ -46,23 +46,15 @@ class ReportPemakaianCuti extends CI_Controller
         // Satu query set-based menggantikan query per karyawan pada view lama.
         $sql = "WITH Employees AS (
                     SELECT DISTINCT P.EMP_ID, C.Emp_No, P.FIRST_NAME,
-                        CC.COSTCENTER_NAME_EN AS Cost_Center, P.HIRE_DATE,
-                        G.EmpGetLeave_Date AS Annual_Date,
-                        G.EmpGetLeave_EndDate AS Annual_End_Date
+                        CC.COSTCENTER_NAME_EN AS Cost_Center, P.HIRE_DATE
                     FROM tHRMEmpPersonalData P
                     INNER JOIN tHRMEmpCompany C ON C.Emp_ID = P.Emp_ID
-                    INNER JOIN THRMEmpGetLeave G ON P.EMP_ID = G.EMP_ID
                     LEFT JOIN tHRMPosition POS ON C.Position_ID = POS.Position_ID
                     LEFT JOIN tHRMCostCenter CC ON POS.Cost_Center = CC.CostCenter_Code
                     WHERE (C.End_Date > GETDATE() OR C.End_Date IS NULL)
                       AND P.Employee_Status = 'ACTIVE'
-                      -- Ambil periode cuti yang beririsan dengan tahun report.
-                      AND G.EmpGetLeave_Date < ?
-                      AND G.EmpGetLeave_EndDate >= ?
-                      AND G.EmpGetLeave_Date IS NOT NULL
-                      AND G.EmpGetLeave_EndDate IS NOT NULL
                 ), AnnualLeaveRaw AS (
-                    SELECT DISTINCT E.EMP_ID, E.Annual_Date, E.Annual_End_Date, D.Shift_Start
+                    SELECT DISTINCT E.EMP_ID, D.Shift_Start
                     FROM Employees E
                     INNER JOIN tHRMAttendance A ON A.Emp_ID = E.EMP_ID
                     INNER JOIN tHRMAttendanceDetail D
@@ -70,36 +62,28 @@ class ReportPemakaianCuti extends CI_Controller
                     INNER JOIN tHRMEmpPersonalData P ON P.Emp_ID = E.EMP_ID
                     WHERE A.Company_ID = 73 AND D.Company_ID = 73
                       AND D.Attend_Code = 'ANL'
-                      AND D.Shift_Start >= E.Annual_Date
-                      AND D.Shift_Start < DATEADD(DAY, 1, CAST(E.Annual_End_Date AS DATE))
+                      AND D.Shift_Start >= ?
+                      AND D.Shift_Start < ?
                       AND P.User_ID IN (SELECT DISTINCT User_ID FROM TAppGroupData WHERE AppGroup_ID = 716)
                 ), AnnualLeave AS (
-                    SELECT EMP_ID, Annual_Date, Annual_End_Date, Shift_Start,
-                        ROW_NUMBER() OVER (
-                            PARTITION BY EMP_ID, Annual_Date, Annual_End_Date ORDER BY Shift_Start
-                        ) AS Leave_No,
-                        COUNT(*) OVER (
-                            PARTITION BY EMP_ID, Annual_Date, Annual_End_Date
-                        ) AS Leave_Count
+                    SELECT EMP_ID, Shift_Start,
+                        ROW_NUMBER() OVER (PARTITION BY EMP_ID ORDER BY Shift_Start) AS Leave_No,
+                        COUNT(*) OVER (PARTITION BY EMP_ID) AS Leave_Count
                     FROM AnnualLeaveRaw
                 )
                 SELECT E.EMP_ID, E.Emp_No, E.FIRST_NAME, E.Cost_Center,
-                    E.HIRE_DATE, E.Annual_Date, E.Annual_End_Date,
-                    L.Shift_Start, L.Leave_No, L.Leave_Count
+                    E.HIRE_DATE, L.Shift_Start, L.Leave_No, L.Leave_Count
                 FROM Employees E
                 LEFT JOIN AnnualLeave L
-                    ON L.EMP_ID = E.EMP_ID
-                    AND L.Annual_Date = E.Annual_Date
-                    AND L.Annual_End_Date = E.Annual_End_Date
-                    AND L.Leave_No <= 16
+                    ON L.EMP_ID = E.EMP_ID AND L.Leave_No <= 16
                 ORDER BY E.Cost_Center, E.FIRST_NAME, L.Leave_No";
 
         $reportStartDate = $year . '-01-01';
         $reportEndDate = ($year + 1) . '-01-01';
-        $rows = $this->HR->query($sql, [$reportEndDate, $reportStartDate])->result_array();
+        $rows = $this->HR->query($sql, [$reportStartDate, $reportEndDate])->result_array();
         $employees = [];
         foreach ($rows as $row) {
-            $periodKey = $row['EMP_ID'] . '|' . $row['Annual_Date'] . '|' . $row['Annual_End_Date'];
+            $periodKey = $row['EMP_ID'];
             if (!isset($employees[$periodKey])) {
                 $employees[$periodKey] = ['data' => $row, 'dates' => [], 'count' => (int) $row['Leave_Count']];
             }
@@ -112,17 +96,17 @@ class ReportPemakaianCuti extends CI_Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Pemakaian Cuti ' . $year);
         $sheet->setCellValue('A1', 'REPORT PEMAKAIAN CUTI - TAHUN ' . $year);
-        $sheet->mergeCells('A1:X1');
+        $sheet->mergeCells('A1:V1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        $headers = ['ID', 'NIK', 'NAME', 'DEPARTMENT', 'HIRE DATE', 'ANNUAL DATE', 'ANNUAL END DATE'];
+        $headers = ['ID', 'NIK', 'NAME', 'DEPARTMENT', 'HIRE DATE'];
         for ($i = 1; $i <= 16; $i++) $headers[] = 'ANL-' . $i;
         $headers[] = 'COUNT ANL';
         $sheet->fromArray($headers, null, 'A2');
-        $sheet->getStyle('A2:X2')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
-        $sheet->getStyle('A2:X2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF3B6D8C');
-        $sheet->getStyle('A2:X2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A2:V2')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A2:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF3B6D8C');
+        $sheet->getStyle('A2:V2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $excelRow = 3;
         foreach ($employees as $employee) {
@@ -132,21 +116,19 @@ class ReportPemakaianCuti extends CI_Controller
             $sheet->setCellValue('C' . $excelRow, $data['FIRST_NAME']);
             $sheet->setCellValue('D' . $excelRow, $data['Cost_Center']);
             $sheet->setCellValue('E' . $excelRow, substr($data['HIRE_DATE'], 0, 10));
-            $sheet->setCellValue('F' . $excelRow, substr($data['Annual_Date'], 0, 10));
-            $sheet->setCellValue('G' . $excelRow, substr($data['Annual_End_Date'], 0, 10));
             for ($i = 1; $i <= 16; $i++) {
-                $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(7 + $i);
+                $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(5 + $i);
                 $sheet->setCellValue($column . $excelRow, isset($employee['dates'][$i]) ? $employee['dates'][$i] : '-');
             }
-            $sheet->setCellValue('X' . $excelRow, $employee['count']);
+            $sheet->setCellValue('V' . $excelRow, $employee['count']);
             $excelRow++;
         }
 
         $lastRow = max(2, $excelRow - 1);
         $sheet->freezePane('A3');
-        $sheet->setAutoFilter('A2:X2');
-        $sheet->getStyle('A2:X' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        foreach (range('A', 'X') as $column) $sheet->getColumnDimension($column)->setAutoSize(true);
+        $sheet->setAutoFilter('A2:V2');
+        $sheet->getStyle('A2:V' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        foreach (range('A', 'V') as $column) $sheet->getColumnDimension($column)->setAutoSize(true);
 
         $filename = 'Report_Pemakaian_Cuti_' . $year . '_' . date('Ymd_His') . '.xlsx';
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
