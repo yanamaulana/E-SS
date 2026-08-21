@@ -402,6 +402,7 @@ $(document).ready(function () {
         $.ajax({
             url: $('meta[name="base_url"]').attr('content') + "CbrPaymentStatus/Proses_Excel",
             type: "POST",
+            dataType: "json",
             data: formData,
             contentType: false, // Wajib false untuk upload file via AJAX
             processData: false, // Wajib false untuk upload file via AJAX
@@ -415,14 +416,38 @@ $(document).ready(function () {
             },
             success: function (response) {
                 Swal.close();
+
+                var detailItems = Array.isArray(response && response.details) ? response.details : [];
+                var detailHtml = detailItems.length
+                    ? '<div class="text-start mt-3"><strong>Data yang dilewati:</strong><ul class="mt-2">' +
+                        detailItems.map(function (item) {
+                            return '<li>' + $('<div>').text(item).html() + '</li>';
+                        }).join('') + '</ul></div>'
+                    : '';
+
+                if (!response || response.code !== 200) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload gagal',
+                        html: '<div>' + $('<div>').text(response && response.msg ? response.msg : 'Respons server tidak valid.').html() + '</div>' + detailHtml,
+                        footer: '<a href="javascript:void(0)">Notification System</a>'
+                    });
+                    return;
+                }
+
                 Swal.fire({
                     icon: 'success',
-                    title: 'Upload Success...',
-                    text: response.msg,
+                    title: 'Upload berhasil',
+                    html: '<div>' + $('<div>').text(response.msg).html() + '</div>' + detailHtml,
                     footer: '<a href="javascript:void(0)">Notification System</a>'
                 });
-                $('#TableData').DataTable().ajax.reload(null, false);
-                $("#TableDataHistory").DataTable().ajax.reload(null, false);
+
+                if ($.fn.DataTable.isDataTable('#TableData')) {
+                    $('#TableData').DataTable().ajax.reload(null, false);
+                }
+                if ($.fn.DataTable.isDataTable('#TableDataHistory')) {
+                    $('#TableDataHistory').DataTable().ajax.reload(null, false);
+                }
                 $('#modal-excel-action').modal('hide');
                 $('#form-upload-excel')[0].reset();
             },

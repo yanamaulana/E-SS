@@ -388,7 +388,7 @@ class CbrPaymentStatus extends CI_Controller
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $selected_cbr = [];
-            $cbr_rejection_reasons = []; // Untuk menyimpan alasan penolakan per CBR jika ada
+            $skipped_rows = [];
 
             foreach ($sheetData as $rowIndex => $row) {
                 if ($rowIndex == 1) continue; // Skip baris pertama (header)
@@ -397,16 +397,20 @@ class CbrPaymentStatus extends CI_Controller
                 $action = trim($row['B'] ?? '');
                 $termin_ke = trim($row['C'] ?? ''); // BACA KOLOM C UNTUK TERMIN KE
 
-                // Pastikan ketiga kolom (CBR, Action, dan Termin) tidak kosong
+                // Baris kosong sepenuhnya diabaikan; baris parsial dilaporkan sebagai skipped.
+                if ($cbr_no === '' && $action === '' && $termin_ke === '') {
+                    continue;
+                }
+
                 if (!empty($cbr_no) && $action !== '' && $termin_ke !== '') {
                     $selected_cbr[] = [
+                        'EXCEL_ROW'  => $rowIndex,
                         'CBR_NUMBER' => $cbr_no,
                         'ACTION'     => (int)$action,
                         'TERMIN_KE'  => (int)$termin_ke // Simpan Termin Ke
                     ];
-                    if ((int)$action == 2) {
-                        $cbr_rejection_reasons[$cbr_no] = "Rejected via Excel bulk upload"; // Tetapkan alasan generik jika ditolak
-                    }
+                } else {
+                    $skipped_rows[] = "Row {$rowIndex}: CBR_NUMBER, ACTION, and TERMIN_KE are required.";
                 }
             }
 
@@ -419,6 +423,7 @@ class CbrPaymentStatus extends CI_Controller
             $generic_rejection_reason = "Rejected via Excel bulk upload"; // Alasan generik untuk penolakan massal
             $unique_cbr = []; // Array untuk menampung CBR unik agar sinkronisasi lebih efisien
             $seen_rows = [];
+            $total_processed = 0;
 
             $this->db->trans_start();
 
@@ -430,16 +435,14 @@ class CbrPaymentStatus extends CI_Controller
                 } else if ($action_flag == 2) {
                     $status_update = 2; // 2 untuk Rejected
                 } else {
-                    $this->db->trans_rollback();
-                    echo json_encode(['code' => 400, 'msg' => "Invalid ACTION for CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']}. Use 1 or 2."]);
-                    return;
+                    $skipped_rows[] = "Row {$data['EXCEL_ROW']}: CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} has invalid ACTION; use 1 or 2.";
+                    continue;
                 }
 
                 $row_key = $data['CBR_NUMBER'] . '|' . $data['TERMIN_KE'];
                 if (isset($seen_rows[$row_key])) {
-                    $this->db->trans_rollback();
-                    echo json_encode(['code' => 400, 'msg' => "Duplicate Excel row: {$row_key}."]);
-                    return;
+                    $skipped_rows[] = "Row {$data['EXCEL_ROW']}: duplicate CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']}.";
+                    continue;
                 }
                 $seen_rows[$row_key] = true;
 
@@ -451,15 +454,27 @@ class CbrPaymentStatus extends CI_Controller
                     'Termin_Payment_status' => 0,
                 ]);
                 if ($matches->num_rows() !== 1) {
-                    $this->db->trans_rollback();
-                    echo json_encode(['code' => 409, 'msg' => "CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} was not found uniquely or is no longer waiting."]);
-                    return;
+                    $current = $this->db->get_where('Ttrx_Cbr_Approval_Termin', [
+                        'CBReq_No' => $data['CBR_NUMBER'], 'Termin_Ke' => $data['TERMIN_KE']
+                    ]);
+                    $reason = 'not found or ambiguous';
+                    if ($current->num_rows() === 1) {
+                        $row_status = $current->row();
+                        if ($row_status->Status_AppvPresdir != 1) {
+                            $reason = 'not approved by President Director';
+                        } elseif ($row_status->Termin_Payment_status == 1) {
+                            $reason = 'already paid';
+                        } elseif ($row_status->Termin_Payment_status == 2) {
+                            $reason = 'already marked as not paid';
+                        }
+                    }
+                    $skipped_rows[] = "Row {$data['EXCEL_ROW']}: CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} {$reason}.";
+                    continue;
                 }
                 $termin = $matches->row();
                 if (!$this->is_cbr_open($termin->CBReq_No)) {
-                    $this->db->trans_rollback();
-                    echo json_encode(['code' => 409, 'msg' => "CBR {$termin->CBReq_No} is closed or invalid."]);
-                    return;
+                    $skipped_rows[] = "Row {$data['EXCEL_ROW']}: CBR {$termin->CBReq_No} is closed or invalid.";
+                    continue;
                 }
 
                 $update_data_termin = [
@@ -470,12 +485,7 @@ class CbrPaymentStatus extends CI_Controller
 
                 if ($action_flag == 2) { // Jika ini adalah penolakan
                     $update_data_termin['Reject_Payment_Reason'] = $generic_rejection_reason;
-                    // Catat riwayat penolakan untuk setiap termin yang ditolak
-                    $this->help->record_history_approval($data['CBR_NUMBER'], "Termin " . $data['TERMIN_KE'] . ": " . $generic_rejection_reason);
                 }
-
-                // Kumpulkan CBR_NUMBER unik
-                $unique_cbr[$data['CBR_NUMBER']] = true;
 
                 // UPDATE KE TABEL TERMIN
                 $this->db->where('SysID', $termin->SysID)
@@ -483,10 +493,15 @@ class CbrPaymentStatus extends CI_Controller
                     ->where('Termin_Payment_status', 0)
                     ->update('Ttrx_Cbr_Approval_Termin', $update_data_termin);
                 if ($this->db->affected_rows() !== 1) {
-                    $this->db->trans_rollback();
-                    echo json_encode(['code' => 409, 'msg' => "CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} was already processed."]);
-                    return;
+                    $skipped_rows[] = "Row {$data['EXCEL_ROW']}: CBR {$data['CBR_NUMBER']} termin {$data['TERMIN_KE']} was changed by another process.";
+                    continue;
                 }
+
+                if ($action_flag == 2) {
+                    $this->help->record_history_approval($data['CBR_NUMBER'], "Termin " . $data['TERMIN_KE'] . ": " . $generic_rejection_reason);
+                }
+                $unique_cbr[$data['CBR_NUMBER']] = true;
+                $total_processed++;
             }
 
             // JALANKAN SINKRONISASI HEADER
@@ -505,10 +520,23 @@ class CbrPaymentStatus extends CI_Controller
                 return; // Tambahkan return agar tidak lanjut ke echo sukses
             }
 
-            $total_processed = count($selected_cbr);
+            if ($total_processed === 0) {
+                echo json_encode([
+                    'code' => 400,
+                    'msg' => 'Tidak ada termin yang dapat diproses.',
+                    'processed' => 0,
+                    'skipped' => count($skipped_rows),
+                    'details' => $skipped_rows
+                ]);
+                return;
+            }
+
             echo json_encode([
                 'code' => 200,
-                'msg' => "Berhasil memproses $total_processed dokumen termin CBR dari Excel!"
+                'msg' => "Berhasil memproses {$total_processed} termin; " . count($skipped_rows) . " termin dilewati.",
+                'processed' => $total_processed,
+                'skipped' => count($skipped_rows),
+                'details' => $skipped_rows
             ]);
         } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
             echo json_encode([

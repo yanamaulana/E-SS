@@ -1,6 +1,8 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -8,42 +10,85 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-class ReportPemakaianCuti extends CI_Controller
+class EmailHistoryCuti extends CI_Controller
 {
     private $HR;
-    private $Date;
-    private $DateTime;
-    private $layout = 'layout';
 
     public function __construct()
     {
         parent::__construct();
-        is_logged_in();
-        $this->Date = date("Y-m-d");
-        $this->DateTime = date("Y-m-d H:i:s");
-        $this->load->model('m_helper', 'help');
-        $this->load->model('m_DataTable', 'M_Datatables');
         $this->HR = $this->load->database('HR', TRUE);
     }
 
-    public function index()
+    /**
+     * Endpoint Windows Task Scheduler:
+     * /Scheduler/EmailHistoryCuti/send
+     *
+     * Aman dipanggil setiap hari. Email hanya dikirim tanggal 1 pada
+     * Januari-November dan tanggal 31 pada Desember.
+     */
+    public function send()
     {
-        $this->data['page_title'] = "Report Pemakaian Cuti Seluruh Karyawan";
-        $this->data['page_content'] = "report_hr/pemakaian_cuti";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/report_hr/pemakaian_cuti.js"></script>';
+        $today = new DateTimeImmutable('today');
+        $day = (int) $today->format('j');
+        $month = (int) $today->format('n');
+        $isScheduleDate = ($month !== 12 && $day === 1) || ($month === 12 && $day === 31);
 
-        $this->load->view($this->layout, $this->data);
-    }
-
-    public function export_excel()
-    {
-        $year = (int) $this->input->get('year', TRUE);
-        $currentYear = (int) date('Y');
-        if ($year < 2014 || $year > $currentYear) {
-            show_error('Tahun annual date tidak valid.', 400);
+        if (!$isScheduleDate) {
+            return $this->respond('Tidak ada jadwal pengiriman pada ' . $today->format('Y-m-d') . '.', 200);
         }
 
-        // Satu query set-based menggantikan query per karyawan pada view lama.
+        $tempDir = FCPATH . 'temp_excel';
+        if (!is_dir($tempDir) && !mkdir($tempDir, 0777, true)) {
+            return $this->respond('Direktori temporary Excel tidak dapat dibuat.', 500);
+        }
+
+        $period = $today->format('Y-F');
+        $lockPath = $tempDir . DIRECTORY_SEPARATOR . 'email_history_cuti_' . $today->format('Ymd') . '.lock';
+        $lockHandle = fopen($lockPath, 'c+');
+        if ($lockHandle === false || !flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            if (is_resource($lockHandle)) fclose($lockHandle);
+            return $this->respond('Proses pengiriman sedang berjalan.', 409);
+        }
+
+        $status = trim(stream_get_contents($lockHandle));
+        if ($status === 'SENT') {
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+            return $this->respond('Email periode ' . $period . ' sudah pernah dikirim.', 200);
+        }
+
+        $year = (int) $today->format('Y');
+        $filename = 'Data_History_Cuti_' . $period . '.xlsx';
+        $filepath = $tempDir . DIRECTORY_SEPARATOR . $filename;
+        $spreadsheet = null;
+
+        try {
+            $employees = $this->getLeaveData($year);
+            $spreadsheet = $this->createSpreadsheet($employees, $year);
+            (new Xlsx($spreadsheet))->save($filepath);
+
+            $this->sendEmail($filepath, $filename, $period);
+
+            ftruncate($lockHandle, 0);
+            rewind($lockHandle);
+            fwrite($lockHandle, 'SENT');
+            fflush($lockHandle);
+
+            return $this->respond('Email Data History Cuti periode ' . $period . ' berhasil dikirim.', 200);
+        } catch (Throwable $e) {
+            log_message('error', 'Scheduler EmailHistoryCuti: ' . $e->getMessage());
+            return $this->respond('Email Data History Cuti gagal dikirim: ' . $e->getMessage(), 500);
+        } finally {
+            if ($spreadsheet instanceof Spreadsheet) $spreadsheet->disconnectWorksheets();
+            if (is_file($filepath)) unlink($filepath);
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+        }
+    }
+
+    private function getLeaveData($year)
+    {
         $sql = "WITH Employees AS (
                     SELECT DISTINCT P.EMP_ID, C.Emp_No, P.FIRST_NAME,
                         CC.COSTCENTER_NAME_EN AS Cost_Center, P.HIRE_DATE,
@@ -51,7 +96,7 @@ class ReportPemakaianCuti extends CI_Controller
                         G.EmpGetLeave_EndDate AS Annual_End_Date
                     FROM tHRMEmpPersonalData P
                     INNER JOIN tHRMEmpCompany C ON C.Emp_ID = P.Emp_ID
-                    INNER JOIN THRMEmpGetLeave G ON P.EMP_ID = G.EMP_ID
+                    INNER JOIN THRMEmpGetLeave G ON G.EMP_ID = P.EMP_ID
                     LEFT JOIN tHRMPosition POS ON C.Position_ID = POS.Position_ID
                     LEFT JOIN tHRMCostCenter CC ON POS.Cost_Center = CC.CostCenter_Code
                     WHERE (C.End_Date > GETDATE() OR C.End_Date IS NULL)
@@ -68,11 +113,14 @@ class ReportPemakaianCuti extends CI_Controller
                     INNER JOIN tHRMAttendanceDetail D
                         ON D.Emp_ID = A.Emp_ID AND D.Shift_Start = A.Shift_Start
                     INNER JOIN tHRMEmpPersonalData P ON P.Emp_ID = E.EMP_ID
-                    WHERE A.Company_ID = 73 AND D.Company_ID = 73
+                    WHERE A.Company_ID = 73
+                      AND D.Company_ID = 73
                       AND D.Attend_Code = 'ANL'
                       AND D.Shift_Start >= E.Annual_Date
                       AND D.Shift_Start < DATEADD(DAY, 1, CAST(E.Annual_End_Date AS DATE))
-                      AND P.User_ID IN (SELECT DISTINCT User_ID FROM TAppGroupData WHERE AppGroup_ID = 716)
+                      AND P.User_ID IN (
+                          SELECT DISTINCT User_ID FROM TAppGroupData WHERE AppGroup_ID = 716
+                      )
                 ), AnnualLeave AS (
                     SELECT EMP_ID, Annual_Date, Annual_End_Date, Shift_Start,
                         ROW_NUMBER() OVER (
@@ -99,15 +147,24 @@ class ReportPemakaianCuti extends CI_Controller
         $rows = $this->HR->query($sql, [$reportEndDate, $reportStartDate])->result_array();
         $employees = [];
         foreach ($rows as $row) {
-            $periodKey = $row['EMP_ID'] . '|' . $row['Annual_Date'] . '|' . $row['Annual_End_Date'];
-            if (!isset($employees[$periodKey])) {
-                $employees[$periodKey] = ['data' => $row, 'dates' => [], 'count' => (int) $row['Leave_Count']];
+            $key = $row['EMP_ID'] . '|' . $row['Annual_Date'] . '|' . $row['Annual_End_Date'];
+            if (!isset($employees[$key])) {
+                $employees[$key] = [
+                    'data' => $row,
+                    'dates' => [],
+                    'count' => (int) $row['Leave_Count'],
+                ];
             }
             if ($row['Leave_No'] !== null) {
-                $employees[$periodKey]['dates'][(int) $row['Leave_No']] = substr($row['Shift_Start'], 0, 10);
+                $employees[$key]['dates'][(int) $row['Leave_No']] = substr($row['Shift_Start'], 0, 10);
             }
         }
 
+        return $employees;
+    }
+
+    private function createSpreadsheet(array $employees, $year)
+    {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Pemakaian Cuti ' . $year);
@@ -134,9 +191,9 @@ class ReportPemakaianCuti extends CI_Controller
             $sheet->setCellValue('E' . $excelRow, substr($data['HIRE_DATE'], 0, 10));
             $sheet->setCellValue('F' . $excelRow, substr($data['Annual_Date'], 0, 10));
             $sheet->setCellValue('G' . $excelRow, substr($data['Annual_End_Date'], 0, 10));
-            for ($i = 1; $i <= 16; $i++) {
+            for ($i = 1; $i <= 15; $i++) {
                 $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(7 + $i);
-                $sheet->setCellValue($column . $excelRow, isset($employee['dates'][$i]) ? $employee['dates'][$i] : '-');
+                $sheet->setCellValue($column . $excelRow, $employee['dates'][$i] ?? '-');
             }
             $sheet->setCellValue('X' . $excelRow, $employee['count']);
             $excelRow++;
@@ -148,12 +205,47 @@ class ReportPemakaianCuti extends CI_Controller
         $sheet->getStyle('A2:X' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         foreach (range('A', 'X') as $column) $sheet->getColumnDimension($column)->setAutoSize(true);
 
-        $filename = 'Report_Pemakaian_Cuti_' . $year . '_' . date('Ymd_His') . '.xlsx';
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-        (new Xlsx($spreadsheet))->save('php://output');
-        $spreadsheet->disconnectWorksheets();
-        exit;
+        return $spreadsheet;
+    }
+
+    private function sendEmail($filepath, $filename, $period)
+    {
+        $this->config->load('email', TRUE);
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $this->config->item('smtp_host', 'email') ?: 'mail.samick.co.id';
+        $mail->SMTPAuth = true;
+        $mail->Username = $this->config->item('smtp_user', 'email');
+        $mail->Password = $this->config->item('smtp_pass', 'email');
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port = (int) ($this->config->item('smtp_port', 'email') ?: 465);
+        $mail->SMTPOptions = [
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+            ],
+        ];
+
+        $mail->setFrom('personalia@samick.co.id', 'System HR');
+        foreach (['irul.personalia@samick.co.id', 'novita@samick.co.id', 'yana.mis@samick.co.id'] as $recipient) {
+            $mail->addAddress($recipient);
+        }
+        $mail->addAttachment($filepath, $filename);
+        $mail->isHTML(true);
+        $mail->Subject = 'Data History cuti karyawan periode ' . $period;
+        $mail->Body = 'Yth. Bapak/Ibu,<br><br>'
+            . 'Terlampir Data History cuti karyawan periode <b>' . html_escape($period) . '</b>.'
+            . '<br><br>Terima kasih.<br><b>Email ini dikirim otomatis dari System HR.</b>';
+        $mail->AltBody = 'Terlampir Data History cuti karyawan periode ' . $period
+            . '. Email ini dikirim otomatis dari System HR.';
+        $mail->send();
+    }
+
+    private function respond($message, $statusCode)
+    {
+        $this->output->set_status_header($statusCode);
+        $this->output->set_content_type('text/plain', 'utf-8');
+        $this->output->set_output($message);
     }
 }
