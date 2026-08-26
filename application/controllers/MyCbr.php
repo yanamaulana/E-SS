@@ -648,6 +648,51 @@ class MyCbr extends CI_Controller
             }
         }
 
+        $dataTaxDetails = array();
+        $code_having_tax_detail = 404;
+
+        if (!empty($Ref_no) && substr($Ref_no, 0, 3) !== 'PWU') {
+            $TaxDetails = $this->db->query("SELECT tx.TaxDetail_ID,
+                    tx.Invoice_Number,
+                    hdr.Invoice_Date,
+                    ac.Account_Name,
+                    tx.TaxDocNumber,
+                    tx.TaxDate,
+                    hdr.Currency_ID,
+                    hdr.Invoice_Amount,
+                    hdr.Base_Invoice_Amount,
+                    tx.Notes,
+                    tp.First_Name AS Created_By_Name,
+                    tx.Created_At
+                FROM TAccVI_TaxDetail tx
+                INNER JOIN TAccVI_Header hdr ON tx.Invoice_Number = hdr.Invoice_Number
+                INNER JOIN TAccount ac ON hdr.Account_ID = ac.Account_ID
+                INNER JOIN TUserPersonal tp ON tx.Created_By = tp.User_ID
+                WHERE tx.Invoice_Number = ?
+                ORDER BY tx.TaxDate, tx.Invoice_Number", [$Ref_no]);
+
+            if ($TaxDetails->num_rows() > 0) {
+                $code_having_tax_detail = 200;
+
+                foreach ($TaxDetails->result_array() as $li) {
+                    $dataTaxDetails[] = [
+                        'TaxDetail_ID'       => $li['TaxDetail_ID'],
+                        'Invoice_Number'     => $li['Invoice_Number'],
+                        'Invoice_Date'       => empty($li['Invoice_Date']) ? '' : date("d-M-Y", strtotime($li['Invoice_Date'])),
+                        'Account_Name'       => $li['Account_Name'],
+                        'TaxDocNumber'       => $li['TaxDocNumber'],
+                        'TaxDate'            => empty($li['TaxDate']) ? '' : date("d-M-Y", strtotime($li['TaxDate'])),
+                        'Currency_ID'        => $li['Currency_ID'],
+                        'Invoice_Amount'     => number_format($li['Invoice_Amount'], 4, '.', ','),
+                        'Base_Invoice_Amount'=> number_format($li['Base_Invoice_Amount'], 4, '.', ','),
+                        'Notes'              => $li['Notes'],
+                        'Created_By_Name'    => $li['Created_By_Name'],
+                        'Created_At'         => empty($li['Created_At']) ? '' : date("d-M-Y H:i:s", strtotime($li['Created_At'])),
+                    ];
+                }
+            }
+        }
+
         $CashbookCheck = $this->db->get_where('TAccCashBookDetail', ['Invoice_No' => $Req_No]);
 
         $ValidateCashbook = $CashbookCheck->num_rows();
@@ -735,6 +780,8 @@ class MyCbr extends CI_Controller
             'code_bdj'          => $code_having_bdj,
             'dataBdjs'          => $dataBdjs,
             'code_vin'          => $code_having_vin,
+            'code_tax_detail'   => $code_having_tax_detail,
+            'dataTaxDetails'    => $dataTaxDetails,
             'data_Attachments'  => $data_Attachments,
         ]);
     }

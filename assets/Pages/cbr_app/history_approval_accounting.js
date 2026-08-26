@@ -444,8 +444,38 @@ $(document).ready(function () {
         `;
         }
         container += `
+                        <div class="col-md-6">
+                            <div class="card my-3 px-2 py-2">
+                                <div class="table-responsive overflow-auto">
+                                    <table class="table-sm table-bordered rounded-sm" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-dark" colspan="12">
+                                                    Tax File Number
+                                                </th>
+                                            </tr>
+                                            <tr class="bg-dark">
+                                                <th class="text-center">Tax Detail ID</th>
+                                                <th class="text-center">Invoice Number</th>
+                                                <th class="text-center">Invoice Date</th>
+                                                <th class="text-center">Account Name</th>
+                                                <th class="text-center">Tax Document Number</th>
+                                                <th class="text-center">Tax Date</th>
+                                                <th class="text-center">Currency</th>
+                                                <th class="text-center">Invoice Amount</th>
+                                                <th class="text-center">Base Invoice Amount</th>
+                                                <th class="text-center">Notes</th>
+                                                <th class="text-center">Created By Name</th>
+                                                <th class="text-center">Created At</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody_taxnumber_${d.CBReq_No}"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                        <div class="row bg-primary">
+                    <div class="row bg-primary">
                             <div class="col-md-6">
                                 <div class="card my-3 px-2 py-2">
                                     <div class="table-responsive overflow-auto">
@@ -591,6 +621,30 @@ $(document).ready(function () {
                     });
                 } else {
                     tbody_bdj.append(`<tr><td colspan="6">This Cash Book Requisition doesnt have BDJ !</td></tr>`);
+                }
+
+                var tbody_taxnumber = $("#tbody_taxnumber_" + Req_No);
+                tbody_taxnumber.empty();
+                if (response.code_tax_detail == 200) {
+                    $.each(response.dataTaxDetails, function (index, tax) {
+                        tbody_taxnumber.append(
+                            `<tr>
+                                <td>${tax.TaxDetail_ID}</td>
+                                <td>${tax.Invoice_Number}</td>
+                                <td class="text-center">${tax.Invoice_Date}</td>
+                                <td>${tax.Account_Name}</td>
+                                <td>${tax.TaxDocNumber}</td>
+                                <td class="text-center">${tax.TaxDate}</td>
+                                <td class="text-center">${tax.Currency_ID}</td>
+                                <td class="text-end">${tax.Invoice_Amount}</td>
+                                <td class="text-end">${tax.Base_Invoice_Amount}</td>
+                                <td>${tax.Notes || ''}</td>
+                                <td>${tax.Created_By_Name}</td>
+                                <td class="text-center">${tax.Created_At}</td>
+                            </tr>`);
+                    });
+                } else {
+                    tbody_taxnumber.append(`<tr><td colspan="12">This Purchase Invoice doesn't have a tax file number!</td></tr>`);
                 }
 
 
