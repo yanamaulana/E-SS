@@ -113,6 +113,7 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuRnd">
                                                 <li><a href="<?= base_url('Report/MIS/ERP_AccessPermission') ?>" id="mis-panel-link" class="dropdown-item">ERP Access Permission</a></li>
+                                                <li><a href="<?= base_url('Report/MIS/PreviewListCbrApproval_lastStep') ?>" id="mis-panel-link" class="dropdown-item">Preview List Approval</a></li>
                                             </ul>
                                         </div>
                                         <div class="text-center px-4">
