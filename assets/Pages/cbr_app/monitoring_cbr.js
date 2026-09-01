@@ -134,17 +134,21 @@ $(document).ready(function () {
                 {
                     data: "Payment_Status", // <-- Ganti data dan name ke Payment_Status
                     name: "Payment_Status",
-                    render: function (data) {
-                        if (data == 0 || data == null || data == '') {
-                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
-                        } else if (data == 3) {
-                            return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
-                        } else if (data == 1) {
-                            return `<span class="text-white badge badge-success">Fully Paid</span>`;
-                        } else if (data == 2) {
-                            return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
+                    render: function (data, type, row, meta) {
+                        if (row.isClose == 0 || row.isClose == '' || row.isClose == null) {
+                            if (data == 0 || data == null || data == '') {
+                                return `<span class="text-dark badge badge-warning">Not Paid</span>`;
+                            } else if (data == 3) {
+                                return `<span class="text-white badge badge-info" style="background-color: #17a2b8;">Partially Paid</span>`;
+                            } else if (data == 1) {
+                                return `<span class="text-white badge badge-success">Fully Paid</span>`;
+                            } else if (data == 2) {
+                                return `<span class="text-white badge badge-danger">Payment Rejected</span>`;
+                            } else {
+                                return `<span class="text-dark badge badge-light">-</span>`;
+                            }
                         } else {
-                            return `<span class="text-dark badge badge-light">-</span>`;
+                            return `<span class="text-dark badge badge-warning">Not Paid</span>`;
                         }
                     }
                 },
