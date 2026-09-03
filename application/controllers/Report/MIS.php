@@ -132,7 +132,7 @@ class MIS extends CI_Controller
         $function_id = $this->input->post('function_id');
 
         $where = null;
-        $iswhere = "Tgf.UserGroup_ID in (27, 31, 34, 44, 46, 49, 66, 72, 87, 104) 
+        $iswhere = "Tgf.UserGroup_ID in (27, 31, 34, 44, 46, 49, 66, 72, 87, 104, 111) 
             and Tgf.sf_ufunc_id in ('ERSTD07854', 'ERSTD08128', 'ERSTD07148', 'ERSTD07142')";
 
         // Menambahkan kondisi filter jika ada
