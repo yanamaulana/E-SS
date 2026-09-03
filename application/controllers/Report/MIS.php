@@ -52,7 +52,8 @@ class MIS extends CI_Controller
     {
         $this->data['page_title'] = "Preview List Approval";
         $this->data['page_content'] = "Report/MIS/preview_list_cbr_approval_last_step";
-        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/MIS/PreviewListCbrApproval_lastStep.js?v=' . time() . '"></script>';
+        $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/MIS/PreviewListCbrApproval_lastStep.js?v=' . time() . '"></script>
+                                       <script src="' . base_url() . 'assets/Pages/cbr_app/history_approval_presdir.js?v=' . time() . '"></script>';
 
         $this->load->view($this->layout, $this->data);
     }
