@@ -4,6 +4,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class MIS extends CI_Controller
 {
     private $layout = 'layout';
+    private $erp_access_user_group_ids = [27, 31, 34, 44, 46, 49, 66, 72, 87, 104, 111];
+    private $erp_access_function_ids = ['ERSTD07854', 'ERSTD08128', 'ERSTD07148', 'ERSTD07142'];
 
     public function __construct()
     {
@@ -15,6 +17,9 @@ class MIS extends CI_Controller
 
     public function ERP_AccessPermission()
     {
+        $user_group_ids = implode(', ', $this->erp_access_user_group_ids);
+        $function_ids = "'" . implode("', '", $this->erp_access_function_ids) . "'";
+
         $this->data['page_title'] = "ERP Access Permission";
         $this->data['page_content'] = "Report/MIS/erp_access_permission";
         $this->data['script_page'] =  '<script src="' . base_url() . 'assets/Pages/MIS/Erp_AccessPermission.js?v=' . time() . '"></script>';
@@ -23,13 +28,13 @@ class MIS extends CI_Controller
         $this->data['user_groups'] = $this->db->query("SELECT DISTINCT Tug.UserGroup_ID, Tug.UserGroup_Name 
             FROM TUserGroupFuncL Tgf 
             JOIN TUserGroup Tug ON Tug.UserGroup_ID = Tgf.UserGroup_ID
-            WHERE Tgf.UserGroup_ID IN (27, 31, 34, 44, 46, 49, 66, 72, 87, 104)
+            WHERE Tgf.UserGroup_ID IN ({$user_group_ids})
             ORDER BY Tug.UserGroup_Name")->result();
 
         $this->data['functions'] = $this->db->query("SELECT DISTINCT Tgf.sf_ufunc_id, Tuf.SF_UFUNC_NAME_EN
             FROM TUserGroupFuncL Tgf
             JOIN TSF_USERFUNCTION Tuf ON Tgf.sf_ufunc_id = Tuf.SF_UFUNC_ID
-            WHERE Tgf.sf_ufunc_id IN ('ERSTD07854', 'ERSTD08128', 'ERSTD07148', 'ERSTD07142')
+            WHERE Tgf.sf_ufunc_id IN ({$function_ids})
             ORDER BY Tuf.SF_UFUNC_NAME_EN")->result();
 
         $this->data['employees'] = $this->db->query("
@@ -130,10 +135,12 @@ class MIS extends CI_Controller
     {
         $usergroup_id = $this->input->post('usergroup_id');
         $function_id = $this->input->post('function_id');
+        $user_group_ids = implode(', ', $this->erp_access_user_group_ids);
+        $function_ids = "'" . implode("', '", $this->erp_access_function_ids) . "'";
 
         $where = null;
-        $iswhere = "Tgf.UserGroup_ID in (27, 31, 34, 44, 46, 49, 66, 72, 87, 104, 111) 
-            and Tgf.sf_ufunc_id in ('ERSTD07854', 'ERSTD08128', 'ERSTD07148', 'ERSTD07142')";
+        $iswhere = "Tgf.UserGroup_ID in ({$user_group_ids})
+            and Tgf.sf_ufunc_id in ({$function_ids})";
 
         // Menambahkan kondisi filter jika ada
         if ($usergroup_id != 'ALL' && !empty($usergroup_id)) {
